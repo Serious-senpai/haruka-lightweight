@@ -14,6 +14,7 @@ INTENTS.auto_moderation = INTENTS.typing = False
 PORT = int(os.environ["PORT"]) if "PORT" in os.environ else None
 
 
+BASH_PATH = "./bash.txt"
 EVAL_PATH = "./eval.txt"
 LOG_PATH = "./log.txt"
 FUZZY_SCRIPT = "./bot/fuzzy.py"

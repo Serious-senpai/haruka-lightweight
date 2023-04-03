@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
 category_matcher = re.compile(r"(.+?)\.\w+")
 category_icons = {
+    "dev": "🛠️",
     "general": "💬",
     "search": "🔍",
 }
@@ -30,7 +31,7 @@ class HelpCommand(commands.HelpCommand):
     if TYPE_CHECKING:
         context: commands.Context[Haruka]
 
-    def __init__(self, *, show_hidden: bool = False) -> None:
+    def __init__(self) -> None:
         super().__init__(
             command_attrs={
                 "name": "help",
@@ -42,7 +43,6 @@ class HelpCommand(commands.HelpCommand):
                     commands.BucketType.user,
                 )
             },
-            show_hidden=show_hidden,
         )
 
     @property
@@ -50,9 +50,11 @@ class HelpCommand(commands.HelpCommand):
         return self.context.bot
 
     async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]], /) -> None:
+        show_hidden = await self.bot.is_owner(self.context.author)
+
         category_mapping: Dict[str, List[str]] = {}
         for command in self.bot.walk_commands():
-            if not command.hidden:
+            if show_hidden or not command.hidden:
                 match = category_matcher.fullmatch(command.brief)
                 assert match is not None
                 category = match.group(1)
@@ -114,7 +116,9 @@ class HelpCommand(commands.HelpCommand):
         if len(string) > 20:
             return "There is no such long command."
 
+        show_hidden = await self.bot.is_owner(self.context.author)
+
         # Also include aliases (don't use walk_commands)
-        command_names = [command.name for command in self.bot.all_commands.values() if not command.hidden]
+        command_names = [command.name for command in self.bot.all_commands.values() if show_hidden or not command.hidden]
         word = await utils.fuzzy_match(string, command_names)
         return f"No command called `{string}` was found. Did you mean `{word}`?"

@@ -41,7 +41,7 @@ class Haruka(commands.Bot):
 
         super().__init__(
             command_prefix=commands.when_mentioned_or(environment.COMMAND_PREFIX),
-            help_command=HelpCommand(show_hidden=False),
+            help_command=HelpCommand(),
             intents=environment.INTENTS,
             case_insensitive=True,
         )
@@ -111,6 +111,9 @@ class Haruka(commands.Bot):
 
         elif isinstance(error, commands.NSFWChannelRequired):
             await ctx.send("🔞 This command can only be invoked in a NSFW channel.")
+
+        elif isinstance(error, commands.MaxConcurrencyReached):
+            await ctx.send("Too many people are using this command!")
 
         elif isinstance(error, commands.CheckFailure):
             return

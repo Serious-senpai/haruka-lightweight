@@ -54,7 +54,7 @@ async def _sauce_cmd(ctx: commands.Context[Haruka], *image_urls: str) -> None:
         embeds = []
         breakpoints = []
         for index, url in enumerate(urls):
-            results = await saucenao.SauceResult.get_sauce(url, session=ctx.bot.session)
+            results = await saucenao.SauceResult.get_sauce(url, session=interface.session)
             result_total = len(results)
             if result_total > 0:
                 breakpoints.append(len(embeds))
