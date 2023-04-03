@@ -16,7 +16,10 @@ if TYPE_CHECKING:
     brief="general.say",
     description="Make the bot say something",
 )
-async def _say_cmd(ctx: commands.Context[Haruka], *, content: str) -> None:
+async def _say_cmd(ctx: commands.Context[Haruka], *, content: str = "") -> None:
+    if not content and not ctx.message.attachments:
+        raise commands.UserInputError
+
     await ctx.send(content, files=[await attachment.to_file() for attachment in ctx.message.attachments])
 
 
