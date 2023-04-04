@@ -143,6 +143,7 @@ class SharedInterface:
 
             loop = asyncio.get_running_loop()
             loop.add_signal_handler(signal.SIGTERM, graceful_exit)
+            loop.add_signal_handler(signal.SIGINT, graceful_exit)
             self.log("Added signal handler")
 
     async def close(self) -> None:
