@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import datetime
 import io
+import signal
 import sys
 from typing import Any, Awaitable, Callable, Concatenate, Optional, ParamSpec, Set, Union, TYPE_CHECKING
 
@@ -131,6 +133,17 @@ class SharedInterface:
         await site.start()
 
         self.log(f"Started serving on port {PORT}")
+        self.setup_signal_handler()
+
+    def setup_signal_handler(self) -> None:
+        if sys.platform == "linux":
+            def graceful_exit() -> None:
+                self.log("Received SIGTERM signal")
+                raise KeyboardInterrupt
+
+            loop = asyncio.get_running_loop()
+            loop.add_signal_handler(signal.SIGTERM, graceful_exit)
+            self.log("Added signal handler")
 
     async def close(self) -> None:
         if not self._closed:
