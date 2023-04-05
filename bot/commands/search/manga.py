@@ -28,30 +28,30 @@ async def _manga_cmd(ctx: commands.Context[Haruka], *, query: str) -> None:
     results = await mal.MALSearchResult.search(query, criteria="manga", session=interface.session)
 
     if not results:
-        return await ctx.send("No matching result was found.")
+        await ctx.send("No matching result was found.")
+    else:
+        desc = "\n".join(f"{emoji_ui.CHOICES[index]} {result.title}" for index, result in enumerate(results))
+        embed = discord.Embed(
+            title=f"Search results for {query}",
+            description=escape(desc),
+        )
+        message = await ctx.send(embed=embed)
 
-    desc = "\n".join(f"{emoji_ui.CHOICES[index]} {result.title}" for index, result in enumerate(results))
-    embed = discord.Embed(
-        title=f"Search results for {query}",
-        description=escape(desc),
-    )
-    message = await ctx.send(embed=embed)
+        display = emoji_ui.SelectMenu(ctx.bot, message, len(results))
+        choice = await display.listen(ctx.author.id)
 
-    display = emoji_ui.SelectMenu(ctx.bot, message, len(results))
-    choice = await display.listen(ctx.author.id)
+        if choice is not None:
+            manga = await mal.Manga.get(results[choice].id, session=interface.session)
+            if manga:
 
-    if choice is not None:
-        manga = await mal.Manga.get(results[choice].id, session=interface.session)
-        if manga:
-
-            if not manga.is_safe() and not getattr(ctx.channel, "nsfw", False):
-                return await ctx.send("🔞 This manga contains NSFW content and cannot be displayed in this channel!")
-
-            embed = manga.create_embed()
-            embed.set_author(
-                name=f"{ctx.author.name}'s request",
-                icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
-            )
-            await ctx.send(embed=embed)
-        else:
-            return await ctx.send("An unexpected error has occurred.")
+                if not manga.is_safe() and not getattr(ctx.channel, "nsfw", False):
+                    await ctx.send("🔞 This manga contains NSFW content and cannot be displayed in this channel!")
+                else:
+                    embed = manga.create_embed()
+                    embed.set_author(
+                        name=f"{ctx.author.name}'s request",
+                        icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
+                    )
+                    await ctx.send(embed=embed)
+            else:
+                await ctx.send("An unexpected error has occurred.")

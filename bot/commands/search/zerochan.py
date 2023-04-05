@@ -25,19 +25,19 @@ async def _zerochan_cmd(ctx: commands.Context[Haruka], *, query: str):
         urls = await zerochan.search(query, session=interface.session)
 
         if not urls:
-            return await ctx.send("No matching result was found.")
-
-        no_results = len(urls)
-        embeds = []
-        for index, url in enumerate(urls):
-            embed = discord.Embed()
-            embed.set_author(
-                name=f"Zerochan search for {query}",
-                icon_url=ctx.bot.user.avatar.url,
-            )
-            embed.set_image(url=url)
-            embed.set_footer(text=f"Result {index + 1}/{no_results}")
-            embeds.append(embed)
+            await ctx.send("No matching result was found.")
+        else:
+            no_results = len(urls)
+            embeds = []
+            for index, url in enumerate(urls):
+                embed = discord.Embed()
+                embed.set_author(
+                    name=f"Zerochan search for {query}",
+                    icon_url=ctx.bot.user.avatar.url,
+                )
+                embed.set_image(url=url)
+                embed.set_footer(text=f"Result {index + 1}/{no_results}")
+                embeds.append(embed)
 
     display = emoji_ui.NavigatorPagination(ctx.bot, embeds)
     await display.send(ctx.channel)
