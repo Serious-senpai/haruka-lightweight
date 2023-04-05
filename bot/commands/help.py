@@ -122,3 +122,6 @@ class HelpCommand(commands.HelpCommand):
         command_names = [command.name for command in self.bot.all_commands.values() if show_hidden or not command.hidden]
         word = await utils.fuzzy_match(string, command_names)
         return f"No command called `{string}` was found. Did you mean `{word}`?"
+
+    def subcommand_not_found(self, command: commands.Command, string: str) -> str:
+        return f"Command `{command.qualified_name}` has no subcommand named `{string}`!"
