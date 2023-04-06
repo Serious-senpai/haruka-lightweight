@@ -82,22 +82,22 @@ class TimingContextManager(contextlib.AbstractContextManager):
     """Measure the execution time of a code block."""
 
     __slots__ = (
+        "__result",
         "_start",
-        "_result",
     )
     if TYPE_CHECKING:
+        __result: Optional[float]
         _start: float
-        _result: Optional[float]
 
     def __init__(self) -> None:
         self._start = time.perf_counter()
-        self._result = None
+        self.__result = None
 
     def __enter__(self) -> TimingContextManager:
         return self
 
     def __exit__(self, exc_type: Optional[Type[BaseException]], exc_value: Optional[BaseException], traceback: Optional[TracebackType]) -> None:
-        self._result = time.perf_counter() - self._start
+        self.__result = time.perf_counter() - self._start
 
     @property
     def result(self) -> float:
@@ -105,10 +105,10 @@ class TimingContextManager(contextlib.AbstractContextManager):
         context manager. Note that this property will
         be unchanged after exiting the code block.
         """
-        if self._result is None:
+        if self.__result is None:
             return time.perf_counter() - self._start
 
-        return self._result
+        return self.__result
 
 
 async def get_reply(message: discord.Message) -> Optional[discord.Message]:

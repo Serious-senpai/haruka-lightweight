@@ -5,7 +5,7 @@ import datetime
 import io
 import signal
 import sys
-from typing import Any, Awaitable, Callable, Concatenate, Optional, ParamSpec, Set, Union, TYPE_CHECKING
+from typing import Any, Awaitable, Callable, ClassVar, Concatenate, Optional, ParamSpec, Set, Union, TYPE_CHECKING
 
 import aiohttp
 import discord
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 class SharedInterface:
 
-    __instance__: Optional[SharedInterface] = None
+    __instance__: ClassVar[Optional[SharedInterface]] = None
     __slots__ = (
         "__session",
         "__webapp",
@@ -73,7 +73,7 @@ class SharedInterface:
                     "Accept-Language": "en-US,en;q=0.9",
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62",
                 },
-                timeout=aiohttp.ClientTimeout(connect=5.0),
+                timeout=aiohttp.ClientTimeout(total=10.0, connect=5.0),
             )
 
         return self.__session
