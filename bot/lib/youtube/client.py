@@ -12,6 +12,11 @@ from shared import SharedInterface
 
 
 INVIDIOUS_INSTANCES_URL = URL.build(scheme="https", host="api.invidious.io", path="/instances.json")
+VALID_YOUTUBE_HOST = {
+    "www.youtube.com",
+    "youtube.com",
+    "youtu.be",
+}
 
 
 class _ResponseContextManager:
@@ -42,11 +47,13 @@ class YouTubeClient:
     __instance__: ClassVar[Optional[YouTubeClient]] = None
     __slots__ = (
         "__initialized",
+        "__ready",
         "instances",
         "interface",
     )
     if TYPE_CHECKING:
         __initialized: bool
+        __ready: asyncio.Event
         instances: List[URL]
         interface: SharedInterface
 
@@ -54,8 +61,12 @@ class YouTubeClient:
         if cls.__instance__ is None:
             self = super().__new__(cls)
             self.__initialized = False
+            self.__ready = asyncio.Event()
             self.instances = []
             self.interface = SharedInterface()
+
+            loop = asyncio.get_running_loop()
+            loop.create_task(self.initialize())
 
             cls.__instance__ = self
 
@@ -64,6 +75,9 @@ class YouTubeClient:
     @property
     def session(self) -> aiohttp.ClientSession:
         return self.interface.session
+
+    async def wait_until_ready(self) -> None:
+        await self.__ready.wait()
 
     async def initialize(self) -> None:
         if not self.__initialized:
@@ -81,6 +95,7 @@ class YouTubeClient:
                     self.instances.append(URL.build(scheme="https", host=host_name))
 
             await self.sort_instances()
+            self.__ready.set()
 
     async def sort_instances(self) -> None:
         ping: Dict[URL, float] = {}
@@ -97,6 +112,7 @@ class YouTubeClient:
         self.instances.sort(key=ping.__getitem__)
 
     async def _request(self, method: str, path: str, *, headers: Optional[Dict[str, Any]] = None) -> aiohttp.ClientResponse:
+        await self.wait_until_ready()
         for instance in self.instances:
             try:
                 url = instance.with_path(path)

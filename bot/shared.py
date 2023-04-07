@@ -14,6 +14,7 @@ from discord import app_commands
 from discord.ext import commands
 from discord.utils import utcnow
 
+import utils
 from environment import LOG_PATH, PORT
 from server import WebApp
 if TYPE_CHECKING:
@@ -122,7 +123,7 @@ class SharedInterface:
 
         return decorator
 
-    async def start_webapp(self) -> None:
+    async def start(self) -> None:
         if self.__webapp is not None:
             return
 
@@ -133,18 +134,22 @@ class SharedInterface:
         await site.start()
 
         self.log(f"Started serving on port {PORT}")
-        self.setup_signal_handler()
+
+        if sys.platform == "linux":
+            self.setup_signal_handler()
+
+            self.log("Installing ffmpeg")
+            await utils.install_ffmpeg(writer=self.logfile)
 
     def setup_signal_handler(self) -> None:
-        if sys.platform == "linux":
-            def graceful_exit() -> None:
-                self.log("Received SIGTERM signal")
-                raise KeyboardInterrupt
+        def graceful_exit() -> None:
+            self.log("Received SIGTERM signal")
+            raise KeyboardInterrupt
 
-            loop = asyncio.get_running_loop()
-            loop.add_signal_handler(signal.SIGTERM, graceful_exit)
-            loop.add_signal_handler(signal.SIGINT, graceful_exit)
-            self.log("Added signal handler")
+        loop = asyncio.get_running_loop()
+        loop.add_signal_handler(signal.SIGTERM, graceful_exit)
+        loop.add_signal_handler(signal.SIGINT, graceful_exit)
+        self.log("Added signal handler")
 
     async def close(self) -> None:
         if not self._closed:

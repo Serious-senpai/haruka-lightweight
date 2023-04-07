@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import contextlib
-from os.path import join
-from typing import Any, Dict, Optional, List, Union, TYPE_CHECKING
+from typing import Any, Dict, Optional, List,  Union, TYPE_CHECKING
 
 from yarl import URL
 
-from .client import YouTubeClient
+from .client import YouTubeClient, VALID_YOUTUBE_HOST
 from .tracks import Track
 
 
@@ -36,7 +35,7 @@ class Playlist:
     @classmethod
     async def from_id(cls, *, id: str) -> Optional[Playlist]:
         client = YouTubeClient()
-        async with client.get(join("/api/v1/playlists/", id)) as response:
+        async with client.get(f"/api/v1/playlists/{id}") as response:
             data = await response.json(encoding="utf-8")
             return cls(data)
 
@@ -45,5 +44,9 @@ class Playlist:
         if isinstance(url, str):
             url = URL(url)
 
-        with contextlib.suppress(KeyError):
+        with contextlib.suppress(AssertionError, KeyError):
+            assert url.host in VALID_YOUTUBE_HOST
             return await cls.from_id(id=url.query["list"])
+
+    def __repr__(self) -> str:
+        return f"<Playlist title={self.title} id={self.id}> author={self.author}"

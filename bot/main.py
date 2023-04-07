@@ -20,7 +20,7 @@ setup_logging(
 tokens = [TOKEN]
 bots = [haruka.Haruka(token=token) for token in tokens]
 
-futures = [interface.start_webapp()]
+futures = [interface.start()]
 for bot in bots:
     bot.import_commands()
     bot.import_slash_commands()

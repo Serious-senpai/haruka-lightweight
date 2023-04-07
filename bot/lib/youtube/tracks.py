@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar, Dict, Literal, TYPE_CHECKING
+import contextlib
+from typing import Any, ClassVar, Dict, Literal, Optional, Union, TYPE_CHECKING
 
 from yarl import URL
 
-from .client import YouTubeClient
+from .client import YouTubeClient, VALID_YOUTUBE_HOST
 
 
 class Track:
@@ -48,3 +49,22 @@ class Track:
             data = await response.json(encoding="utf-8")
 
         return data["dlink"]
+
+    @classmethod
+    async def from_id(cls, *, id: str) -> Optional[Track]:
+        client = YouTubeClient()
+        async with client.get(f"/api/v1/videos/{id}") as response:
+            data = await response.json(encoding="utf-8")
+            return cls(data)
+
+    @classmethod
+    async def from_url(cls, *, url: Union[str, URL]) -> Optional[Track]:
+        if isinstance(url, str):
+            url = URL(url)
+
+        with contextlib.suppress(AssertionError, KeyError):
+            assert url.host in VALID_YOUTUBE_HOST
+            return await cls.from_id(id=url.query["v"])
+
+    def __repr__(self) -> str:
+        return f"<Track title={self.title} id={self.id} author={self.author}>"

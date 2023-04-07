@@ -3,7 +3,9 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import datetime
+import io
 import re
+import sys
 import time
 from types import TracebackType
 from typing import Iterator, Optional, Type, TypeVar, TYPE_CHECKING
@@ -150,6 +152,14 @@ async def fuzzy_match(string: str, against: Iterator[str], *, pattern: str = r"\
         return match.group()
 
     raise RuntimeError(f"Cannot match regex pattern {repr(pattern)} with stdout {stdout}")
+
+
+async def install_ffmpeg(*, writer: Optional[io.TextIOWrapper] = None) -> None:
+    if sys.platform == "linux":
+        process = await asyncio.create_subprocess_shell("apt install ffmpeg -y", stdout=writer, stderr=writer)
+        await process.communicate()
+    else:
+        raise NotImplementedError
 
 
 async def coro_func(value: T) -> T:
