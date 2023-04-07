@@ -154,24 +154,33 @@ class AudioPlayer(discord.VoiceClient):
             "-filter:a", "volume=0.2",
         )
 
-        source = discord.FFmpegOpusAudio(
-            await track.get_audio_url(),
-            stderr=self.client.interface.logfile,
-            before_options=shlex.join(before_options),
-            options=shlex.join(options),
-        )
+        embed = await track.create_embed(self.client)
+        try:
+            audio_url = await track.get_audio_url()
+        except Exception as exc:
+            self.client.log(f"Unable to get audio URL for {track}\n" + utils.format_exception(exc))
 
-        if self.__stop_request or not self.is_connected():
-            return
+            await self.client.report(f"Unable to get audio URL for track ID {track.id}", embed=embed)
+            await self.notify("Unable to play this track, skipping.", embed=embed)
+        else:
+            source = discord.FFmpegOpusAudio(
+                audio_url,
+                stderr=self.client.interface.logfile,
+                before_options=shlex.join(before_options),
+                options=shlex.join(options),
+            )
 
-        await self.notify(f"Playing in {self.channel.mention}", embed=await track.create_embed(self.client))
-        self.__waiter.clear()
-        self.__operable.set()
+            if self.__stop_request or not self.is_connected():
+                return
 
-        super().play(source, after=after)
-        await self.__waiter.wait()
+            await self.notify(f"Playing in {self.channel.mention}", embed=embed)
+            self.__waiter.clear()
+            self.__operable.set()
 
-        self.__operable.clear()
+            super().play(source, after=after)
+            await self.__waiter.wait()
+
+            self.__operable.clear()
 
     async def pause(self) -> None:
         await self.__operable.wait()
@@ -194,4 +203,5 @@ class AudioPlayer(discord.VoiceClient):
             return _wait_stop()
 
         else:
+            self.__stop_request = True
             stop_func()

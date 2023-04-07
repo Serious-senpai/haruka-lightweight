@@ -39,7 +39,7 @@ async def _play_cmd(ctx: Context, url: str) -> None:
         return
 
     async with ctx.typing():
-        track = await youtube.Track.from_url(url=url)
+        track = await youtube.Track.from_url(url)
         if track is not None:
             client = await join_voice(ctx, channel)
             client.set_source(track)
@@ -48,7 +48,7 @@ async def _play_cmd(ctx: Context, url: str) -> None:
 
             return
 
-        playlist = await youtube.Playlist.from_url(url=url)
+        playlist = await youtube.Playlist.from_url(url)
         if playlist is not None:
             client = await join_voice(ctx, channel)
             client.set_source(playlist)

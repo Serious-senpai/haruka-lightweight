@@ -67,7 +67,7 @@ class Track:
         return data["dlink"]
 
     @classmethod
-    async def from_id(cls, *, id: str) -> Optional[Track]:
+    async def from_id(cls, id: str, /) -> Optional[Track]:
         client = YouTubeClient()
         async with client.get(f"/api/v1/videos/{id}") as response:
             if response.status == 200:
@@ -75,13 +75,13 @@ class Track:
                 return cls(data)
 
     @classmethod
-    async def from_url(cls, *, url: Union[str, URL]) -> Optional[Track]:
+    async def from_url(cls, url: Union[str, URL], /) -> Optional[Track]:
         if isinstance(url, str):
             url = URL(url)
 
         with contextlib.suppress(AssertionError, KeyError):
             assert url.host in VALID_YOUTUBE_HOST
-            return await cls.from_id(id=url.query["v"])
+            return await cls.from_id(url.query["v"])
 
     def __repr__(self) -> str:
         return f"<Track title={self.title} id={self.id} author={self.author}>"
