@@ -2,16 +2,14 @@ from __future__ import annotations
 
 import asyncio
 from os import path
-from typing import TYPE_CHECKING
 
 import discord
 from discord.ext import commands
 
 import utils
+from customs import Context
 from environment import BASH_PATH
 from shared import interface
-if TYPE_CHECKING:
-    from haruka import Haruka
 
 
 @interface.command(
@@ -24,7 +22,7 @@ if TYPE_CHECKING:
 )
 @commands.is_owner()
 @commands.max_concurrency(1)
-async def _bash_cmd(ctx: commands.Context[Haruka], *, cmd: str):
+async def _bash_cmd(ctx: Context, *, cmd: str):
     with open(BASH_PATH, "w", encoding="utf-8") as writer:
         with utils.TimingContextManager() as measure:
             try:

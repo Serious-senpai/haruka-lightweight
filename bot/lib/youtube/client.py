@@ -82,6 +82,7 @@ class YouTubeClient:
     async def initialize(self) -> None:
         if not self.__initialized:
             self.__initialized = True
+            self.interface.log("Initializing YouTubeClient")
 
             async with self.session.get(INVIDIOUS_INSTANCES_URL) as response:
                 response.raise_for_status()
@@ -95,6 +96,7 @@ class YouTubeClient:
                     self.instances.append(URL.build(scheme="https", host=host_name))
 
             await self.sort_instances()
+            self.interface.log("YouTube client is ready!")
             self.__ready.set()
 
     async def sort_instances(self) -> None:
@@ -117,7 +119,6 @@ class YouTubeClient:
             try:
                 url = instance.with_path(path)
                 response = await self.session.request(method, url, headers=headers)
-                response.raise_for_status()
             except (asyncio.TimeoutError, aiohttp.ClientError):
                 pass
             else:

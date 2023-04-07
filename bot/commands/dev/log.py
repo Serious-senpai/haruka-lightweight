@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import discord
 from discord.ext import commands
 
+from customs import Context
 from environment import LOG_PATH
 from shared import interface
-if TYPE_CHECKING:
-    from haruka import Haruka
 
 
 @interface.command(
@@ -18,5 +16,5 @@ if TYPE_CHECKING:
     hidden=True,
 )
 @commands.is_owner()
-async def _log_cmd(ctx: commands.Context[Haruka]) -> None:
+async def _log_cmd(ctx: Context) -> None:
     await ctx.send(embed=ctx.bot.display_status, file=discord.File(LOG_PATH))

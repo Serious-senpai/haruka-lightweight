@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from discord.ext import commands
 
+from customs import Context
 from shared import interface
-if TYPE_CHECKING:
-    from haruka import Haruka
 
 
 @interface.command(
@@ -16,7 +13,7 @@ if TYPE_CHECKING:
     hidden=True,
 )
 @commands.is_owner()
-async def _sync_cmd(ctx: commands.Context[Haruka]) -> None:
+async def _sync_cmd(ctx: Context) -> None:
     commands = await ctx.bot.tree.sync()
     content = f"Synced {len(commands)} command"
     if len(commands) != 1:

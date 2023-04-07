@@ -2,14 +2,11 @@ from __future__ import annotations
 
 import inspect
 import io
-from typing import TYPE_CHECKING
 
 import discord
-from discord.ext import commands
 
+from customs import Context
 from shared import interface
-if TYPE_CHECKING:
-    from haruka import Haruka
 
 
 @interface.command(
@@ -17,7 +14,7 @@ if TYPE_CHECKING:
     brief="general.source",
     description="Get the source code of a command",
 )
-async def _source_cmd(ctx: commands.Context[Haruka], command_name: str) -> None:
+async def _source_cmd(ctx: Context, command_name: str) -> None:
     command_name = command_name.lower()
     command = ctx.bot.get_command(command_name)
     if command is None:

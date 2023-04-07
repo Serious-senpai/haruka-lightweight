@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import contextlib
-from typing import Any, Dict, Optional, List,  Union, TYPE_CHECKING
+from typing import Any, Dict, Optional, List, Union, TYPE_CHECKING
 
+import discord
 from yarl import URL
 
+import utils
 from .client import YouTubeClient, VALID_YOUTUBE_HOST
 from .tracks import Track
+if TYPE_CHECKING:
+    from haruka import Haruka
 
 
 class Playlist:
@@ -32,12 +36,38 @@ class Playlist:
         self.description = data["description"]
         self.tracks = [Track(d) for d in data["videos"]]
 
+    @property
+    def url(self) -> URL:
+        return URL.build(scheme="https", host="youtube.com", path="/playlist", query={"list": self.id})
+
+    async def create_embed(self, bot: Haruka) -> discord.Embed:
+        embed = discord.Embed(
+            title=self.title,
+            description=utils.slice_string(self.description, 100),
+            url=self.url,
+        )
+
+        embed.add_field(
+            name=f"Tracks ({len(self.tracks)})",
+            value="\n".join(f"**#{index + 1}** [{track.title}]({track.url})" for index, track in enumerate(self.tracks[:7])),
+            inline=False,
+        )
+        embed.set_author(name=self.author, icon_url=bot.user.avatar.url)
+
+        if not self.tracks:
+            embed.set_thumbnail(url=bot.user.avatar.url)
+        else:
+            embed.set_thumbnail(url=self.tracks[0].thumbnail_url)
+
+        return embed
+
     @classmethod
     async def from_id(cls, *, id: str) -> Optional[Playlist]:
         client = YouTubeClient()
         async with client.get(f"/api/v1/playlists/{id}") as response:
-            data = await response.json(encoding="utf-8")
-            return cls(data)
+            if response.status == 200:
+                data = await response.json(encoding="utf-8")
+                return cls(data)
 
     @classmethod
     async def from_url(cls, *, url: Union[str, URL]) -> Optional[Playlist]:

@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import discord
 from discord.ext import commands
 
 import emoji_ui
+from customs import Context
 from lib import zerochan
 from shared import interface
-if TYPE_CHECKING:
-    from haruka import Haruka
 
 
 @interface.command(
@@ -20,7 +17,7 @@ if TYPE_CHECKING:
     usage="zerochan <query>",
 )
 @commands.cooldown(1, 5, commands.BucketType.user)
-async def _zerochan_cmd(ctx: commands.Context[Haruka], *, query: str):
+async def _zerochan_cmd(ctx: Context, *, query: str):
     async with ctx.typing():
         urls = await zerochan.search(query, session=interface.session)
 

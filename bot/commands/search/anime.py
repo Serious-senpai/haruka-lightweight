@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import discord
 from discord.ext import commands
 from discord.utils import escape_markdown as escape
 
 import emoji_ui
+from customs import Context
 from lib import mal
 from shared import interface
-if TYPE_CHECKING:
-    from haruka import Haruka
 
 
 @interface.command(
@@ -20,7 +17,7 @@ if TYPE_CHECKING:
     usage="anime <query>"
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _anime_cmd(ctx: commands.Context[Haruka], *, query: str) -> None:
+async def _anime_cmd(ctx: Context, *, query: str) -> None:
     if len(query) < 3:
         await ctx.send(f"Search query must have at least 3 characters")
         return

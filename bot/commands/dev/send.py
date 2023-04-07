@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import asyncio
 import io
-from typing import Optional, TYPE_CHECKING
 
 import aiohttp
 import discord
 from discord.ext import commands
 
+from customs import Context
 from shared import interface
-if TYPE_CHECKING:
-    from haruka import Haruka
 
 
 @interface.command(
@@ -21,7 +19,7 @@ if TYPE_CHECKING:
     hidden=True,
 )
 @commands.is_owner()
-async def _send_cmd(ctx: commands.Context[Haruka], *urls: str) -> None:
+async def _send_cmd(ctx: Context, *urls: str) -> None:
     if not urls:
         raise commands.UserInputError
 

@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import discord
 from discord.ext import commands
 
+from customs import Context
 from shared import interface
-if TYPE_CHECKING:
-    from haruka import Haruka
 
 
 @interface.command(
@@ -16,7 +13,7 @@ if TYPE_CHECKING:
     description="View someone's avatar",
     usage="ava <user | default: yourself>",
 )
-async def _ava_cmd(ctx: commands.Context[Haruka], user: discord.User = commands.Author) -> None:
+async def _ava_cmd(ctx: Context, user: discord.User = commands.Author) -> None:
     if user.avatar is None:
         await ctx.send("This user hasn't set an avatar yet!")
     else:

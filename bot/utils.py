@@ -7,6 +7,7 @@ import io
 import re
 import sys
 import time
+import traceback
 from types import TracebackType
 from typing import Iterator, Optional, Type, TypeVar, TYPE_CHECKING
 
@@ -25,11 +26,15 @@ def get_all_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
         yield from get_all_subclasses(subclass)
 
 
-def slice_string(string: str, offset: int) -> str:
-    if len(string) < offset:
+def format_exception(error: Exception) -> str:
+    return "".join(traceback.format_exception(error.__class__, error, error.__traceback__))
+
+
+def slice_string(string: str, limit: int) -> str:
+    if len(string) < limit:
         return string
 
-    return string[:offset] + " [...]"
+    return string[:limit] + " [...]"
 
 
 def format(time: float) -> str:

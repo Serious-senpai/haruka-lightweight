@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING
 
 import discord
 from discord.ext import commands
 
+from customs import Context
 from shared import interface
-if TYPE_CHECKING:
-    from haruka import Haruka
 
 
 @interface.command(
@@ -16,7 +14,7 @@ if TYPE_CHECKING:
     brief="general.speak",
     description="Make the bot say something. Unlike `say`, this will attempt to delete your command message first",
 )
-async def _speak_cmd(ctx: commands.Context[Haruka], *, content: str = "") -> None:
+async def _speak_cmd(ctx: Context, *, content: str = "") -> None:
     if not content and not ctx.message.attachments:
         raise commands.UserInputError
 

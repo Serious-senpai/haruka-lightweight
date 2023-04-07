@@ -3,9 +3,13 @@ from __future__ import annotations
 import contextlib
 from typing import Any, ClassVar, Dict, Literal, Optional, Union, TYPE_CHECKING
 
+import discord
 from yarl import URL
 
+import utils
 from .client import YouTubeClient, VALID_YOUTUBE_HOST
+if TYPE_CHECKING:
+    from haruka import Haruka
 
 
 class Track:
@@ -23,19 +27,31 @@ class Track:
         title: str
         id: str
         author: str
-        author_url: str
+        author_url: URL
         length: int
 
     def __init__(self, data: Dict[str, Any]) -> None:
         self.title = data["title"]
         self.id = data["videoId"]
         self.author = data["author"]
-        self.author_url = data["authorUrl"]
+        self.author_url = URL.build(scheme="https", host="youtube.com", path=data["authorUrl"])
         self.length = data["lengthSeconds"]
 
     @property
     def url(self) -> URL:
         return URL.build(scheme="https", host="youtube.com", path="/watch", query={"v": self.id})
+
+    @property
+    def thumbnail_url(self) -> URL:
+        return URL.build(scheme="https", host="img.youtube.com", path=f"/vi/{self.id}/mqdefault.jpg")
+
+    async def create_embed(self, bot: Haruka) -> discord.Embed:
+        embed = discord.Embed(title=self.title, url=self.url)
+        embed.set_thumbnail(url=self.thumbnail_url)
+        embed.set_author(name=self.author, url=self.author_url, icon_url=bot.user.avatar.url)
+        embed.set_footer(text=f"Length: {utils.format(self.length)}")
+
+        return embed
 
     async def get_audio_url(self, *, format: Literal["140", "mp3128"] = "mp3128") -> URL:
         client = YouTubeClient()
@@ -54,8 +70,9 @@ class Track:
     async def from_id(cls, *, id: str) -> Optional[Track]:
         client = YouTubeClient()
         async with client.get(f"/api/v1/videos/{id}") as response:
-            data = await response.json(encoding="utf-8")
-            return cls(data)
+            if response.status == 200:
+                data = await response.json(encoding="utf-8")
+                return cls(data)
 
     @classmethod
     async def from_url(cls, *, url: Union[str, URL]) -> Optional[Track]:

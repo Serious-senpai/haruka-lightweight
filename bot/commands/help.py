@@ -16,6 +16,7 @@ category_matcher = re.compile(r"(.+?)\.\w+")
 category_icons = {
     "dev": "🛠️",
     "general": "💬",
+    "music": "🎶",
     "search": "🔍",
 }
 

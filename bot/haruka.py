@@ -12,7 +12,7 @@ from discord.ext import commands
 import environment
 import utils
 from commands.help import HelpCommand
-from customs import Loop
+from customs import Context, Loop
 from shared import SharedInterface
 
 
@@ -40,6 +40,7 @@ class Haruka(commands.Bot):
         self.__instances__[token] = self
 
         super().__init__(
+            activity=discord.Game("Preparing..."),
             command_prefix=commands.when_mentioned_or(environment.COMMAND_PREFIX),
             help_command=HelpCommand(),
             intents=environment.INTENTS,
@@ -62,6 +63,7 @@ class Haruka(commands.Bot):
 
         async def when_ready() -> None:
             await self.wait_until_ready()
+            await asyncio.sleep(15.0)
             await self.change_presence(activity=discord.Game("with my senpai!"))
 
         asyncio.create_task(when_ready())
@@ -71,7 +73,7 @@ class Haruka(commands.Bot):
         self.log(f"Logged in as {self.user}")
         await self.report("Haruka is ready!", send_state=False)
 
-    async def on_command_error(self, ctx: commands.Context[Haruka], error: Exception) -> None:
+    async def on_command_error(self, ctx: Context, error: Exception) -> None:
         if isinstance(error, commands.CommandNotFound):
             return
 
@@ -130,7 +132,7 @@ class Haruka(commands.Bot):
 
         else:
             self.log(f"'{ctx.message.content}' in {ctx.message.id}/{ctx.channel.id} from {ctx.author} ({ctx.author.id}):")
-            self.log("".join(traceback.format_exception(error.__class__, error, error.__traceback__)))
+            self.log(utils.format_exception(error))
             await self.report("An error has just occured and was handled by `on_command_error`", send_state=False)
 
     async def on_error(self, event_method: str, /, *args, **kwargs) -> None:

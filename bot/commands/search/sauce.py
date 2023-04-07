@@ -6,16 +6,17 @@ import discord
 from discord.ext import commands
 
 import emoji_ui
+from customs import Context
 from lib import saucenao
 from shared import interface
 if TYPE_CHECKING:
     from haruka import Haruka
 
 
-async def _send_single_sauce(bot: Haruka, target: discord.abc.Messageable, image_url: str) -> None:
-    results = await saucenao.SauceResult.get_sauce(image_url, session=bot.session)
+async def _send_single_sauce(ctx: Context, image_url: str) -> None:
+    results = await saucenao.SauceResult.get_sauce(image_url, session=ctx.bot.session)
     if not results:
-        await target.send("Cannot find the image sauce!")
+        await ctx.send("Cannot find the image sauce!")
     else:
         total = len(results)
         embeds = []
@@ -23,13 +24,13 @@ async def _send_single_sauce(bot: Haruka, target: discord.abc.Messageable, image
             embed = result.create_embed()
             embed.set_author(
                 name="Image search result",
-                icon_url=bot.user.avatar.url,
+                icon_url=ctx.bot.user.avatar.url,
             )
             embed.set_footer(text=f"Displaying result {index + 1}/{total}")
             embeds.append(embed)
 
-        display = emoji_ui.NavigatorPagination(bot, embeds)
-        await display.send(target)
+        display = emoji_ui.NavigatorPagination(ctx.bot, embeds)
+        await display.send(ctx.channel)
 
 
 @interface.command(
@@ -39,7 +40,7 @@ async def _send_single_sauce(bot: Haruka, target: discord.abc.Messageable, image
     usage="sauce <image URL(s)>\nsauce <attachment(s)>",
 )
 @commands.cooldown(1, 3, commands.BucketType.user)
-async def _sauce_cmd(ctx: commands.Context[Haruka], *image_urls: str) -> None:
+async def _sauce_cmd(ctx: Context, *image_urls: str) -> None:
     urls = list(image_urls)
     for attachment in ctx.message.attachments:
         urls.append(attachment.url)
@@ -49,7 +50,7 @@ async def _sauce_cmd(ctx: commands.Context[Haruka], *image_urls: str) -> None:
         raise commands.UserInputError
 
     if total == 1:
-        await _send_single_sauce(ctx.bot, ctx.channel, urls[0])
+        await _send_single_sauce(ctx, urls[0])
     else:
         embeds = []
         breakpoints = []

@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-import discord
 from discord import app_commands
 from discord.ext import commands
 
+from customs import Context, Interaction
 from shared import interface
-if TYPE_CHECKING:
-    from haruka import Haruka
 
 
 @interface.command(
@@ -16,7 +12,7 @@ if TYPE_CHECKING:
     brief="general.say",
     description="Make the bot say something",
 )
-async def _say_cmd(ctx: commands.Context[Haruka], *, content: str = "") -> None:
+async def _say_cmd(ctx: Context, *, content: str = "") -> None:
     if not content and not ctx.message.attachments:
         raise commands.UserInputError
 
@@ -28,5 +24,5 @@ async def _say_cmd(ctx: commands.Context[Haruka], *, content: str = "") -> None:
     description="Make the bot say something, can be used to send animated emojis",
 )
 @app_commands.describe(content="The message to repeat")
-async def _say_slash(interaction: discord.Interaction[Haruka], content: str) -> None:
+async def _say_slash(interaction: Interaction, content: str) -> None:
     await interaction.response.send_message(content)

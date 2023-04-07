@@ -5,16 +5,14 @@ import contextlib
 import textwrap
 import traceback
 from os import path
-from typing import TYPE_CHECKING
 
 import discord
 from discord.ext import commands
 
 import utils
+from customs import Context
 from environment import EVAL_PATH, EVAL_TASK_ATTR
 from shared import interface
-if TYPE_CHECKING:
-    from haruka import Haruka
 
 
 INDENT = " " * 4
@@ -30,7 +28,7 @@ INDENT = " " * 4
 )
 @commands.is_owner()
 @commands.max_concurrency(1)
-async def _eval_cmd(ctx: commands.Context[Haruka], *, code: str) -> None:
+async def _eval_cmd(ctx: Context, *, code: str) -> None:
     if getattr(ctx.bot, EVAL_TASK_ATTR, None) is not None:
         await ctx.send("Another task is running, please wait for it to terminate!")
         return
