@@ -147,7 +147,7 @@ class AudioPlayer(discord.VoiceClient):
         except Exception as exc:
             self.client.log(f"Unable to get audio URL for {track}\n" + utils.format_exception(exc))
 
-            await self.client.report(f"Unable to get audio URL for track ID {track.id}", send_state=False)
+            await self.client.report(f"Unable to get audio URL for track ID `{track.id}`", send_state=False)
             await self.notify("Unable to play this track, skipping.", embed=embed)
         else:
             def after(error: Optional[Exception]) -> None:

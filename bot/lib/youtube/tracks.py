@@ -53,18 +53,25 @@ class Track:
 
         return embed
 
-    async def get_audio_url(self, *, format: Literal["140", "mp3128"] = "mp3128") -> URL:
+    async def get_audio_url(self, *, format: Literal["140", "mp3128"] = "mp3128", max_retry: int = 5) -> URL:
         client = YouTubeClient()
-        async with client.session.post(self._analyzer, data={"k_query": str(self.url)}) as response:
-            response.raise_for_status()
-            data = await response.json(encoding="utf-8")
+        while True:
+            try:
+                async with client.session.post(self._analyzer, data={"k_query": str(self.url)}) as response:
+                    response.raise_for_status()
+                    data = await response.json(encoding="utf-8")
 
-        key = data["links"]["mp3"][format]["k"]
-        async with client.session.post(self._converter, data={"vid": self.id, "k": key}) as response:
-            response.raise_for_status()
-            data = await response.json(encoding="utf-8")
+                key = data["links"]["mp3"][format]["k"]
+                async with client.session.post(self._converter, data={"vid": self.id, "k": key}) as response:
+                    response.raise_for_status()
+                    data = await response.json(encoding="utf-8")
 
-        return data["dlink"]
+                return data["dlink"]
+
+            except Exception:
+                max_retry -= 1
+                if max_retry == 0:
+                    raise
 
     @classmethod
     async def from_id(cls, id: str, /) -> Optional[Track]:
