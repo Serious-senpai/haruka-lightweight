@@ -47,9 +47,13 @@ class Playlist:
             url=self.url,
         )
 
+        track_display = "\n".join(f"**#{index + 1}** [{track.title}]({track.url})" for index, track in enumerate(self.tracks[:7]))
+        if len(self.tracks) > 7:
+            track_display += f"\n... and {len(self.tracks) - 7} more"
+
         embed.add_field(
             name=f"Tracks ({len(self.tracks)})",
-            value="\n".join(f"**#{index + 1}** [{track.title}]({track.url})" for index, track in enumerate(self.tracks[:7])),
+            value=track_display,
             inline=False,
         )
         embed.set_author(name=self.author, icon_url=bot.user.avatar.url)

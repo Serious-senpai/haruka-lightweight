@@ -166,15 +166,19 @@ class AudioPlayer(discord.VoiceClient):
                 "-filter:a", "volume=0.2",
             )
 
-            await self.client.interface.wait_until_ready()  # Wait for ffmpeg installation to complete
-            source = discord.FFmpegOpusAudio(
-                audio_url,
-                stderr=self.client.interface.logfile,
-                before_options=shlex.join(before_options),
-                options=shlex.join(options),
-            )
+            with contextlib.suppress(discord.HTTPException):
+                if self.target is not None:
+                    await self.target.typing()
 
-            await self.notify(f"Playing in {self.channel.mention}", embed=embed)
+                await self.client.interface.wait_until_ready()  # Wait for ffmpeg installation to complete
+                source = discord.FFmpegOpusAudio(
+                    audio_url,
+                    stderr=self.client.interface.logfile,
+                    before_options=shlex.join(before_options),
+                    options=shlex.join(options),
+                )
+
+                await self.notify(f"Playing in {self.channel.mention}", embed=embed)
 
             if self.__stop_request or not self.is_connected():
                 return
