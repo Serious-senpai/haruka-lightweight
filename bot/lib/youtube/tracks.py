@@ -7,6 +7,7 @@ import discord
 from yarl import URL
 
 import utils
+from shared import interface
 from .client import YouTubeClient, VALID_YOUTUBE_HOST
 if TYPE_CHECKING:
     from haruka import Haruka
@@ -68,8 +69,13 @@ class Track:
 
                 return data["dlink"]
 
-            except Exception:
+            except Exception as error:
                 max_retry -= 1
+
+                if isinstance(error, KeyError):
+                    key = error.args[0]
+                    interface.log(f"Invalid data received: {data} (failed to lookup \"{key}\")")
+
                 if max_retry == 0:
                     raise
 
