@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-import traceback
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import Any, Awaitable, Dict, Optional, TYPE_CHECKING
 
 import aiohttp
 import discord
@@ -40,7 +39,7 @@ class Haruka(commands.Bot):
         self.__instances__[token] = self
 
         super().__init__(
-            activity=discord.Game("Preparing..."),
+            activity=discord.Game("with my senpai!"),
             command_prefix=commands.when_mentioned_or(environment.COMMAND_PREFIX),
             help_command=HelpCommand(),
             intents=environment.INTENTS,
@@ -60,13 +59,6 @@ class Haruka(commands.Bot):
     async def setup_hook(self) -> None:
         if self.owner is None:
             self.owner = await self.fetch_user(self.owner_id)
-
-        async def when_ready() -> None:
-            await self.wait_until_ready()
-            await asyncio.sleep(15.0)
-            await self.change_presence(activity=discord.Game("with my senpai!"))
-
-        asyncio.create_task(when_ready())
 
     async def on_ready(self) -> None:
         print(f"Logged in as {self.user}")
@@ -223,8 +215,8 @@ class Haruka(commands.Bot):
         for command in self.interface.slash_commands:
             self.tree.add_command(command)
 
-    async def start(self) -> None:
-        await super().start(token=self.token)
+    def start(self) -> Awaitable[None]:
+        return super().start(token=self.token)
 
     async def close(self) -> None:
         await self.interface.close()

@@ -138,31 +138,31 @@ class AudioPlayer(discord.VoiceClient):
             raise TypeError(f"Expected a Playlist or Track to be set, not {source.__class__.__name__}")
 
     async def __play_track(self, track: Track) -> None:
-        def after(error: Optional[Exception]) -> None:
-            self.__waiter.set()
-            if error is not None:
-                self.client.log(utils.format_exception(error))
-
-        before_options = (
-            "-start_at_zero",
-            "-reconnect", "1",
-            "-reconnect_streamed", "1",
-            "-reconnect_delay_max", "1",
-        )
-        options = (
-            "-vn",
-            "-filter:a", "volume=0.2",
-        )
-
         embed = await track.create_embed(self.client)
         try:
             audio_url = await track.get_audio_url()
         except Exception as exc:
             self.client.log(f"Unable to get audio URL for {track}\n" + utils.format_exception(exc))
 
-            await self.client.report(f"Unable to get audio URL for track ID {track.id}", embed=embed)
+            await self.client.report(f"Unable to get audio URL for track ID {track.id}", send_state=False)
             await self.notify("Unable to play this track, skipping.", embed=embed)
         else:
+            def after(error: Optional[Exception]) -> None:
+                self.__waiter.set()
+                if error is not None:
+                    self.client.log(utils.format_exception(error))
+
+            before_options = (
+                "-start_at_zero",
+                "-reconnect", "1",
+                "-reconnect_streamed", "1",
+                "-reconnect_delay_max", "1",
+            )
+            options = (
+                "-vn",
+                "-filter:a", "volume=0.2",
+            )
+
             source = discord.FFmpegOpusAudio(
                 audio_url,
                 stderr=self.client.interface.logfile,
