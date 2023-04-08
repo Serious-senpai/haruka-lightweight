@@ -31,6 +31,7 @@ class SharedInterface:
 
     __instance__: ClassVar[Optional[SharedInterface]] = None
     __slots__ = (
+        "__ready",
         "__session",
         "__webapp",
         "_closed",
@@ -41,6 +42,7 @@ class SharedInterface:
         "uptime",
     )
     if TYPE_CHECKING:
+        __ready: asyncio.Event
         __session: Optional[aiohttp.ClientSession]
         __webapp: Optional[WebApp]
         _closed: bool
@@ -53,6 +55,7 @@ class SharedInterface:
     def __new__(cls) -> SharedInterface:
         if cls.__instance__ is None:
             self = super().__new__(cls)
+            self.__ready = asyncio.Event()
             self.__session = None
             self.__webapp = None
             self._closed = False
@@ -140,6 +143,11 @@ class SharedInterface:
 
             self.log("Installing ffmpeg")
             await utils.install_ffmpeg(writer=self.logfile)
+
+        self.__ready.set()
+
+    async def wait_until_ready(self) -> None:
+        await self.__ready.wait()
 
     def setup_signal_handler(self) -> None:
         def graceful_exit() -> None:

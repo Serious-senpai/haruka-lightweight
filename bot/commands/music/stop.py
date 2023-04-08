@@ -14,7 +14,7 @@ from shared import interface
 @commands.max_concurrency(1, commands.BucketType.guild, wait=True)
 async def _stop_cmd(ctx: Context) -> None:
     try:
-        await ctx.voice_client.stop(wait=True)
+        ctx.voice_client.stop()
         await ctx.voice_client.disconnect(force=True)
         await ctx.send("Stopped audio.")
     except AttributeError:

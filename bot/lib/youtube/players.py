@@ -4,7 +4,7 @@ import asyncio
 import contextlib
 import shlex
 from random import randint
-from typing import Any, Awaitable, Optional, Union, TYPE_CHECKING
+from typing import Any, Optional, Union, TYPE_CHECKING
 
 import discord
 
@@ -24,6 +24,7 @@ class AudioPlayer(discord.VoiceClient):
 
     __slots__ = (
         "__operable",
+        "__play_lock",
         "__repeat",
         "__shuffle",
         "__stop_request",
@@ -33,20 +34,22 @@ class AudioPlayer(discord.VoiceClient):
     )
     if TYPE_CHECKING:
         __operable: asyncio.Event
+        __play_lock: asyncio.Lock
         __repeat: bool
         __shuffle: bool
         __stop_request: bool
         __waiter: asyncio.Event
-        channel: discord.VoiceChannel
+        playing: Optional[Union[Playlist, Track]]
         target: Optional[discord.abc.Messageable]
 
         # Override types from superclass
+        channel: discord.VoiceChannel
         client: Haruka
-        playing: Optional[Union[Playlist, Track]]
 
     def __init__(self, client: Haruka, channel: discord.VoiceChannel) -> None:
         super().__init__(client, channel)
         self.__init_state()
+        self.__play_lock = asyncio.Lock()
         self.__operable = asyncio.Event()
         self.__waiter = asyncio.Event()
         self.playing = None
@@ -105,35 +108,37 @@ class AudioPlayer(discord.VoiceClient):
         `ValueError`: The set playlist is empty
         `TypeError`: No audio source was set or the audio source is invalid
         """
-        source = self.playing
-        if source is None:
-            raise RuntimeError("No audio source was set")
+        async with self.__play_lock:
+            source = self.playing
+            if source is None:
+                raise RuntimeError("No audio source was set")
 
-        if isinstance(source, Playlist):
-            tracks = source.tracks
-            if not tracks:
-                raise ValueError("The provided playlist is empty")
+            if isinstance(source, Playlist):
+                tracks = source.tracks
+                if not tracks:
+                    raise ValueError("The provided playlist is empty")
 
-            await self.notify(f"Playing in {self.channel.mention}", embed=await source.create_embed(self.client))
+                await self.notify(f"Playing in {self.channel.mention}", embed=await source.create_embed(self.client))
 
-            index = 0
-            self.__init_state()
-            while self.is_connected() and not self.__stop_request:
-                await self.__play_track(tracks[index])
-                if not self.__repeat:
-                    if self.__shuffle:
-                        index += randint(0, len(tracks) - 1)
-                    else:
-                        index += 1
+                index = 0
+                self.__init_state()
+                while self.is_connected() and not self.__stop_request:
+                    await self.__play_track(tracks[index])
+                    if not self.__repeat:
+                        if self.__shuffle:
+                            index += randint(0, len(tracks) - 1)
+                        else:
+                            index += 1
 
-                    index %= len(tracks)
+                        index %= len(tracks)
 
-        elif isinstance(source, Track):
-            while self.is_connected() and not self.__stop_request:
-                await self.__play_track(source)
+            elif isinstance(source, Track):
+                self.__init_state()
+                while self.is_connected() and not self.__stop_request:
+                    await self.__play_track(source)
 
-        else:
-            raise TypeError(f"Expected a Playlist or Track to be set, not {source.__class__.__name__}")
+            else:
+                raise TypeError(f"Expected a Playlist or Track to be set, not {source.__class__.__name__}")
 
     async def __play_track(self, track: Track) -> None:
         embed = await track.create_embed(self.client)
@@ -161,6 +166,7 @@ class AudioPlayer(discord.VoiceClient):
                 "-filter:a", "volume=0.2",
             )
 
+            await self.client.interface.wait_until_ready()  # Wait for ffmpeg installation to complete
             source = discord.FFmpegOpusAudio(
                 audio_url,
                 stderr=self.client.interface.logfile,
@@ -168,10 +174,11 @@ class AudioPlayer(discord.VoiceClient):
                 options=shlex.join(options),
             )
 
+            await self.notify(f"Playing in {self.channel.mention}", embed=embed)
+
             if self.__stop_request or not self.is_connected():
                 return
 
-            await self.notify(f"Playing in {self.channel.mention}", embed=embed)
             self.__waiter.clear()
             self.__operable.set()
 
@@ -190,16 +197,6 @@ class AudioPlayer(discord.VoiceClient):
         if self.is_paused():
             super().resume()
 
-    def stop(self, *, wait=False) -> Optional[Awaitable[None]]:
-        stop_func = super().stop
-        if wait:
-            async def _wait_stop() -> None:
-                await self.__operable.wait()
-                self.__stop_request = True
-                stop_func()
-
-            return _wait_stop()
-
-        else:
-            self.__stop_request = True
-            stop_func()
+    def stop(self) -> None:
+        self.__stop_request = True
+        super().stop()
