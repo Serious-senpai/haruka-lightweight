@@ -120,8 +120,6 @@ class AudioPlayer(discord.VoiceClient):
             self.__init_state()
             while self.is_connected() and not self.__stop_request:
                 await self.__play_track(tracks[index])
-                index += 1
-
                 if not self.__repeat:
                     if self.__shuffle:
                         index += randint(0, len(tracks) - 1)
