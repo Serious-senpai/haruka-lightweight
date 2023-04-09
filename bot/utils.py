@@ -167,6 +167,14 @@ async def install_ffmpeg(*, writer: Optional[io.TextIOWrapper] = None) -> None:
         raise NotImplementedError
 
 
+async def build_source(*, writer: Optional[io.TextIOWrapper] = None) -> None:
+    if sys.platform == "linux":
+        process = await asyncio.create_subprocess_shell("g++ -std=c++2a -Wall -g bot/fuzzy.cpp -o bot/fuzzy.out", stdout=writer, stderr=writer)
+        await process.communicate()
+    else:
+        raise NotImplementedError
+
+
 async def coro_func(value: T) -> T:
     return value
 
