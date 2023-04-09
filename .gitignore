@@ -1,5 +1,7 @@
 **/__pycache__
+*.out
 run.bat
+run.sh
 bash.txt
 eval.txt
 log.txt
