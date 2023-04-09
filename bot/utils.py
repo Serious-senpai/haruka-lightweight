@@ -168,7 +168,10 @@ async def install_ffmpeg(*, writer: Optional[io.TextIOWrapper] = None) -> None:
 
 
 async def build_source(*, writer: Optional[io.TextIOWrapper] = None) -> None:
-    if sys.platform == "linux":
+    if sys.platform == "win32":
+        process = await asyncio.create_subprocess_shell("apt install g++ -y", stdout=writer, stderr=writer)
+        await process.communicate()
+
         process = await asyncio.create_subprocess_shell("g++ -std=c++2a -Wall -g bot/fuzzy.cpp -o bot/fuzzy.out", stdout=writer, stderr=writer)
         await process.communicate()
     else:
