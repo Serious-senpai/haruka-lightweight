@@ -39,7 +39,7 @@ async def _send_single_sauce(ctx: Context, image_url: str) -> None:
     description="Find the image source with saucenao.",
     usage="sauce <image URL(s)>\nsauce <attachment(s)>",
 )
-@commands.cooldown(1, 3, commands.BucketType.user)
+@commands.cooldown(1, 5, commands.BucketType.user)
 async def _sauce_cmd(ctx: Context, *image_urls: str) -> None:
     urls = list(image_urls)
     for attachment in ctx.message.attachments:

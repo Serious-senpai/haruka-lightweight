@@ -48,17 +48,14 @@ class AudioPlayer(discord.VoiceClient):
 
     def __init__(self, client: Haruka, channel: discord.VoiceChannel) -> None:
         super().__init__(client, channel)
-        self.__init_state()
         self.__play_lock = asyncio.Lock()
         self.__operable = asyncio.Event()
-        self.__waiter = asyncio.Event()
-        self.playing = None
-        self.target = None
-
-    def __init_state(self) -> None:
         self.__repeat = False
         self.__shuffle = False
         self.__stop_request = False
+        self.__waiter = asyncio.Event()
+        self.playing = None
+        self.target = None
 
     @property
     def repeat(self) -> bool:
@@ -121,7 +118,7 @@ class AudioPlayer(discord.VoiceClient):
                 await self.notify(f"Playing in {self.channel.mention}", embed=await source.create_embed(self.client))
 
                 index = 0
-                self.__init_state()
+                self.__stop_request = False
                 while self.is_connected() and not self.__stop_request:
                     await self.__play_track(tracks[index])
                     if not self.__repeat:
@@ -133,7 +130,7 @@ class AudioPlayer(discord.VoiceClient):
                         index %= len(tracks)
 
             elif isinstance(source, Track):
-                self.__init_state()
+                self.__stop_request = False
                 while self.is_connected() and not self.__stop_request:
                     await self.__play_track(source)
 
@@ -200,6 +197,10 @@ class AudioPlayer(discord.VoiceClient):
         await self.__operable.wait()
         if self.is_paused():
             super().resume()
+
+    async def skip(self) -> None:
+        await self.__operable.wait()
+        super().stop()
 
     def stop(self) -> None:
         self.__stop_request = True

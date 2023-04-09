@@ -16,7 +16,7 @@ from shared import interface
     description="Search for an manga in the MyAnimeList database",
     usage="manga <query>"
 )
-@commands.cooldown(1, 2, commands.BucketType.user)
+@commands.cooldown(1, 3, commands.BucketType.user)
 async def _manga_cmd(ctx: Context, *, query: str) -> None:
     if len(query) < 3:
         await ctx.send(f"Search query must have at least 3 characters")
