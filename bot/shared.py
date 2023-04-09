@@ -141,11 +141,11 @@ class SharedInterface:
         if sys.platform == "linux":
             self.setup_signal_handler()
 
-            self.log("Building source files")
-            await utils.build_source(writer=self.logfile)
-
-            self.log("Installing ffmpeg")
-            await utils.install_ffmpeg(writer=self.logfile)
+            self.log("Starting subprocesses")
+            await asyncio.gather(
+                utils.build_source(writer=self.logfile),
+                utils.install_ffmpeg(writer=self.logfile),
+            )
 
         self.__ready.set()
 
