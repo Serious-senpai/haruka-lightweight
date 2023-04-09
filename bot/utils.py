@@ -3,9 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import datetime
-import io
 import re
-import sys
 import time
 import traceback
 from types import TracebackType
@@ -157,25 +155,6 @@ async def fuzzy_match(string: str, against: Iterator[str], *, pattern: str = r"\
         return match.group()
 
     raise RuntimeError(f"Cannot match regex pattern {repr(pattern)} with stdout {stdout}")
-
-
-async def install_ffmpeg(*, writer: Optional[io.TextIOWrapper] = None) -> None:
-    if sys.platform == "linux":
-        process = await asyncio.create_subprocess_shell("apt install ffmpeg -y", stdout=writer, stderr=writer)
-        await process.communicate()
-    else:
-        raise NotImplementedError
-
-
-async def build_source(*, writer: Optional[io.TextIOWrapper] = None) -> None:
-    if sys.platform == "linux":
-        process = await asyncio.create_subprocess_shell("apt install g++ -y", stdout=writer, stderr=writer)
-        await process.communicate()
-
-        process = await asyncio.create_subprocess_shell("g++ -std=c++2a -Wall -g bot/fuzzy.cpp -o bot/fuzzy.out", stdout=writer, stderr=writer)
-        await process.communicate()
-    else:
-        raise NotImplementedError
 
 
 async def coro_func(value: T) -> T:
