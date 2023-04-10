@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 import sys
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, Union, TYPE_CHECKING
 
 import discord
 from discord.ext import commands
@@ -30,10 +30,12 @@ class _Embed(discord.Embed):
         *,
         title: Optional[str] = None,
         description: Optional[str] = None,
-        color: discord.Colour = discord.Colour(0x2ECC71),
-        timestamp: datetime.datetime = discord.utils.utcnow(),
+        color: Optional[Union[int, discord.Colour]] = None,
+        timestamp: Optional[datetime.datetime] = None,
         url: Optional[str] = None,
     ) -> None:
+        color = color or discord.Colour(0x2ECC71)
+        timestamp = timestamp or discord.utils.utcnow()
         super().__init__(
             title=title,
             description=description,
