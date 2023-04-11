@@ -122,7 +122,6 @@ class HelpCommand(commands.HelpCommand):
         # Also include aliases (don't use walk_commands)
         command_names = [command.name for command in self.bot.all_commands.values() if show_hidden or not command.hidden]
 
-        await self.bot.interface.wait_until_ready()
         word = await utils.fuzzy_match(string, command_names)
         return f"No command called `{string}` was found. Did you mean `{word}`?"
 

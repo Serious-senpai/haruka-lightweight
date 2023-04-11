@@ -167,7 +167,6 @@ class AudioPlayer(discord.VoiceClient):
                 if self.target is not None:
                     await self.target.typing()
 
-                await self.client.interface.wait_until_ready()  # Wait for ffmpeg installation to complete
                 source = discord.FFmpegOpusAudio(
                     audio_url,
                     stderr=self.client.interface.logfile,

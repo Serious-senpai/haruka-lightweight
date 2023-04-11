@@ -141,12 +141,6 @@ class SharedInterface:
         if sys.platform == "linux":
             self.setup_signal_handler()
 
-            process = await asyncio.create_subprocess_shell("apt install ffmpeg g++ -y", stdout=self.logfile, stderr=self.logfile)
-            await process.communicate()
-
-            process = await asyncio.create_subprocess_shell("g++ -std=c++2a -Wall -g bot/fuzzy.cpp -o bot/fuzzy.out", stdout=self.logfile, stderr=self.logfile)
-            await process.communicate()
-
         self.__ready.set()
 
     async def wait_until_ready(self) -> None:
