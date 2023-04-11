@@ -154,12 +154,12 @@ class SharedInterface:
 
     def setup_signal_handler(self) -> None:
         def graceful_exit() -> None:
-            self.log("Received SIGTERM signal")
             raise KeyboardInterrupt
 
         loop = asyncio.get_running_loop()
-        loop.add_signal_handler(signal.SIGTERM, graceful_exit)
+        loop.add_signal_handler(signal.SIGHUP, graceful_exit)
         loop.add_signal_handler(signal.SIGINT, graceful_exit)
+        loop.add_signal_handler(signal.SIGTERM, graceful_exit)
         self.log("Added signal handler")
 
     async def close(self) -> None:
