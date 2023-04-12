@@ -5,7 +5,7 @@ import datetime
 import io
 import signal
 import sys
-from typing import Any, Awaitable, Callable, ClassVar, Concatenate, Optional, ParamSpec, Set, Union, TYPE_CHECKING
+from typing import Any, Awaitable, Callable, ClassVar, Concatenate, List, Optional, ParamSpec, Set, Union, TYPE_CHECKING
 
 import aiohttp
 import discord
@@ -14,7 +14,6 @@ from discord import app_commands
 from discord.ext import commands
 from discord.utils import utcnow
 
-import utils
 from environment import LOG_PATH, PORT
 from server import WebApp
 if TYPE_CHECKING:
@@ -35,6 +34,7 @@ class SharedInterface:
         "__session",
         "__webapp",
         "_closed",
+        "clients",
         "commands",
         "log",
         "logfile",
@@ -46,6 +46,7 @@ class SharedInterface:
         __session: Optional[aiohttp.ClientSession]
         __webapp: Optional[WebApp]
         _closed: bool
+        clients: List[Haruka]
         commands: Set[commands.Command]
         log: Callable[[str], None]
         logfile: io.TextIOWrapper
@@ -59,6 +60,7 @@ class SharedInterface:
             self.__session = None
             self.__webapp = None
             self._closed = False
+            self.clients = []
             self.commands = set()
             self.log = self._log
             self.logfile = open(LOG_PATH, "wt", encoding="utf-8")
@@ -81,6 +83,9 @@ class SharedInterface:
             )
 
         return self.__session
+
+    def add_client(self, client: Haruka) -> None:
+        self.clients.append(client)
 
     def _log(self, content: str) -> None:
         self.logfile.write(content + "\n")

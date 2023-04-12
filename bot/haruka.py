@@ -52,6 +52,8 @@ class Haruka(commands.Bot):
         self.token = token
         self.owner_id = environment.OWNER_ID
 
+        self.interface.add_client(self)
+
     @property
     def uptime(self) -> datetime.datetime:
         return self.interface.uptime

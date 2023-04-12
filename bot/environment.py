@@ -2,6 +2,7 @@ import os
 
 import discord
 
+
 COMMAND_PREFIX = "$"
 OWNER_ID = 618361466248232960
 
@@ -11,7 +12,7 @@ INTENTS.message_content = True
 INTENTS.auto_moderation = INTENTS.typing = False
 
 
-PORT = int(os.environ["PORT"]) if "PORT" in os.environ else None
+PORT = int(os.environ["PORT"])
 
 
 BASH_PATH = "./bash.txt"
