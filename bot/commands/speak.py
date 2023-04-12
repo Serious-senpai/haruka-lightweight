@@ -22,4 +22,4 @@ async def _speak_cmd(ctx: Context, *, content: str = "") -> None:
     with contextlib.suppress(discord.HTTPException):
         await ctx.message.delete()
 
-    await ctx.send(content, files=files)
+    await ctx.send(content, files=files, reference=ctx.message.reference)
