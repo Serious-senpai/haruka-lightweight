@@ -11,7 +11,7 @@ from typing import Iterator, Optional, Type, TypeVar, TYPE_CHECKING
 
 import discord
 
-from environment import FUZZY_SCRIPT
+from environment import FUZZY_MATCH
 
 
 T = TypeVar("T")
@@ -142,19 +142,14 @@ async def get_reply(message: discord.Message) -> Optional[discord.Message]:
         return await message.channel.fetch_message(message.reference.message_id)
 
 
-async def fuzzy_match(string: str, against: Iterator[str], *, pattern: str = r"\w+") -> str:
-    args = [FUZZY_SCRIPT]
+async def fuzzy_match(string: str, against: Iterator[str]) -> str:
+    args = [FUZZY_MATCH]
     args.append(string)
     args.extend(against)
 
     process = await asyncio.create_subprocess_exec(*args, stdout=asyncio.subprocess.PIPE)
-    _stdout, _ = await process.communicate()
-    stdout = _stdout.decode("utf-8")
-    match = re.search(pattern, stdout)
-    if match is not None:
-        return match.group()
-
-    raise RuntimeError(f"Cannot match regex pattern {repr(pattern)} with stdout {stdout}")
+    stdout, _ = await process.communicate()
+    return stdout.decode("utf-8")
 
 
 async def coro_func(value: T) -> T:
