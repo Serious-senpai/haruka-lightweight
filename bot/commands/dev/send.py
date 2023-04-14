@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import io
+from typing import Optional
 
 import aiohttp
 import discord
@@ -19,7 +20,7 @@ from shared import interface
     hidden=True,
 )
 @commands.is_owner()
-async def _send_cmd(ctx: Context, *urls: str) -> None:
+async def _handler(ctx: Context, *urls: str) -> None:
     if not urls:
         raise commands.UserInputError
 

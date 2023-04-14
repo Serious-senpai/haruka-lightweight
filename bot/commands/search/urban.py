@@ -13,7 +13,7 @@ from shared import interface
     usage="urban <query>"
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _urban_cmd(ctx: Context, *, query: str):
+async def _handler(ctx: Context, *, query: str):
     result = await urban.UrbanSearch.search(query, session=interface.session)
     if result:
         embed = await result.create_embed()

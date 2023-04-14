@@ -28,7 +28,7 @@ async def join_voice(ctx: Context, channel: discord.VoiceChannel) -> youtube.Aud
     usage="play <URL>",
 )
 @commands.max_concurrency(1, commands.BucketType.guild, wait=True)
-async def _play_cmd(ctx: Context, url: str) -> None:
+async def _handler(ctx: Context, url: str) -> None:
     if ctx.author.voice is None:
         await ctx.send("Please join a voice channel first!")
         return

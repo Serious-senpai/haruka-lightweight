@@ -13,7 +13,7 @@ from shared import interface
     hidden=True,
 )
 @commands.is_owner()
-async def _sync_cmd(ctx: Context) -> None:
+async def _handler(ctx: Context) -> None:
     commands = await ctx.bot.tree.sync()
     content = f"Synced {len(commands)} command"
     if len(commands) != 1:

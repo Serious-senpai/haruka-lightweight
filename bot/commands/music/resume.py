@@ -12,7 +12,7 @@ from shared import interface
     description="Resume the current audio player",
 )
 @commands.max_concurrency(1, commands.BucketType.guild, wait=True)
-async def _resume_cmd(ctx: Context) -> None:
+async def _handler(ctx: Context) -> None:
     try:
         await ctx.voice_client.resume()
         await ctx.send("Resumed audio.")

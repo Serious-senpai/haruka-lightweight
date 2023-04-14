@@ -39,10 +39,6 @@ class HelpCommand(commands.HelpCommand):
                 "brief": "general.help",
                 "description": "Get all available commands or help for a specific command.",
                 "usage": "help\nhelp <command>",
-                "cooldown": commands.CooldownMapping(
-                    commands.Cooldown(1, 5),
-                    commands.BucketType.user,
-                )
             },
         )
 

@@ -1,16 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-import discord
 from discord.ext import commands
 
 import emoji_ui
 from customs import Context
 from lib import saucenao
 from shared import interface
-if TYPE_CHECKING:
-    from haruka import Haruka
 
 
 async def _send_single_sauce(ctx: Context, image_url: str) -> None:
@@ -40,7 +35,7 @@ async def _send_single_sauce(ctx: Context, image_url: str) -> None:
     usage="sauce <image URL(s)>\nsauce <attachment(s)>",
 )
 @commands.cooldown(1, 5, commands.BucketType.user)
-async def _sauce_cmd(ctx: Context, *image_urls: str) -> None:
+async def _handler(ctx: Context, *image_urls: str) -> None:
     urls = list(image_urls)
     for attachment in ctx.message.attachments:
         urls.append(attachment.url)

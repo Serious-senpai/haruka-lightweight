@@ -17,7 +17,7 @@ from shared import interface
     usage="zerochan <query>",
 )
 @commands.cooldown(1, 5, commands.BucketType.user)
-async def _zerochan_cmd(ctx: Context, *, query: str):
+async def _handler(ctx: Context, *, query: str):
     async with ctx.typing():
         urls = await zerochan.search(query, session=interface.session)
 

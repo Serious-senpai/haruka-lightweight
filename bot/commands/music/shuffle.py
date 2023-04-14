@@ -12,7 +12,7 @@ from shared import interface
     description="Toggle the SHUFFLE mode",
 )
 @commands.max_concurrency(1, commands.BucketType.guild, wait=True)
-async def _shuffle_cmd(ctx: Context) -> None:
+async def _handler(ctx: Context) -> None:
     try:
         ctx.voice_client.switch_shuffle()
         if ctx.voice_client.shuffle:

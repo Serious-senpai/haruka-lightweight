@@ -17,7 +17,7 @@ from shared import interface
     usage="anime <query>"
 )
 @commands.cooldown(1, 3, commands.BucketType.user)
-async def _anime_cmd(ctx: Context, *, query: str) -> None:
+async def _handler(ctx: Context, *, query: str) -> None:
     if len(query) < 3:
         await ctx.send(f"Search query must have at least 3 characters")
         return

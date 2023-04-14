@@ -9,7 +9,7 @@ from shared import interface
     brief="music.playing",
     description="Display the current playing source",
 )
-async def _playing_cmd(ctx: Context) -> None:
+async def _handler(ctx: Context) -> None:
     try:
         await ctx.send(
             f"Currently playing in {ctx.voice_client.channel.mention}",

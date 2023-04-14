@@ -12,7 +12,7 @@ from shared import interface
     description="Toggle the REPEAT mode",
 )
 @commands.max_concurrency(1, commands.BucketType.guild, wait=True)
-async def _repeat_cmd(ctx: Context) -> None:
+async def _handler(ctx: Context) -> None:
     try:
         ctx.voice_client.switch_repeat()
         if ctx.voice_client.repeat:

@@ -12,7 +12,7 @@ from shared import interface
     description="Pause the current audio player",
 )
 @commands.max_concurrency(1, commands.BucketType.guild, wait=True)
-async def _pause_cmd(ctx: Context) -> None:
+async def _handler(ctx: Context) -> None:
     try:
         await ctx.voice_client.pause()
         await ctx.send("Paused audio.")

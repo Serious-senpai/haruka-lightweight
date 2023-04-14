@@ -16,5 +16,5 @@ from shared import interface
     hidden=True,
 )
 @commands.is_owner()
-async def _log_cmd(ctx: Context) -> None:
+async def _handler(ctx: Context) -> None:
     await ctx.send(embed=ctx.bot.display_status, file=discord.File(LOG_PATH))

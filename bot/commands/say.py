@@ -11,8 +11,9 @@ from shared import interface
     name="say",
     brief="general.say",
     description="Make the bot say something",
+    usage="say <content>",
 )
-async def _say_cmd(ctx: Context, *, content: str = "") -> None:
+async def _handler(ctx: Context, *, content: str = "") -> None:
     if not content and not ctx.message.attachments:
         raise commands.UserInputError
 

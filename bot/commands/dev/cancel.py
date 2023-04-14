@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import asyncio
+from typing import Optional
+
 from discord.ext import commands
 
 from customs import Context
@@ -14,8 +17,8 @@ from shared import interface
     hidden=True,
 )
 @commands.is_owner()
-async def _cancel_cmd(ctx: Context) -> None:
-    task = getattr(ctx.bot, EVAL_TASK_ATTR, None)
+async def _handler(ctx: Context) -> None:
+    task: Optional[asyncio.Task] = getattr(ctx.bot, EVAL_TASK_ATTR, None)
     if task is None:
         await ctx.send("No `eval` task is running!")
     else:

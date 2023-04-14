@@ -14,7 +14,7 @@ from shared import interface
     description="View someone's avatar",
     usage="ava <user | default: yourself>",
 )
-async def _ava_cmd(ctx: Context, user: discord.User = commands.Author) -> None:
+async def _handler(ctx: Context, user: discord.User = commands.Author) -> None:
     if user.avatar is None:
         await ctx.send("This user hasn't set an avatar yet!")
     else:
