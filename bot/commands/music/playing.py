@@ -11,9 +11,8 @@ from shared import interface
 )
 async def _handler(ctx: Context) -> None:
     try:
-        await ctx.send(
-            f"Currently playing in {ctx.voice_client.channel.mention}",
-            embed=await ctx.voice_client.playing.create_embed(ctx.bot),
-        )
+        embed = await ctx.voice_client.playing.create_embed(ctx.bot)
+        ctx.voice_client.append_state(embed)
+        await ctx.send(f"Currently playing in {ctx.voice_client.channel.mention}", embed=embed)
     except AttributeError:
         await ctx.send("No audio player is currently playing!")

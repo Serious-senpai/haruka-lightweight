@@ -39,6 +39,7 @@ class AudioPlayer(discord.VoiceClient):
         __shuffle: bool
         __stop_request: bool
         __waiter: asyncio.Event
+        bitrate: int
         playing: Optional[Union[Playlist, Track]]
         target: Optional[discord.abc.Messageable]
 
@@ -54,6 +55,7 @@ class AudioPlayer(discord.VoiceClient):
         self.__shuffle = False
         self.__stop_request = False
         self.__waiter = asyncio.Event()
+        self.bitrate = 128
         self.playing = None
         self.target = None
 
@@ -86,7 +88,21 @@ class AudioPlayer(discord.VoiceClient):
 
         self.target = target
 
-    async def notify(self, content: str, **kwargs: Any) -> Optional[discord.Message]:
+    def append_state(self, embed: discord.Embed) -> None:
+        embed.add_field(
+            name="Bitrate",
+            value=f"{self.bitrate} kbps",
+        )
+        embed.add_field(
+            name="`REPEAT` mode",
+            value=self.__repeat,
+        )
+        embed.add_field(
+            name="`SHUFFLE` mode",
+            value=self.__shuffle,
+        )
+
+    async def notify(self, content: Optional[str] = None, **kwargs: Any) -> Optional[discord.Message]:
         with contextlib.suppress(discord.HTTPException, AttributeError):
             return await self.target.send(content, **kwargs)
 
@@ -115,7 +131,7 @@ class AudioPlayer(discord.VoiceClient):
                 if not tracks:
                     raise ValueError("The provided playlist is empty")
 
-                await self.notify(f"Playing in {self.channel.mention}", embed=await source.create_embed(self.client))
+                await self.notify(embed=await source.create_embed(self.client))
 
                 index = 0
                 self.__stop_request = False
@@ -169,12 +185,13 @@ class AudioPlayer(discord.VoiceClient):
 
                 source = discord.FFmpegOpusAudio(
                     audio_url,
+                    bitrate=self.bitrate,
                     stderr=self.client.interface.logfile,
                     before_options=shlex.join(before_options),
                     options=shlex.join(options),
                 )
 
-                await self.notify(f"Playing in {self.channel.mention}", embed=embed)
+                await self.notify(embed=embed)
 
             if self.__stop_request or not self.is_connected():
                 return

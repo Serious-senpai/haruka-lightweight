@@ -16,8 +16,8 @@ async def join_voice(ctx: Context, channel: discord.VoiceChannel) -> youtube.Aud
     if vc is None:
         return await channel.connect(cls=youtube.AudioPlayer)
 
-    await vc.move_to(channel)
     vc.stop()  # Stop audio if already playing
+    await vc.move_to(channel)
     return vc
 
 
