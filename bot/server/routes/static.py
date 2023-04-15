@@ -15,14 +15,14 @@ avatar_url: Optional[str] = None
 
 @router.get("/favicon.ico")
 @router.get("/favicon.png")
-@router.get("/icons/{filename:.+?\.(?:png|jpg)}")
+@router.get(r"/icons/{filename:.+?\.(?:png|jpg)}")
 async def handler(request: Request) -> web.Response:
     global avatar_url
     avatar_url = avatar_url or request.app.interface.clients[0].user.avatar.url
     raise web.HTTPFound(avatar_url)
 
 
-@router.get("/{filename:.+?\.(?:html|js|json|otf|ttf)}")
+@router.get(r"/{filename:.+?\.(?:html|js|json|otf|ttf)}")
 async def handler(request: Request) -> web.Response:
     filepath = path.join("bot/server/build", request.match_info["filename"])
 
