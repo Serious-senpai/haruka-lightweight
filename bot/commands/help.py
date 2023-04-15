@@ -88,9 +88,6 @@ class HelpCommand(commands.HelpCommand):
         elif not command.aliases:
             command.aliases = [command.qualified_name]
 
-        command.usage = command.usage if command.usage else command.qualified_name
-        usage = COMMAND_PREFIX + command.usage.replace("\n", f"\n{COMMAND_PREFIX}")
-
         description = command.description.format(prefix=COMMAND_PREFIX)
 
         cooldown = command._buckets
@@ -101,7 +98,7 @@ class HelpCommand(commands.HelpCommand):
 
         embed = discord.Embed(
             title=command.qualified_name,
-            description=f"```\n{usage}\n```\n**Description**\n{description}\n**Aliases**\n" + ", ".join(f"`{alias}`" for alias in command.aliases) + "\n" + cooldown_notify,
+            description=f"```\n{command.usage}\n```\n**Description**\n{description}\n**Aliases**\n" + ", ".join(f"`{alias}`" for alias in command.aliases) + "\n" + cooldown_notify,
         )
         embed.set_author(
             name=f"{self.context.author.name}, this is an instruction for {command.qualified_name}!",

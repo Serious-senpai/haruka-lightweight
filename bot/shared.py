@@ -14,7 +14,7 @@ from discord import app_commands
 from discord.ext import commands
 from discord.utils import utcnow
 
-from environment import LOG_PATH, PORT
+from environment import COMMAND_PREFIX, LOG_PATH, PORT
 from server import WebApp
 if TYPE_CHECKING:
     from haruka import Haruka
@@ -107,6 +107,9 @@ class SharedInterface:
                 brief=brief,
                 **kwargs,
             )
+            command.usage = command.usage if command.usage else command.qualified_name
+            command.usage = COMMAND_PREFIX + command.usage.replace("\n", f"\n{COMMAND_PREFIX}")
+
             self.commands.add(command)
             return command
 

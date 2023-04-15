@@ -21,7 +21,7 @@ class WebApp(web.Application):
         interface: SharedInterface
 
     def __init__(self, *, interface: SharedInterface) -> None:
-        with open("./bot/server/index.html", "rt", encoding="utf-8") as f:
+        with open("./bot/server/build/index.html", "rt", encoding="utf-8") as f:
             self._html = f.read()
 
         self.interface = interface

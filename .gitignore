@@ -5,3 +5,8 @@ run.sh
 bash.txt
 eval.txt
 log.txt
+
+bot/server/build/
+bot/web/*
+!bot/web/lib/
+!bot/web/pubspec.yaml

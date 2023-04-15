@@ -11,7 +11,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to Azure
+    name: Build and deploy
     runs-on: ubuntu-latest
     environment:
       name: production
@@ -20,6 +20,23 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.7.0
+
+      - name: View Flutter status
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Initialize web project
+        run: flutter create --platforms web --project-name web bot/web
+
+      - name: Build front-end server
+        working-directory: bot/web
+        run: flutter build web --output ../server/build --dart-define=release=true --web-renderer html
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2

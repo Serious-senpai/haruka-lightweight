@@ -20,5 +20,3 @@ class RouteTableDef(web.RouteTableDef):
 
 
 router = RouteTableDef()
-router.static("/css", "./bot/server/css")
-router.static("/script", "./bot/server/scripts")

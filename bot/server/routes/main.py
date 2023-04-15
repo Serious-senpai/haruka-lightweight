@@ -11,4 +11,8 @@ if TYPE_CHECKING:
 
 @router.get("/")
 async def handler(request: Request) -> web.Response:
-    raise web.HTTPTemporaryRedirect("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    return web.Response(
+        text=request.app.html,
+        status=200,
+        content_type="text/html",
+    )
