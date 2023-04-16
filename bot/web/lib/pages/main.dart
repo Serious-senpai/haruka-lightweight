@@ -28,11 +28,22 @@ class Command {
           Text(name, style: const TextStyle(color: themeColor, fontSize: 24)),
           Row(
             children: [
+              const Text("Aliases ", style: TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic)),
+              MarkdownBody(data: List<String>.generate(aliases.length, (index) => "`${aliases[index]}`").join(", ")),
+            ],
+          ),
+          Row(
+            children: [
               const Text("Syntax ", style: TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic)),
               MarkdownBody(data: "```\n$usage\n```"),
             ],
           ),
-          MarkdownBody(data: description),
+          Row(
+            children: [
+              const Text("Description ", style: TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic)),
+              MarkdownBody(data: description),
+            ],
+          ),
         ],
       );
 }
@@ -85,6 +96,8 @@ class _MainPageState extends State<MainPage> {
 
   CommandsLoader get commandsLoader => widget.commandsLoader;
 
+  Size get screenSize => MediaQuery.of(context).size;
+
   void refresh() => setState(() {});
 
   Widget renderer(BuildContext context, AsyncSnapshot<List<Command>> snapshot) {
@@ -92,7 +105,13 @@ class _MainPageState extends State<MainPage> {
     if (error != null) throw error;
 
     var data = snapshot.data;
-    if (data == null) return Center(child: loadingIndicator());
+    if (data == null) {
+      return SizedBox(
+        width: screenSize.width * 4 / 5,
+        height: screenSize.height,
+        child: Center(child: loadingIndicator()),
+      );
+    }
 
     var display = <Widget>[
       const Text(
@@ -136,7 +155,6 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    var screenSize = MediaQuery.of(context).size;
     return Scaffold(
       body: Row(
         children: [
