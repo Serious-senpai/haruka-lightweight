@@ -28,7 +28,7 @@ class Command {
           Text(name, style: const TextStyle(color: themeColor, fontSize: 24)),
           Row(
             children: [
-              const Text("Syntax ", style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text("Syntax ", style: TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic)),
               MarkdownBody(data: "```\n$usage\n```"),
             ],
           ),
@@ -51,25 +51,19 @@ class CommandsLoader {
       var response = await _http.get(Uri.parse("/commands"));
       data = List<Map<String, dynamic>>.from(jsonDecode(response.body));
     } else {
-      data = <Map<String, dynamic>>[];
-      for (var i = 0; i < 100; i++) {
-        data.add(
-          {
-            "name": "name$i",
-            "aliases": ["alias_1", "alias_2", "alias_3"],
-            "brief": "category.name$i",
-            "description": "description$i",
-            "usage": "\$name$i <param>",
-          },
-        );
-      }
+      data = List<Map<String, dynamic>>.generate(
+        100,
+        (index) => {
+          "name": "name$index",
+          "aliases": ["alias_1", "alias_2", "alias_3"],
+          "brief": "category.name$index",
+          "description": "description$index `markdown`",
+          "usage": "\$name$index <param>",
+        },
+      );
     }
 
-    var results = <Command>[];
-    for (var d in data) {
-      results.add(Command(d));
-    }
-
+    var results = List<Command>.generate(data.length, (index) => Command(data[index]));
     results.sort((first, second) => first.name.compareTo(second.name));
     return results;
   }
@@ -87,7 +81,11 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  final _searchController = TextEditingController();
+
   CommandsLoader get commandsLoader => widget.commandsLoader;
+
+  void refresh() => setState(() {});
 
   Widget renderer(BuildContext context, AsyncSnapshot<List<Command>> snapshot) {
     var error = snapshot.error;
@@ -96,10 +94,42 @@ class _MainPageState extends State<MainPage> {
     var data = snapshot.data;
     if (data == null) return loadingIndicator();
 
+    var display = <Widget>[
+      const Text(
+        "TEXT COMMANDS LIST",
+        style: TextStyle(
+          color: themeColor,
+          fontSize: 30,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: "Press Enter to search",
+          suffixIcon: IconButton(
+            onPressed: () {
+              _searchController.clear();
+              refresh();
+            },
+            icon: const Icon(Icons.clear),
+          ),
+        ),
+        autocorrect: false,
+        maxLength: 50,
+        onSubmitted: (value) => refresh(),
+      ),
+    ];
+
     return Flexible(
       child: ListView.builder(
-        itemCount: data.length,
-        itemBuilder: (context, index) => Padding(padding: const EdgeInsets.all(5.0), child: data[index].display()),
+        padding: const EdgeInsets.all(10.0),
+        itemCount: data.length + display.length,
+        itemBuilder: (context, index) => index < display.length
+            ? display[index]
+            : data[index - display.length].name.contains(_searchController.text)
+                ? Padding(padding: const EdgeInsets.all(3.0), child: data[index - display.length].display())
+                : const SizedBox.shrink(),
       ),
     );
   }
@@ -119,11 +149,12 @@ class _MainPageState extends State<MainPage> {
               child: Column(
                 children: [
                   Image.network("/favicon.png", fit: BoxFit.contain),
+                  seperator,
                   TextButton(
                     onPressed: () async {
                       await launchUrl(Uri.https("github.com", "Serious-senpai/haruka-lightweight"));
                     },
-                    child: const Text("Source code", style: TextStyle(color: Colors.yellow)),
+                    child: const Text("Source code", style: TextStyle(fontSize: 20, color: Colors.yellow)),
                   ),
                 ],
               ),
