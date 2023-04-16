@@ -92,7 +92,7 @@ class _MainPageState extends State<MainPage> {
     if (error != null) throw error;
 
     var data = snapshot.data;
-    if (data == null) return loadingIndicator();
+    if (data == null) return Center(child: loadingIndicator());
 
     var display = <Widget>[
       const Text(
