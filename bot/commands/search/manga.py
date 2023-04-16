@@ -13,7 +13,7 @@ from shared import interface
 @interface.command(
     name="manga",
     brief="search.manga",
-    description="Search for an manga in the MyAnimeList database",
+    description="Search for a manga in the MyAnimeList database",
     usage="manga <query>"
 )
 @commands.cooldown(1, 3, commands.BucketType.user)
