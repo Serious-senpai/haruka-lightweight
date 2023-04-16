@@ -10,13 +10,9 @@ on:
       - main
 
 jobs:
-  deploy:
-    name: Build and deploy
+  build:
+    name: Build project
     runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -37,6 +33,28 @@ jobs:
       - name: Build front-end server
         working-directory: bot/web
         run: flutter build web --output ../server/build --dart-define=release=true --web-renderer html
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: haruka-build
+          path: .
+
+  deploy:
+    name: Deploy to Azure
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+      steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: haruka-build
+
+      - name: Display project structure
+        run: ls -R
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
