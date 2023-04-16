@@ -22,7 +22,7 @@ class WebApp(web.Application):
 
     def __init__(self, *, interface: SharedInterface) -> None:
         with open("./bot/server/build/index.html", "rt", encoding="utf-8") as f:
-            self._html = f.read()
+            self._html = f.read().replace("A new Flutter project.", "Haruka frontend server")
 
         self.interface = interface
         super().__init__()

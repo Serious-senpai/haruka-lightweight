@@ -32,7 +32,7 @@ jobs:
           flutter doctor -v
 
       - name: Initialize web project
-        run: flutter create --platforms web --project-name web bot/web
+        run: flutter create --platforms web --project-name haruka bot/web
 
       - name: Build front-end server
         working-directory: bot/web
