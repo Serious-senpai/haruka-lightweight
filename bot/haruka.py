@@ -6,7 +6,7 @@ from typing import Any, Awaitable, Dict, Optional, TYPE_CHECKING
 
 import aiohttp
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 import environment
 import utils
@@ -59,6 +59,7 @@ class Haruka(commands.Bot):
         return self.interface.uptime
 
     async def setup_hook(self) -> None:
+        self._periodic_report.start()
         if self.owner is None:
             self.owner = await self.fetch_user(self.owner_id)
 
@@ -208,6 +209,14 @@ class Haruka(commands.Bot):
         )
 
         return embed
+
+    @tasks.loop(hours=12)
+    async def _periodic_report(self) -> None:
+        await self.report("This is the periodic report")
+
+    @_periodic_report.before_loop
+    async def _periodic_report_before(self) -> None:
+        await self.wait_until_ready()
 
     def import_commands(self) -> None:
         for command in self.interface.commands:
