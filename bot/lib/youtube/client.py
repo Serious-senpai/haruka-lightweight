@@ -99,9 +99,10 @@ class YouTubeClient:
 
                     self.instances.append(URL.build(scheme="https", host=host_name))
 
-            await self.sort_instances()
             self.interface.log("YouTube client is ready!")
             self.__ready.set()
+
+            await self.sort_instances()
 
     async def sort_instances(self) -> None:
         ping: Dict[URL, float] = {}

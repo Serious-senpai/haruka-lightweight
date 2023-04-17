@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build project
+    name: Build artifacts
     runs-on: ubuntu-latest
 
     steps:

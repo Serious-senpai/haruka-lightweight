@@ -98,9 +98,6 @@ class TimingContextManager(contextlib.AbstractContextManager):
         self._start = time.perf_counter()
         self.__result = None
 
-    def __enter__(self) -> TimingContextManager:
-        return self
-
     def __exit__(self, exc_type: Optional[Type[BaseException]], exc_value: Optional[BaseException], traceback: Optional[TracebackType]) -> None:
         self.__result = time.perf_counter() - self._start
 
