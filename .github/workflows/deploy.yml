@@ -35,6 +35,10 @@ jobs:
         working-directory: bot/web
         run: flutter build web --output ../server/build --dart-define=release=true --web-renderer html
 
+      - name: Build source files
+        working-directory: bot/c++
+        run: g++ -std=c++2a -Wall fuzzy.cpp -o fuzzy.out
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
