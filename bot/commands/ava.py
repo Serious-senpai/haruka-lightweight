@@ -32,7 +32,7 @@ async def _handler(ctx: Context, user: discord.User = commands.Author) -> None:
     description="View someone's avatar",
 )
 @app_commands.describe(user="The user to retrieve the avatar")
-async def _ava_slash(interaction: Interaction, user: discord.User) -> None:
+async def _handler(interaction: Interaction, user: discord.User) -> None:
     if user.avatar is None:
         await interaction.response.send_message("This user hasn't set an avatar yet!")
     else:

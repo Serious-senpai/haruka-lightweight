@@ -33,7 +33,7 @@ jobs:
 
       - name: Build front-end server
         working-directory: bot/web
-        run: flutter build web --output ../server/build --dart-define=release=true --web-renderer html
+        run: flutter build web --output ../server/build --web-renderer html
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3

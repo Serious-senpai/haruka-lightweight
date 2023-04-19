@@ -1,0 +1,26 @@
+import "package:flutter/material.dart";
+
+import "assets.dart";
+
+class User {
+  final int id;
+  final String name;
+  final String discriminator;
+
+  final Asset? avatar;
+
+  String get displayName => "$name#$discriminator";
+
+  User(Map<String, dynamic> data)
+      : id = data["id"]!,
+        name = data["name"]!,
+        discriminator = data["discriminator"]!,
+        avatar = data["avatar"] != null ? Asset(data["avatar"]!) : null;
+
+  Widget displayAvatar({double? size}) => avatar == null
+      ? CircleAvatar(
+          backgroundColor: Colors.black,
+          child: Text(name),
+        )
+      : CircleAvatar(backgroundImage: NetworkImage(avatar!.url));
+}

@@ -31,7 +31,7 @@ async def _handler(ctx: Context, *, query: str):
     description="Search for a term from Urban Dictionary",
 )
 @app_commands.describe(query="The searching query")
-async def _urban_slash(interaction: Interaction, query: str) -> None:
+async def _handler(interaction: Interaction, query: str) -> None:
     await interaction.response.defer(thinking=True)
     result = await urban.UrbanSearch.search(query, session=interface.session)
     if result:

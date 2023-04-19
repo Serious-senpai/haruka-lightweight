@@ -25,5 +25,5 @@ async def _handler(ctx: Context, *, content: str = "") -> None:
     description="Make the bot say something, can be used to send animated emojis",
 )
 @app_commands.describe(content="The message to repeat")
-async def _say_slash(interaction: Interaction, content: str) -> None:
+async def _handler(interaction: Interaction, content: str) -> None:
     await interaction.response.send_message(content)

@@ -22,7 +22,7 @@ async def handler(request: Request) -> web.Response:
     raise web.HTTPFound(avatar_url)
 
 
-@router.get(r"/{filename:.+?\.(?:html|js|json|otf|ttf)}")
+@router.get(r"/{filename:.+?\.(?:html|css|js|json|otf|ttf)}")
 async def handler(request: Request) -> web.Response:
     filepath = path.join("bot/server/build", request.match_info["filename"])
 

@@ -6,6 +6,7 @@ from aiohttp import web
 
 from .router import router
 from .routes import *
+from .verification import otp_cache
 if TYPE_CHECKING:
     from shared import SharedInterface
 
@@ -28,6 +29,7 @@ class WebApp(web.Application):
         super().__init__()
 
         self.add_routes(router)
+        self.on_startup.append(lambda self: otp_cache.start_countdown())
 
     @property
     def html(self) -> str:

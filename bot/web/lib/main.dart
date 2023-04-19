@@ -1,30 +1,28 @@
 import "package:flutter/material.dart";
-import "package:http/http.dart";
 
-import "customs.dart";
+import "core/session.dart";
 import "pages/main.dart";
 
 void main() {
-  print("Release mode: $release");
-  var client = Client();
+  var session = ClientSession.create();
 
-  runApp(MainApp(client: client));
+  runApp(MainApp(session: session));
 }
 
 class MainApp extends StatelessWidget {
-  final Client _http;
+  final ClientSession _http;
 
-  const MainApp({super.key, required Client client}) : _http = client;
+  const MainApp({super.key, required ClientSession session}) : _http = session;
 
   @override
   Widget build(BuildContext context) {
+    var routes = {"/": (context) => MainPage(session: _http)};
+
     return MaterialApp(
       title: "Haruka",
       theme: ThemeData.dark(),
       initialRoute: "/",
-      routes: {
-        "/": (context) => MainPage(client: _http),
-      },
+      routes: routes,
     );
   }
 }
