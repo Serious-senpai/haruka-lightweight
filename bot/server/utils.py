@@ -19,7 +19,7 @@ def _json_encode(obj: Any) -> Any:
             "usage": obj.usage,
         }
 
-    if isinstance(obj, discord.User):
+    if isinstance(obj, discord.abc.User):
         return {
             "id": obj.id,
             "name": obj.name,
@@ -54,7 +54,7 @@ def json_encode(data: None) -> None: ...
 
 
 @overload
-def json_encode(data: Union[commands.Command, discord.User, discord.Asset, Dict[str, Any]]) -> Dict[str, Any]: ...
+def json_encode(data: Union[commands.Command, discord.abc.User, discord.Asset, Dict[str, Any]]) -> Dict[str, Any]: ...
 
 
 @overload

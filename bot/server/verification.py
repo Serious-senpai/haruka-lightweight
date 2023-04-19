@@ -7,7 +7,7 @@ import secrets
 from collections import deque
 from typing import ClassVar, Deque, Dict, NamedTuple, Optional, TYPE_CHECKING, overload
 
-import discord
+from discord import abc
 from discord.ext import tasks
 from discord.utils import utcnow, sleep_until
 
@@ -26,7 +26,7 @@ class OTPCache:
 
     __instance__: Optional[OTPCache] = None
     if TYPE_CHECKING:
-        __data: Dict[str, discord.User]
+        __data: Dict[str, abc.User]
         __queue: Deque[OTPCountdown]
 
     def __new__(cls) -> OTPCache:
@@ -42,7 +42,7 @@ class OTPCache:
     async def start_countdown(self) -> None:
         self.__countdown.start()
 
-    def add_key(self, user: discord.User) -> str:
+    def add_key(self, user: abc.User) -> str:
         key = f"{user.id}.{secrets.token_hex(8)}"
         self.__data[key] = user
         self.__queue.append(OTPCountdown(timestamp=utcnow() + self.DELETE_AFTER, key=key))
@@ -50,7 +50,7 @@ class OTPCache:
 
         return key
 
-    def pop_key(self, key: str) -> Optional[discord.User]:
+    def pop_key(self, key: str) -> Optional[abc.User]:
         with contextlib.suppress(KeyError):
             return self.__data.pop(key)
 
@@ -64,7 +64,7 @@ class OTPCache:
             self.pop_key(next.key)
             self.__queue.popleft()
 
-    def __getitem__(self, key: str) -> discord.User:
+    def __getitem__(self, key: str) -> abc.User:
         return self.__data[key]
 
 
@@ -77,8 +77,8 @@ class TokenMapping:
         "__token_to_user",
     )
     if TYPE_CHECKING:
-        __user_to_token: Dict[discord.User, str]
-        __token_to_user: Dict[str, discord.User]
+        __user_to_token: Dict[abc.User, str]
+        __token_to_user: Dict[str, abc.User]
 
     def __new__(cls) -> TokenMapping:
         if cls.__instance__ is None:
@@ -90,7 +90,7 @@ class TokenMapping:
 
         return cls.__instance__
 
-    def generate_token(self, user: discord.User) -> str:
+    def generate_token(self, user: abc.User) -> str:
         try:
             return self[user]
         except KeyError:
@@ -99,28 +99,28 @@ class TokenMapping:
             self.__token_to_user[token] = user
             return token
 
-    def check_token(self, token: str) -> Optional[discord.User]:
+    def check_token(self, token: str) -> Optional[abc.User]:
         return self.__token_to_user.get(token)
 
-    def check_request(self, request: Request) -> Optional[discord.User]:
+    def check_request(self, request: Request) -> Optional[abc.User]:
         token = request.headers.get("x-Auth-Token")
         if isinstance(token, str):
             return self.check_token(token)
 
     @overload
-    def __getitem__(self, key: str) -> discord.User: ...
+    def __getitem__(self, key: str) -> abc.User: ...
 
     @overload
-    def __getitem__(self, key: discord.User) -> str: ...
+    def __getitem__(self, key: abc.User) -> str: ...
 
     def __getitem__(self, key):
         if isinstance(key, str):
             return self.__token_to_user[key]
 
-        if isinstance(key, discord.User):
+        if isinstance(key, abc.User):
             return self.__user_to_token[key]
 
-        raise TypeError(f"Expected str or discord.User, not {key.__class__.__name__}")
+        raise TypeError(f"Expected str or discord.abc.User, not {key.__class__.__name__}")
 
 
 otp_cache = OTPCache()
