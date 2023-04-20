@@ -1,9 +1,13 @@
 import "dart:convert";
+import "dart:html";
 
 import "package:http/http.dart";
 
 import "commands.dart";
 import "users.dart";
+
+final _httpClient = Client();
+const LOCAL_TOKEN_KEY = "authorizationToken";
 
 class AuthorizationState {
   final User user;
@@ -13,39 +17,71 @@ class AuthorizationState {
     required this.user,
     required this.token,
   });
+
+  factory AuthorizationState.fromJson(Map<String, dynamic> data) {
+    var user = User(data["user"]);
+    var token = data["token"];
+    return AuthorizationState(user: user, token: token);
+  }
+
+  static Future<AuthorizationState?> fromToken(String token) async {
+    var response = await _httpClient.get(Uri.parse("/login"), headers: {"X-Auth-Token": token});
+    var data = jsonDecode(utf8.decode(response.bodyBytes));
+    if (data["success"]) {
+      return AuthorizationState(user: User(data["user"]), token: token);
+    }
+
+    return null;
+  }
 }
 
 class ClientSession {
-  final _client = Client();
+  final _client = _httpClient;
   late final CommandsLoader commandsLoader;
 
-  AuthorizationState? authorizationState;
+  AuthorizationState? _authorizationState;
 
-  bool get loggedIn => authorizationState != null;
+  bool get loggedIn => _authorizationState != null;
+
+  AuthorizationState? get authorizationState => _authorizationState;
+  set authorizationState(AuthorizationState? value) {
+    _authorizationState = value;
+    if (value != null) {
+      window.localStorage[LOCAL_TOKEN_KEY] = value.token;
+    } else {
+      window.localStorage.remove(LOCAL_TOKEN_KEY);
+    }
+  }
 
   ClientSession._();
 
-  factory ClientSession.create() {
+  static Future<ClientSession> create() async {
     var object = ClientSession._();
+
+    var token = window.localStorage[LOCAL_TOKEN_KEY];
+    if (token != null) {
+      object.authorizationState = await AuthorizationState.fromToken(token);
+    }
+
     object.commandsLoader = CommandsLoader(session: object);
     return object;
   }
 
-  Future<bool> logIn(String key) async {
+  Future<bool> login(String key) async {
     var headers = {"Login-Key": key};
-    var response = await _client.post(Uri.parse("/login"), headers: headers);
+    var response = await post(Uri.parse("/login"), headers: headers);
     var data = jsonDecode(utf8.decode(response.bodyBytes));
     if (data["success"]) {
-      var user = User(data["user"]!);
-      var token = data["token"]!;
-      authorizationState = AuthorizationState(user: user, token: token);
-
+      authorizationState = AuthorizationState.fromJson(data);
       commandsLoader.refresh();
-
       return true;
     }
 
     return false;
+  }
+
+  void logout() {
+    authorizationState = null;
   }
 
   Map<String, String>? constructHeaders(Map<String, String>? headers) {

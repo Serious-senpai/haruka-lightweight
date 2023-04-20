@@ -42,11 +42,41 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                   Align(
                     alignment: Alignment.topLeft,
                     child: _http.loggedIn
-                        ? Row(
+                        ? ExpansionTile(
+                            textColor: Colors.black,
+                            collapsedTextColor: Colors.black,
+                            expandedAlignment: Alignment.centerRight,
+                            title: Row(
+                              children: [
+                                _http.authorizationState!.user.displayAvatar(),
+                                seperator,
+                                Text(_http.authorizationState!.user.displayName),
+                              ],
+                            ),
                             children: [
-                              _http.authorizationState!.user.displayAvatar(),
-                              seperator,
-                              Text(_http.authorizationState!.user.displayName),
+                              TextButton(
+                                onPressed: () {
+                                  _http.logout();
+                                  refresh();
+                                },
+                                child: RichText(
+                                  text: const TextSpan(
+                                    children: [
+                                      WidgetSpan(
+                                        child: Icon(
+                                          Icons.logout_outlined,
+                                          size: 16.0,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: " Logout",
+                                        style: TextStyle(color: Colors.black, fontSize: 16.0),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           )
                         : TextButton(
@@ -78,7 +108,7 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                               );
 
                               if (key != null) {
-                                if (await _http.logIn(key)) {
+                                if (await _http.login(key)) {
                                   var user = _http.authorizationState!.user;
                                   refresh();
                                   await Fluttertoast.showToast(msg: "Welcome, ${user.displayName}!");
@@ -87,7 +117,7 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                                 }
                               }
                             },
-                            child: const Text("Login", style: TextStyle(fontSize: 20, color: Colors.yellow)),
+                            child: const Text("Login", style: TextStyle(fontSize: 20, color: Colors.black)),
                           ),
                   ),
                   seperator,
@@ -97,7 +127,7 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                     onPressed: () async {
                       await launchUrl(Uri.https("github.com", "Serious-senpai/haruka-lightweight"));
                     },
-                    child: const Text("Source code", style: TextStyle(fontSize: 20, color: Colors.yellow)),
+                    child: const Text("Source code", style: TextStyle(fontSize: 20, color: Colors.black)),
                   ),
                 ],
               ),

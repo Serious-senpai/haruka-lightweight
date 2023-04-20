@@ -91,6 +91,9 @@ class TokenMapping:
         return cls.__instance__
 
     def generate_token(self, user: abc.User) -> str:
+        """Return the token of a user, or generate a new one if
+        that user doesn't have one yet
+        """
         try:
             return self[user]
         except KeyError:
@@ -100,6 +103,7 @@ class TokenMapping:
             return token
 
     def check_token(self, token: str) -> Optional[abc.User]:
+        """Return the user from a given token"""
         return self.__token_to_user.get(token)
 
     def check_request(self, request: Request) -> Optional[abc.User]:

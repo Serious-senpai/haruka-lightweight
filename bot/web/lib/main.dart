@@ -3,8 +3,8 @@ import "package:flutter/material.dart";
 import "core/session.dart";
 import "pages/main.dart";
 
-void main() {
-  var session = ClientSession.create();
+Future<void> main() async {
+  var session = await ClientSession.create();
 
   runApp(MainApp(session: session));
 }

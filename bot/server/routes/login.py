@@ -11,6 +11,15 @@ if TYPE_CHECKING:
     from ..customs import Request
 
 
+@router.get("/login")
+async def handler(request: Request) -> web.Response:
+    user = token_mapping.check_request(request)
+    if user is not None:
+        return web.json_response({"success": True, "user": json_encode(user)})
+
+    return web.json_response({"success": False})
+
+
 @router.post("/login")
 async def handler(request: Request) -> web.Response:
     key = request.headers.get("Login-Key")
