@@ -59,13 +59,13 @@ class ClientSession {
 
   static Future<ClientSession> create() async {
     var object = ClientSession._();
+    object.commandsLoader = CommandsLoader(session: object);
 
     var token = window.localStorage[LOCAL_TOKEN_KEY];
     if (token != null) {
       object.authorizationState = await AuthorizationState.fromToken(token);
     }
 
-    object.commandsLoader = CommandsLoader(session: object);
     return object;
   }
 
