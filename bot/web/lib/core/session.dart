@@ -51,6 +51,8 @@ class ClientSession {
     } else {
       window.localStorage.remove(LOCAL_TOKEN_KEY);
     }
+
+    onAuthorizationStateChange();
   }
 
   ClientSession._();
@@ -73,7 +75,6 @@ class ClientSession {
     var data = jsonDecode(utf8.decode(response.bodyBytes));
     if (data["success"]) {
       authorizationState = AuthorizationState.fromJson(data);
-      commandsLoader.refresh();
       return true;
     }
 
@@ -82,6 +83,10 @@ class ClientSession {
 
   void logout() {
     authorizationState = null;
+  }
+
+  void onAuthorizationStateChange() {
+    commandsLoader.refresh();
   }
 
   Map<String, String>? constructHeaders(Map<String, String>? headers) {
