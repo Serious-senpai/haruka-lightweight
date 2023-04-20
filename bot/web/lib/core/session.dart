@@ -37,10 +37,8 @@ class AuthorizationState {
 
 class ClientSession {
   final _client = _httpClient;
-  late final CommandsLoader commandsLoader;
 
   AuthorizationState? _authorizationState;
-
   bool get loggedIn => _authorizationState != null;
 
   AuthorizationState? get authorizationState => _authorizationState;
@@ -55,11 +53,13 @@ class ClientSession {
     onAuthorizationStateChange();
   }
 
+  CommandsLoader? _commandsLoader;
+  CommandsLoader get commandsLoader => _commandsLoader ??= CommandsLoader(session: this);
+
   ClientSession._();
 
   static Future<ClientSession> create() async {
     var object = ClientSession._();
-    object.commandsLoader = CommandsLoader(session: object);
 
     var token = window.localStorage[LOCAL_TOKEN_KEY];
     if (token != null) {
