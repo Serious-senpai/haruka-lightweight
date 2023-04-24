@@ -8,7 +8,8 @@ import aiohttp
 from yarl import URL
 
 import utils
-from shared import SharedInterface
+if TYPE_CHECKING:
+    from shared import SharedInterface
 
 
 __all__ = (
@@ -62,13 +63,13 @@ class YouTubeClient:
         instances: List[URL]
         interface: SharedInterface
 
-    def __new__(cls) -> YouTubeClient:
+    def __new__(cls, *, interface: SharedInterface) -> YouTubeClient:
         if cls.__instance__ is None:
             self = super().__new__(cls)
             self.__initialized = False
             self.__ready = asyncio.Event()
             self.instances = []
-            self.interface = SharedInterface()
+            self.interface = interface
 
             loop = asyncio.get_running_loop()
             loop.create_task(self.initialize())

@@ -11,6 +11,7 @@ from shared import interface
     brief="music.skip",
     description="Skip to the next track in the playlist",
 )
+@commands.guild_only()
 @commands.cooldown(1, 3, commands.BucketType.guild)
 async def _handler(ctx: Context) -> None:
     try:

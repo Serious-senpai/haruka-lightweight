@@ -11,6 +11,7 @@ from shared import interface
     brief="music.stop",
     description="Stop the current audio player",
 )
+@commands.guild_only()
 @commands.max_concurrency(1, commands.BucketType.guild, wait=True)
 async def _handler(ctx: Context) -> None:
     try:

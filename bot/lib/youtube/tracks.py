@@ -12,6 +12,7 @@ import utils
 from .client import YouTubeClient, VALID_YOUTUBE_HOST
 if TYPE_CHECKING:
     from haruka import Haruka
+    from shared import SharedInterface
 
 
 __all__ = (
@@ -60,8 +61,8 @@ class Track:
 
         return embed
 
-    async def get_audio_url(self, *, format: Literal["140", "mp3128"] = "mp3128", max_retry: int = 5) -> URL:
-        client = YouTubeClient()
+    async def get_audio_url(self, *, interface: SharedInterface, format: Literal["140", "mp3128"] = "mp3128", max_retry: int = 5) -> URL:
+        client = YouTubeClient(interface=interface)
         while True:
             try:
                 async with client.session.post(self._analyzer, data={"k_query": str(self.url)}) as response:
@@ -84,21 +85,21 @@ class Track:
                 await asyncio.sleep(0.5)
 
     @classmethod
-    async def from_id(cls, id: str, /) -> Optional[Track]:
-        client = YouTubeClient()
+    async def from_id(cls, id: str, *, interface: SharedInterface) -> Optional[Track]:
+        client = YouTubeClient(interface=interface)
         async with client.get(f"/api/v1/videos/{id}") as response:
             if response.status == 200:
                 data = await response.json(encoding="utf-8")
                 return cls(data)
 
     @classmethod
-    async def from_url(cls, url: Union[str, URL], /) -> Optional[Track]:
+    async def from_url(cls, url: Union[str, URL], *, interface: SharedInterface) -> Optional[Track]:
         if isinstance(url, str):
             url = URL(url)
 
         with contextlib.suppress(AssertionError, KeyError):
             assert url.host in VALID_YOUTUBE_HOST
-            return await cls.from_id(url.query["v"])
+            return await cls.from_id(url.query["v"], interface=interface)
 
     def __repr__(self) -> str:
         return f"<Track title={self.title} id={self.id} author={self.author}>"

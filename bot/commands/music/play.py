@@ -27,6 +27,7 @@ async def join_voice(ctx: Context, channel: discord.VoiceChannel) -> youtube.Aud
     description="Play audio from YouTube. `URL` can be a URL to a YouTube video or a YouTube playlist.",
     usage="play <URL>",
 )
+@commands.guild_only()
 @commands.max_concurrency(1, commands.BucketType.guild, wait=True)
 async def _handler(ctx: Context, url: str) -> None:
     if ctx.author.voice is None:
@@ -39,7 +40,7 @@ async def _handler(ctx: Context, url: str) -> None:
         return
 
     async with ctx.typing():
-        track = await youtube.Track.from_url(url)
+        track = await youtube.Track.from_url(url, interface=interface)
         if track is not None:
             client = await join_voice(ctx, channel)
             client.set_source(track)
@@ -48,7 +49,7 @@ async def _handler(ctx: Context, url: str) -> None:
 
             return
 
-        playlist = await youtube.Playlist.from_url(url)
+        playlist = await youtube.Playlist.from_url(url, interface=interface)
         if playlist is not None:
             client = await join_voice(ctx, channel)
             client.set_source(playlist)

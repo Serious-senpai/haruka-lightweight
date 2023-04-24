@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from discord.ext import commands
+
 from customs import Context
 from shared import interface
 
@@ -9,6 +11,7 @@ from shared import interface
     brief="music.playing",
     description="Display the current playing source",
 )
+@commands.guild_only()
 async def _handler(ctx: Context) -> None:
     try:
         embed = await ctx.voice_client.playing.create_embed(ctx.bot)

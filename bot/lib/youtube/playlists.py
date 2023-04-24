@@ -12,6 +12,7 @@ from .client import YouTubeClient, VALID_YOUTUBE_HOST
 from .tracks import Track
 if TYPE_CHECKING:
     from haruka import Haruka
+    from shared import SharedInterface
 
 
 __all__ = (
@@ -72,21 +73,21 @@ class Playlist:
         return embed
 
     @classmethod
-    async def from_id(cls, id: str, /) -> Optional[Playlist]:
-        client = YouTubeClient()
+    async def from_id(cls, id: str, *, interface: SharedInterface) -> Optional[Playlist]:
+        client = YouTubeClient(interface=interface)
         async with client.get(f"/api/v1/playlists/{id}") as response:
             if response.status == 200:
                 data = await response.json(encoding="utf-8")
                 return cls(data)
 
     @classmethod
-    async def from_url(cls, url: Union[str, URL], /) -> Optional[Playlist]:
+    async def from_url(cls, url: Union[str, URL], *, interface: SharedInterface) -> Optional[Playlist]:
         if isinstance(url, str):
             url = URL(url)
 
         with contextlib.suppress(AssertionError, KeyError):
             assert url.host in VALID_YOUTUBE_HOST
-            return await cls.from_id(url.query["list"])
+            return await cls.from_id(url.query["list"], interface=interface)
 
     def __repr__(self) -> str:
         return f"<Playlist title={self.title} id={self.id}> author={self.author}"

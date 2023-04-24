@@ -161,7 +161,7 @@ class AudioPlayer(discord.VoiceClient):
     async def __play_track(self, track: Track) -> None:
         embed = await track.create_embed(self.client)
         try:
-            audio_url = await track.get_audio_url()
+            audio_url = await track.get_audio_url(interface=self.client.interface)
         except Exception as exc:
             self.client.log(f"Unable to get audio URL for {track}\n" + utils.format_exception(exc))
 
