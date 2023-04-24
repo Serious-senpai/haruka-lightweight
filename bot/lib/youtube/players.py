@@ -15,6 +15,11 @@ if TYPE_CHECKING:
     from haruka import Haruka
 
 
+__all__ = (
+    "AudioPlayer",
+)
+
+
 class AudioPlayer(discord.VoiceClient):
     """A voice client which is able to play audio within
     a voice channel.

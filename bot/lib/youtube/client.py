@@ -11,6 +11,11 @@ import utils
 from shared import SharedInterface
 
 
+__all__ = (
+    "YouTubeClient",
+)
+
+
 INVIDIOUS_INSTANCES_URL = URL.build(scheme="https", host="api.invidious.io", path="/instances.json")
 VALID_YOUTUBE_HOST = {
     "www.youtube.com",

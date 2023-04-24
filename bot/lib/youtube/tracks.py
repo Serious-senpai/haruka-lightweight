@@ -14,6 +14,11 @@ if TYPE_CHECKING:
     from haruka import Haruka
 
 
+__all__ = (
+    "Track",
+)
+
+
 class Track:
 
     _analyzer: ClassVar[URL] = URL.build(scheme="https", host="www.y2mate.com", path="/mates/analyzeV2/ajax")

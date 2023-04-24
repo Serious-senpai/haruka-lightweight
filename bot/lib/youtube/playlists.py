@@ -14,6 +14,11 @@ if TYPE_CHECKING:
     from haruka import Haruka
 
 
+__all__ = (
+    "Playlist",
+)
+
+
 class Playlist:
 
     __slots__ = (
