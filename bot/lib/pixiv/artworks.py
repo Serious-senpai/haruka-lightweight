@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 import aiohttp
 import discord
+from bs4 import BeautifulSoup
 from discord.utils import escape_markdown as escape
 from yarl import URL
 
@@ -58,7 +59,7 @@ class Artwork:
     def __init__(self, data: Dict[str, Any], *, interface: SharedInterface, fallback_image_url: Optional[str] = None) -> None:
         self.interface = interface
         self.title = data["title"]
-        self.description = data["description"]
+        self.description = BeautifulSoup(data["description"], "html.parser").get_text(separator="\n")
         self.id = data["id"]
         self.author = User(id=data["userId"], name=data["userName"])
         self.tags = [Tag(d) for d in data["tags"]["tags"]]
