@@ -13,6 +13,7 @@ import utils
 from commands.help import HelpCommand
 from customs import Context, Loop
 from shared import SharedInterface
+from trees import SlashCommandTree
 
 
 try:
@@ -42,6 +43,7 @@ class Haruka(commands.Bot):
             activity=discord.Game("with my senpai!"),
             command_prefix=commands.when_mentioned_or(environment.COMMAND_PREFIX),
             help_command=HelpCommand(),
+            tree_cls=SlashCommandTree,
             intents=environment.INTENTS,
             case_insensitive=True,
         )
@@ -128,11 +130,11 @@ class Haruka(commands.Bot):
         else:
             self.log(f"'{ctx.message.content}' in {ctx.message.id}/{ctx.channel.id} from {ctx.author} ({ctx.author.id}):")
             self.log(utils.format_exception(error))
-            await self.report("An error has just occured and was handled by `on_command_error`", send_state=False)
+            await self.report("An error has just occured and was handled by `Haruka.on_command_error`", send_state=False)
 
     async def on_error(self, event_method: str, /, *args, **kwargs) -> None:
         await super().on_error(event_method, *args, **kwargs)
-        await self.report("An error has just occured", send_state=False)
+        await self.report("An error has just occured and was handled by `Haruka.on_error`", send_state=False)
 
     def log(self, content: str) -> None:
         is_single_line = "\n" not in content
