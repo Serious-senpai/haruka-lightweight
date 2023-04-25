@@ -10,10 +10,10 @@ from discord.ext import commands, tasks
 
 import environment
 import utils
-from commands.help import HelpCommand
 from customs import Context, Loop
 from shared import SharedInterface
 from trees import SlashCommandTree
+from commands.general.help import HelpCommand
 
 
 try:
