@@ -6,7 +6,7 @@ from discord.utils import setup_logging
 
 import haruka
 from commands import *
-from environment import TOKEN
+from environment import TOKEN, TOKEN1
 from shared import interface
 
 
@@ -17,7 +17,7 @@ setup_logging(
     level=logging.INFO,
 )
 
-tokens = [TOKEN]
+tokens = [TOKEN, TOKEN1]
 bots = [haruka.Haruka(token=token) for token in tokens]
 
 futures = [interface.start()]

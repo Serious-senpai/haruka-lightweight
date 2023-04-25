@@ -26,3 +26,7 @@ EVAL_TASK_ATTR = "eval_task"
 
 # Required
 TOKEN = os.environ["TOKEN"]
+
+
+# Optional
+TOKEN1 = os.environ["TOKEN1"]

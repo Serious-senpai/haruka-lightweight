@@ -68,7 +68,6 @@ class Haruka(commands.Bot):
     async def on_ready(self) -> None:
         print(f"Logged in as {self.user}")
         self.log(f"Logged in as {self.user}")
-        await self.report("Haruka is ready!", send_state=False)
 
     async def on_command_error(self, ctx: Context, error: Exception) -> None:
         if isinstance(error, commands.CommandNotFound):
