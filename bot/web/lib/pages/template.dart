@@ -129,6 +129,13 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                     },
                     child: const Text("Source code", style: TextStyle(fontSize: 20, color: Colors.black)),
                   ),
+                  seperator,
+                  TextButton(
+                    onPressed: () async {
+                      await launchUrl(Uri.parse("/invite"));
+                    },
+                    child: const Text("Invite URL", style: TextStyle(fontSize: 20, color: Colors.black)),
+                  ),
                 ],
               ),
             ),
