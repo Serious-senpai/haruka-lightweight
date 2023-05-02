@@ -35,12 +35,14 @@ class AuthorizationState {
   }
 }
 
+/// Represent the current client session
 class ClientSession {
   final _client = _httpClient;
 
   AuthorizationState? _authorizationState;
   bool get loggedIn => _authorizationState != null;
 
+  /// Our current authorization state, this is null if we are not logged in
   AuthorizationState? get authorizationState => _authorizationState;
   set authorizationState(AuthorizationState? value) {
     _authorizationState = value;
@@ -54,10 +56,13 @@ class ClientSession {
   }
 
   CommandsLoader? _commandsLoader;
+
+  /// [CommandsLoader] for the current session
   CommandsLoader get commandsLoader => _commandsLoader ??= CommandsLoader(session: this);
 
   ClientSession._();
 
+  /// Initialize a new [ClientSession], this should be called only once
   static Future<ClientSession> create() async {
     var object = ClientSession._();
 
@@ -69,6 +74,9 @@ class ClientSession {
     return object;
   }
 
+  /// Attempt to login with a given login key.
+  ///
+  /// Return true on success, false otherwise
   Future<bool> login(String key) async {
     var headers = {"Login-Key": key};
     var response = await post(Uri.parse("/login"), headers: headers);
@@ -81,15 +89,17 @@ class ClientSession {
     return false;
   }
 
+  /// Set the current [authorizationState] to null
   void logout() {
     authorizationState = null;
   }
 
+  /// Callback to be called when our authorization state changes
   void onAuthorizationStateChange() {
     commandsLoader.refresh();
   }
 
-  Map<String, String>? constructHeaders(Map<String, String>? headers) {
+  Map<String, String>? _constructHeaders(Map<String, String>? headers) {
     if (loggedIn) {
       headers = headers ?? <String, String>{};
       headers["X-Auth-Token"] = authorizationState!.token;
@@ -98,8 +108,10 @@ class ClientSession {
     return headers;
   }
 
-  Future<Response> get(Uri url, {Map<String, String>? headers}) => _client.get(url, headers: constructHeaders(headers));
+  /// Perform a GET request with authorization data
+  Future<Response> get(Uri url, {Map<String, String>? headers}) => _client.get(url, headers: _constructHeaders(headers));
 
+  /// Perform a POST request with authorization data
   Future<Response> post(
     Uri url, {
     Map<String, String>? headers,
@@ -108,7 +120,7 @@ class ClientSession {
   }) =>
       _client.post(
         url,
-        headers: constructHeaders(headers),
+        headers: _constructHeaders(headers),
         body: body,
         encoding: encoding,
       );

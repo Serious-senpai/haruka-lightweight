@@ -1,10 +1,10 @@
 import "package:flutter/material.dart";
 
 import "template.dart";
-import "../core/commands.dart";
-import "../core/environment.dart";
-import "../core/session.dart";
-import "../core/utils.dart";
+import "../src/commands.dart";
+import "../src/environment.dart";
+import "../src/session.dart";
+import "../src/utils.dart";
 
 class MainPage extends StatefulWidget {
   final ClientSession _http;

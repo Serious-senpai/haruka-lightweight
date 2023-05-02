@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 
-import "core/session.dart";
+import "src/session.dart";
 import "pages/main.dart";
 
 Future<void> main() async {

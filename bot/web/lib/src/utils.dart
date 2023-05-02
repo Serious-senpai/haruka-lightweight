@@ -1,5 +1,18 @@
 import "package:flutter/material.dart";
 
+class Notifier {
+  final _notifier = ValueNotifier<bool>(true);
+
+  Notifier();
+
+  void addListener(VoidCallback callback) => _notifier.addListener(callback);
+  void removeListener(VoidCallback callback) => _notifier.removeListener(callback);
+
+  void notifyListeners() {
+    _notifier.value = !_notifier.value;
+  }
+}
+
 /// A transparent [SizedBox] with a width and height of 10.0
 const seperator = SizedBox(width: 10.0, height: 10.0);
 

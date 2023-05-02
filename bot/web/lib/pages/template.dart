@@ -2,9 +2,9 @@ import "package:flutter/material.dart";
 import "package:fluttertoast/fluttertoast.dart";
 import "package:url_launcher/url_launcher.dart";
 
-import "../core/environment.dart";
-import "../core/session.dart";
-import "../core/utils.dart";
+import "../src/environment.dart";
+import "../src/session.dart";
+import "../src/utils.dart";
 
 class TemplateScaffold extends StatefulWidget {
   final Widget child;

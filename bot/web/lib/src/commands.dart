@@ -5,6 +5,7 @@ import "package:flutter_markdown/flutter_markdown.dart";
 
 import "environment.dart";
 import "session.dart";
+import "utils.dart";
 
 class Command {
   String name;
@@ -52,13 +53,13 @@ class CommandsLoader {
 
   Future<List<Command>> get fetcher => _fetcher ??= _fetchCommands();
 
-  final notifier = ValueNotifier<bool>(true);
+  final notifier = Notifier();
 
   CommandsLoader({required ClientSession session}) : _http = session;
 
   void refresh() {
     _fetcher = null;
-    notifier.value = !notifier.value;
+    notifier.notifyListeners();
   }
 
   Future<List<Command>> _fetchCommands() async {
