@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import datetime
-import re
 import time
 import traceback
 from types import TracebackType

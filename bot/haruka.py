@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-from typing import Any, Awaitable, Dict, Optional, TYPE_CHECKING
+from typing import Any, Awaitable, Dict, Optional, Set, TYPE_CHECKING
 
 import aiohttp
 import discord
@@ -27,6 +27,7 @@ else:
 class Haruka(commands.Bot):
 
     __instances__: Dict[str, Haruka] = {}
+    __processed_message_ids: Set[int] = set()
     if TYPE_CHECKING:
         cooldown_notify: Dict[int, Dict[str, bool]]
         interface: SharedInterface
@@ -55,6 +56,16 @@ class Haruka(commands.Bot):
         self.owner_id = environment.OWNER_ID
 
         self.interface.add_client(self)
+
+        # Ensure that a command message is processed only once in case of running multiple instances
+        async def _global_check(ctx: Context) -> bool:
+            if ctx.message.id in self.__processed_message_ids:
+                return False
+
+            self.__processed_message_ids.add(ctx.message.id)
+            return True
+
+        self.add_check(_global_check)
 
     @property
     def uptime(self) -> datetime.datetime:
