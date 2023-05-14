@@ -238,8 +238,9 @@ class Haruka(commands.Bot):
         for command in self.interface.slash_commands:
             self.tree.add_command(command)
 
-    def start(self) -> Awaitable[None]:
-        return super().start(token=self.token)
+    async def start(self) -> None:
+        await self.interface.wait_until_ready()
+        await super().start(token=self.token)
 
     async def close(self) -> None:
         await self.interface.close()

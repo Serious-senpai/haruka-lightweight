@@ -14,7 +14,7 @@ from discord import app_commands
 from discord.ext import commands
 from discord.utils import utcnow
 
-from environment import COMMAND_PREFIX, LOG_PATH, PORT
+from environment import COMMAND_PREFIX, FUZZY_MATCH, LOG_PATH, PORT
 from server import WebApp
 if TYPE_CHECKING:
     from haruka import Haruka
@@ -138,6 +138,7 @@ class SharedInterface:
         if self.__webapp is not None:
             return
 
+        # Start the server first so Azure will not complain
         self.__webapp = webapp = WebApp(interface=self)
         runner = web.AppRunner(webapp)
         await runner.setup()
@@ -145,6 +146,13 @@ class SharedInterface:
         await site.start()
 
         self.log(f"Started serving on port {PORT}")
+
+        # Continue building binaries
+        process = await asyncio.create_subprocess_shell("apt install ffmpeg g++ -y")
+        await process.communicate()
+
+        process = await asyncio.create_subprocess_shell(f"g++ -std=c++2a -Wall bot/c++/fuzzy.cpp -o {FUZZY_MATCH}")
+        await process.communicate()
 
         if sys.platform == "linux":
             self.setup_signal_handler()
