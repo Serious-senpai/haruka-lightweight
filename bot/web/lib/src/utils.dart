@@ -27,10 +27,10 @@ class Notifier {
 
 Uri websocketUri(String path) {
   var host = window.location.host;
-  var protocol = window.location.protocol == "https" ? "wss" : "ws";
+  var protocol = window.location.protocol == "https:" ? "wss:" : "ws:";
 
   if (!path.startsWith("/")) path = "/$path";
-  return Uri.parse("$protocol://$host$path");
+  return Uri.parse("$protocol//$host$path");
 }
 
 /// Objects holding a pair of value
