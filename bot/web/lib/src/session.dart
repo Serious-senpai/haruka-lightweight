@@ -5,6 +5,7 @@ import "package:http/http.dart";
 
 import "commands.dart";
 import "users.dart";
+import "tic_tac_toe/rooms.dart";
 
 final _httpClient = Client();
 const LOCAL_TOKEN_KEY = "authorizationToken";
@@ -60,6 +61,11 @@ class ClientSession {
   /// [CommandsLoader] for the current session
   CommandsLoader get commandsLoader => _commandsLoader ??= CommandsLoader(session: this);
 
+  RoomsLoader? _roomsLoader;
+
+  /// [RoomsLoader] for the current session
+  RoomsLoader get roomsLoader => _roomsLoader ??= RoomsLoader(session: this);
+
   ClientSession._();
 
   /// Initialize a new [ClientSession], this should be called only once
@@ -99,7 +105,8 @@ class ClientSession {
     commandsLoader.refresh();
   }
 
-  Map<String, String>? _constructHeaders(Map<String, String>? headers) {
+  /// Construct authorization header
+  Map<String, String>? constructHeaders([Map<String, String>? headers]) {
     if (loggedIn) {
       headers = headers ?? <String, String>{};
       headers["X-Auth-Token"] = authorizationState!.token;
@@ -109,7 +116,7 @@ class ClientSession {
   }
 
   /// Perform a GET request with authorization data
-  Future<Response> get(Uri url, {Map<String, String>? headers}) => _client.get(url, headers: _constructHeaders(headers));
+  Future<Response> get(Uri url, {Map<String, String>? headers}) => _client.get(url, headers: constructHeaders(headers));
 
   /// Perform a POST request with authorization data
   Future<Response> post(
@@ -120,7 +127,7 @@ class ClientSession {
   }) =>
       _client.post(
         url,
-        headers: _constructHeaders(headers),
+        headers: constructHeaders(headers),
         body: body,
         encoding: encoding,
       );

@@ -7,14 +7,14 @@ from aiohttp import web
 from environment import OWNER_ID
 from ..router import router
 from ..utils import json_encode
-from ..verification import token_mapping
+from ..verification import authenticate_request
 if TYPE_CHECKING:
     from ..customs import Request
 
 
 @router.get("/commands")
 async def handler(request: Request) -> web.Response:
-    user = token_mapping.check_request(request)
+    user = authenticate_request(request)
     show_hidden = False
     if user is not None:
         show_hidden = user.id == OWNER_ID

@@ -1,14 +1,23 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Union, overload
+from typing import Any, Dict, List, Union
 
 import discord
 from discord.ext import commands
+from frozenlist import FrozenList
 
 
-def _json_encode(obj: Any) -> Any:
+class Serializable:
+    def to_json(self) -> Union[List[Any], Dict[str, Any]]:
+        raise NotImplementedError
+
+
+def json_encode(obj: Any) -> Any:
     if obj is None:
         return None
+
+    if isinstance(obj, Serializable):
+        return obj.to_json()
 
     if isinstance(obj, commands.Command):
         return {
@@ -24,7 +33,7 @@ def _json_encode(obj: Any) -> Any:
             "id": obj.id,
             "name": obj.name,
             "discriminator": obj.discriminator,
-            "avatar": _json_encode(obj.avatar),
+            "avatar": json_encode(obj.avatar),
         }
 
     if isinstance(obj, discord.Asset):
@@ -33,34 +42,20 @@ def _json_encode(obj: Any) -> Any:
             "url": obj.url,
         }
 
-    if isinstance(obj, list):
-        return [_json_encode(o) for o in obj]
+    if isinstance(obj, (int, str)):
+        return obj
+
+    if isinstance(obj, (list, tuple, FrozenList)):
+        return [json_encode(o) for o in obj]
 
     if isinstance(obj, dict):
         result = {}
         for key, value in obj.items():
             if isinstance(key, str):
-                result[key] = _json_encode(value)
+                result[key] = json_encode(value)
             else:
                 raise TypeError(f"Error encoding {obj}: Invalid key {key}")
 
         return result
 
     raise TypeError(f"Unsupported JSON encoding type {obj.__class__.__name__}")
-
-
-@overload
-def json_encode(data: None) -> None: ...
-
-
-@overload
-def json_encode(data: Union[commands.Command, discord.abc.User, discord.Asset, Dict[str, Any]]) -> Dict[str, Any]: ...
-
-
-@overload
-def json_encode(data: List[Any]) -> List[Any]: ...
-
-
-def json_encode(data):
-    """Encode data into JSON for sending over the network"""
-    return _json_encode(data)

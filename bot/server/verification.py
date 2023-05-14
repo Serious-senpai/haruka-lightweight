@@ -43,7 +43,7 @@ class OTPCache:
         self.__countdown.start()
 
     def add_key(self, user: abc.User) -> str:
-        key = f"{user.id}.{secrets.token_hex(8)}"
+        key = f"{user.id}{secrets.token_hex(8)}"
         self.__data[key] = user
         self.__queue.append(OTPCountdown(timestamp=utcnow() + self.DELETE_AFTER, key=key))
         self.__countdown.restart()
@@ -106,11 +106,6 @@ class TokenMapping:
         """Return the user from a given token"""
         return self.__token_to_user.get(token)
 
-    def check_request(self, request: Request) -> Optional[abc.User]:
-        token = request.headers.get("x-Auth-Token")
-        if isinstance(token, str):
-            return self.check_token(token)
-
     @overload
     def __getitem__(self, key: str) -> abc.User: ...
 
@@ -127,5 +122,14 @@ class TokenMapping:
         raise TypeError(f"Expected str or discord.abc.User, not {key.__class__.__name__}")
 
 
+ip_mapping: Dict[str, abc.User] = {}
 otp_cache = OTPCache()
 token_mapping = TokenMapping()
+
+
+def authenticate_request(request: Request) -> Optional[abc.User]:
+    token = request.headers.get("x-Auth-Token")
+    if isinstance(token, str):
+        return token_mapping.check_token(token)
+
+    return ip_mapping.get(request.remote)

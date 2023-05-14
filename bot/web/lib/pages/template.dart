@@ -7,11 +7,16 @@ import "../src/session.dart";
 import "../src/utils.dart";
 
 class TemplateScaffold extends StatefulWidget {
+  final Color backgroundColor;
   final Widget child;
   final ClientSession _http;
 
-  const TemplateScaffold({Key? key, required this.child, required ClientSession session})
-      : _http = session,
+  const TemplateScaffold({
+    Key? key,
+    this.backgroundColor = Colors.black,
+    required this.child,
+    required ClientSession session,
+  })  : _http = session,
         super(key: key);
 
   @override
@@ -21,6 +26,7 @@ class TemplateScaffold extends StatefulWidget {
 class _TemplateScaffoldState extends State<TemplateScaffold> {
   Widget get child => widget.child;
   ClientSession get _http => widget._http;
+  Color get backgroundColor => widget.backgroundColor;
 
   void refresh() => setState(() {});
 
@@ -28,7 +34,7 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
   Widget build(BuildContext context) {
     var screenSize = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: backgroundColor,
       body: Row(
         children: [
           SizedBox(
@@ -127,14 +133,44 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                     onPressed: () async {
                       await launchUrl(Uri.https("github.com", "Serious-senpai/haruka-lightweight"));
                     },
-                    child: const Text("Source code", style: TextStyle(fontSize: 20, color: Colors.black)),
+                    child: const Text(
+                      "Source code",
+                      style: TextStyle(fontSize: 20, color: Colors.black),
+                      textAlign: TextAlign.right,
+                    ),
                   ),
                   seperator,
                   TextButton(
                     onPressed: () async {
                       await launchUrl(Uri.parse("/invite"));
                     },
-                    child: const Text("Invite URL", style: TextStyle(fontSize: 20, color: Colors.black)),
+                    child: const Text(
+                      "Invite URL",
+                      style: TextStyle(fontSize: 20, color: Colors.black),
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                  seperator,
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, "/");
+                    },
+                    child: const Text(
+                      "Main Page",
+                      style: TextStyle(fontSize: 20, color: Colors.black),
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                  seperator,
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, "/tic-tac-toe");
+                    },
+                    child: const Text(
+                      "Tic-tac-toe",
+                      style: TextStyle(fontSize: 20, color: Colors.black),
+                      textAlign: TextAlign.right,
+                    ),
                   ),
                 ],
               ),

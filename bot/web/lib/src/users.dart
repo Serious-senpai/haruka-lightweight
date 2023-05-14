@@ -23,4 +23,10 @@ class User {
           child: Text(name),
         )
       : CircleAvatar(backgroundImage: NetworkImage(avatar!.url));
+
+  @override
+  bool operator ==(covariant User other) => id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
