@@ -56,6 +56,8 @@ class ClientSession {
     onAuthorizationStateChange();
   }
 
+  User? get clientUser => _authorizationState?.user;
+
   CommandsLoader? _commandsLoader;
 
   /// [CommandsLoader] for the current session

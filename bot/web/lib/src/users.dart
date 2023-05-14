@@ -3,7 +3,7 @@ import "package:flutter/material.dart";
 import "assets.dart";
 
 class User {
-  final int id;
+  final String id;
   final String name;
   final String discriminator;
 

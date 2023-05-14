@@ -148,10 +148,10 @@ class SharedInterface:
         self.log(f"Started serving on port {PORT}")
 
         # Continue building binaries
-        process = await asyncio.create_subprocess_shell("apt install ffmpeg g++ -y")
+        process = await asyncio.create_subprocess_shell("apt install ffmpeg g++ -y", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
         await process.communicate()
 
-        process = await asyncio.create_subprocess_shell(f"g++ -std=c++2a -Wall bot/c++/fuzzy.cpp -o {FUZZY_MATCH}")
+        process = await asyncio.create_subprocess_shell(f"g++ -std=c++2a -Wall bot/c++/fuzzy.cpp -o {FUZZY_MATCH}", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
         await process.communicate()
 
         if sys.platform == "linux":

@@ -20,7 +20,12 @@ class Room {
   final ClientSession _http;
 
   WebSocketBroadcastChannel? _communicateWebSocket;
-  WebSocketBroadcastChannel get communicateWebSocket => _communicateWebSocket ??= WebSocketBroadcastChannel.connect(websocketUri("/tic-tac-toe/room/$id"));
+  WebSocketBroadcastChannel get communicateWebSocket => _communicateWebSocket ??= WebSocketBroadcastChannel.connect(
+        websocketUri(
+          "/tic-tac-toe/room/$id",
+          {"id": _http.clientUser?.id.toString() ?? ""},
+        ),
+      );
 
   Stream<Room>? _updateStream;
   Stream<Room> get updateStream => _updateStream ??= _pollChanges().asBroadcastStream();
@@ -42,7 +47,12 @@ class Room {
     var cached = hostedRooms[id];
     if (cached != null) return cached;
 
-    var websocket = WebSocketBroadcastChannel.connect(websocketUri("/tic-tac-toe/room/$id"));
+    var websocket = WebSocketBroadcastChannel.connect(
+      websocketUri(
+        "/tic-tac-toe/room/$id",
+        {"id": session.clientUser?.id.toString() ?? ""},
+      ),
+    );
     var data = jsonDecode(await websocket.stream.first);
     if (data["error"]) throw Exception(data["message"]);
 
@@ -50,7 +60,12 @@ class Room {
   }
 
   static Future<Room> create({required ClientSession session}) async {
-    var websocket = WebSocketBroadcastChannel.connect(websocketUri("/tic-tac-toe/create"));
+    var websocket = WebSocketBroadcastChannel.connect(
+      websocketUri(
+        "/tic-tac-toe/create",
+        {"id": session.clientUser?.id.toString() ?? ""},
+      ),
+    );
     var data = jsonDecode(await websocket.stream.first);
     if (data["error"]) throw Exception(data["message"]);
 

@@ -81,6 +81,10 @@ class State(Serializable):
     async def start(self) -> None:
         self.__start.set()
 
+    def end(self, winner: Literal[0, 1]) -> None:
+        self.__winner = winner
+        self.__end.set()
+
     def move(
         self,
         row: Literal[0, 1, 2],
@@ -88,8 +92,7 @@ class State(Serializable):
     ) -> bool:
         if self._move(row, column):
             # Set winner
-            self.__winner = 1 - self.__player_index
-            self.__end.set()
+            self.end(1 - self.__player_index)
             return True
 
         return False

@@ -29,11 +29,19 @@ class Player(Serializable):
             "user": json_encode(self.user),
         }
 
+    def __repr__(self) -> str:
+        return f"<Player user={self.user}>"
+
     @classmethod
     async def from_request(cls, request: Request) -> Optional[Player]:
         user = authenticate_request(request)
         if user is None:
-            return
+            try:
+                id = int(request.query["id"])
+            except (KeyError, ValueError):
+                return
+            else:
+                user = await request.app.interface.clients[0].fetch_user(id)
 
         websocket = web.WebSocketResponse()
         await websocket.prepare(request)

@@ -25,13 +25,13 @@ class Notifier {
   }
 }
 
-Uri websocketUri(String path) {
-  var host = window.location.host;
-  var protocol = window.location.protocol == "https:" ? "wss:" : "ws:";
-
-  if (!path.startsWith("/")) path = "/$path";
-  return Uri.parse("$protocol//$host$path");
-}
+Uri websocketUri(String path, [Map<String, String>? query]) => Uri(
+      scheme: window.location.protocol == "https:" ? "wss" : "ws",
+      host: window.location.hostname,
+      port: int.tryParse(window.location.port),
+      path: path,
+      queryParameters: query,
+    );
 
 /// Objects holding a pair of value
 class Pair<T1, T2> {

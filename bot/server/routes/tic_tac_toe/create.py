@@ -31,6 +31,8 @@ async def handler(request: Request) -> web.Response:
                 "message": "Not logged in",
             }
         )
+        await websocket.close()
+
     else:
         room = Room(host=player)
         websocket = player.websocket
@@ -88,6 +90,6 @@ async def handler(request: Request) -> web.Response:
                     await websocket.close(code=web_ws.WSCloseCode.UNSUPPORTED_DATA)
 
         finally:
-            await room.remove()
+            await room.leave(0)
 
-        return websocket
+    return websocket

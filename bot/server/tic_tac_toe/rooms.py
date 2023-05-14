@@ -77,12 +77,21 @@ class Room(Serializable):
         self.add_listener(player.websocket)
         await self.__notify_all()
 
-    async def leave(self) -> None:
-        player = self.__players[1]
-        if player is not None:
-            self.__players = (self.host, None)
-            self.remove_listener(player.websocket)
-            await self.__notify_all()
+    async def leave(self, player_index: Literal[0, 1]) -> None:
+        if self.__players[player_index] is None:
+            return
+
+        if self.__state is not None:
+            assert (self.__state.started)
+            self.__state.end(1 - player_index)
+        elif player_index == 0:
+            self.__players = (self.__players[1], None)
+        elif player_index == 1:
+            self.__players = (self.__players[0], None)
+        else:
+            raise ValueError(f"Invalid player index {player_index}")
+
+        await self.__notify_all()
 
     async def remove(self) -> None:
         with contextlib.suppress(KeyError):
@@ -91,6 +100,7 @@ class Room(Serializable):
 
     async def start(self) -> None:
         if self.__state is not None:
+            assert (self.__state.started)
             raise AlreadyStarted
 
         if not self.is_full():

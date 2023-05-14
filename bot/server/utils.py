@@ -30,7 +30,7 @@ def json_encode(obj: Any) -> Any:
 
     if isinstance(obj, discord.abc.User):
         return {
-            "id": obj.id,
+            "id": str(obj.id),
             "name": obj.name,
             "discriminator": obj.discriminator,
             "avatar": json_encode(obj.avatar),

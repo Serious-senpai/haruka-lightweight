@@ -122,14 +122,11 @@ class TokenMapping:
         raise TypeError(f"Expected str or discord.abc.User, not {key.__class__.__name__}")
 
 
-ip_mapping: Dict[str, abc.User] = {}
 otp_cache = OTPCache()
 token_mapping = TokenMapping()
 
 
 def authenticate_request(request: Request) -> Optional[abc.User]:
-    token = request.headers.get("x-Auth-Token")
+    token = request.headers.get("X-Auth-Token")
     if isinstance(token, str):
         return token_mapping.check_token(token)
-
-    return ip_mapping.get(request.remote)
