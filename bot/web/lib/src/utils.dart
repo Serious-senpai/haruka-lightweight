@@ -7,9 +7,26 @@ class WebSocketBroadcastChannel extends HtmlWebSocketChannel {
   Stream<dynamic>? _stream;
 
   @override
-  Stream<dynamic> get stream => _stream ??= super.stream.asBroadcastStream();
+  Stream<dynamic> get stream {
+    Stream<dynamic> sendEvent() async* {
+      await for (var data in super.stream) {
+        if (data != "PONG") yield data;
+      }
+    }
 
-  WebSocketBroadcastChannel.connect(Uri uri, {Iterable<String>? protocols}) : super.connect(uri, protocols: protocols);
+    return _stream ??= sendEvent().asBroadcastStream();
+  }
+
+  Future<void> sendPing() async {
+    while (true) {
+      sink.add("PING");
+      await Future.delayed(const Duration(seconds: 15));
+    }
+  }
+
+  WebSocketBroadcastChannel.connect(Uri uri, {Iterable<String>? protocols}) : super.connect(uri, protocols: protocols) {
+    sendPing();
+  }
 }
 
 class Notifier {

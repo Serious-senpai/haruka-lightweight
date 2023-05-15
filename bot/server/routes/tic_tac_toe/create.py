@@ -42,7 +42,9 @@ async def handler(request: Request) -> web.Response:
             async for message in websocket:
                 content = message.data
                 if isinstance(content, str):
-                    if match := MOVE.fullmatch(content):
+                    if content == "PING":
+                        await websocket.send_str("PONG")
+                    elif match := MOVE.fullmatch(content):
                         row, column = match.groups()
                         try:
                             await room.move(0, int(row), int(column))
