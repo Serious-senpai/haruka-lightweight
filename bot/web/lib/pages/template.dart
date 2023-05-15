@@ -117,9 +117,17 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                                 if (await _http.login(key)) {
                                   var user = _http.authorizationState!.user;
                                   refresh();
-                                  await Fluttertoast.showToast(msg: "Welcome, ${user.displayName}!");
+                                  await Fluttertoast.showToast(
+                                    msg: "Welcome, ${user.displayName}!",
+                                    timeInSecForIosWeb: 5,
+                                    gravity: ToastGravity.TOP_RIGHT,
+                                  );
                                 } else {
-                                  await Fluttertoast.showToast(msg: "Invalid password");
+                                  await Fluttertoast.showToast(
+                                    msg: "Invalid password",
+                                    timeInSecForIosWeb: 5,
+                                    gravity: ToastGravity.TOP_RIGHT,
+                                  );
                                 }
                               }
                             },

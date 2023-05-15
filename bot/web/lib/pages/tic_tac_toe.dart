@@ -4,6 +4,7 @@ import "template.dart";
 import "../src/environment.dart";
 import "../src/session.dart";
 import "../src/utils.dart";
+import "../src/tic_tac_toe/errors.dart";
 import "../src/tic_tac_toe/rooms.dart";
 import "../src/tic_tac_toe/state.dart";
 
@@ -55,10 +56,13 @@ class _TicTacToePageState extends State<TicTacToePage> {
                       if (index == 0) {
                         return TextButton(
                           onPressed: () async {
-                            var room = await Room.create(session: _http);
-
-                            if (!mounted) return;
-                            Navigator.pushNamed(context, "/tic-tac-toe/room/${room.id}");
+                            try {
+                              var room = await Room.create(session: _http);
+                              if (!mounted) return;
+                              Navigator.pushNamed(context, "/tic-tac-toe/room/${room.id}");
+                            } on TicTacToeException catch (e) {
+                              await e.showMessage();
+                            }
                           },
                           child: const Text("Host a new game"),
                         );
@@ -81,7 +85,10 @@ class _TicTacToePageState extends State<TicTacToePage> {
               future: Room.fromId(id: roomId, session: _http),
               builder: (context, snapshot) {
                 var error = snapshot.error;
-                if (error != null) throw error;
+                if (error != null) {
+                  if (error is TicTacToeException) error.showMessage();
+                  throw error;
+                }
 
                 var data = snapshot.data;
                 if (data == null) {

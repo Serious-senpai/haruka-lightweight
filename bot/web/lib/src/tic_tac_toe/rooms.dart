@@ -1,11 +1,12 @@
 import "dart:convert";
 
+import "errors.dart";
 import "players.dart";
 import "state.dart";
 import "../session.dart";
 import "../utils.dart";
 
-typedef ErrorHandler = void Function(String message);
+typedef ErrorHandler = void Function(TicTacToeException error);
 
 final hostedRooms = <String, Room>{};
 
@@ -54,7 +55,7 @@ class Room {
       ),
     );
     var data = jsonDecode(await websocket.stream.first);
-    if (data["error"]) throw Exception(data["message"]);
+    if (data["error"]) throw TicTacToeException(data["message"]);
 
     return Room(data["data"], websocket: websocket, session: session);
   }
@@ -67,7 +68,7 @@ class Room {
       ),
     );
     var data = jsonDecode(await websocket.stream.first);
-    if (data["error"]) throw Exception(data["message"]);
+    if (data["error"]) throw TicTacToeException(data["message"]);
 
     var room = Room(data["data"], websocket: websocket, session: session);
     return hostedRooms[room.id] = room;
@@ -80,11 +81,12 @@ class Room {
   }
 
   Stream<Room> _pollChanges() async* {
+    addErrorHandler((error) => error.showMessage());
     await for (var message in communicateWebSocket.stream) {
       var data = jsonDecode(message);
       if (data["error"]) {
         for (var handler in errorHandlers) {
-          handler(data["message"]);
+          handler(TicTacToeException(data["message"]));
         }
       } else {
         update(data["data"]);

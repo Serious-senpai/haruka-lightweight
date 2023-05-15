@@ -16,7 +16,17 @@ async def handler(request: Request) -> web.Response:
     room_id = request.match_info["room_id"]
     room = Room.from_id(room_id)
     if room is None:
-        raise web.HTTPNotFound
+        websocket = web.WebSocketResponse()
+        await websocket.prepare(request)
+        await websocket.send_json(
+            {
+                "error": True,
+                "message": "This room does not exist!",
+            }
+        )
+        await websocket.close()
+
+        return websocket
 
     is_spectator = True
     player = await Player.from_request(request)
