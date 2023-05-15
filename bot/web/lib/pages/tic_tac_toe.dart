@@ -5,6 +5,7 @@ import "../src/environment.dart";
 import "../src/session.dart";
 import "../src/utils.dart";
 import "../src/tic_tac_toe/rooms.dart";
+import "../src/tic_tac_toe/state.dart";
 
 class TicTacToePage extends StatefulWidget {
   final ClientSession _http;
@@ -130,20 +131,20 @@ class _TicTacToePageState extends State<TicTacToePage> {
                             ),
                       seperator,
                       Padding(
-                        padding: const EdgeInsets.all(10.0),
+                        padding: const EdgeInsets.all(8.0),
                         child: Column(
                           children: List<Widget>.generate(
-                            3,
+                            BOARD_SIZE,
                             (row) => Row(
                               children: List<Widget>.generate(
-                                3,
+                                BOARD_SIZE,
                                 (column) => GestureDetector(
                                   onTap: () => data.move(row, column),
                                   child: Container(
                                     decoration: BoxDecoration(border: Border.all(color: Colors.white)),
-                                    padding: const EdgeInsets.all(5.0),
-                                    width: 60.0,
-                                    height: 60.0,
+                                    padding: const EdgeInsets.all(3.0),
+                                    width: 40.0,
+                                    height: 40.0,
                                     child: data.state.board[row][column] == null ? const SizedBox.shrink() : Icon(data.state.board[row][column] == 0 ? Icons.close : Icons.circle_outlined),
                                   ),
                                 ),
@@ -156,9 +157,12 @@ class _TicTacToePageState extends State<TicTacToePage> {
                       data.started ? const Text("Game started") : TextButton(onPressed: data.start, child: const Text("START")),
                     ];
 
-                    return Padding(
+                    return SingleChildScrollView(
                       padding: const EdgeInsets.all(8.0),
-                      child: Column(children: children),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: children,
+                      ),
                     );
                   },
                 );

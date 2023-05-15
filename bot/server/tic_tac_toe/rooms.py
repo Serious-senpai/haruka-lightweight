@@ -9,7 +9,7 @@ from aiohttp import web
 
 from .errors import AlreadyStarted, InvalidTurn, NotEnoughPlayer, NotStarted
 from .players import Player
-from .state import State
+from .state import CoordinateT, State
 from ..utils import Serializable, json_encode
 
 
@@ -118,14 +118,14 @@ class Room(Serializable):
 
     async def move(
         self,
-        player_index: Literal[0, 1],
-        row: Literal[0, 1, 2],
-        column: Literal[0, 1, 2],
+        player: Literal[0, 1],
+        row: CoordinateT,
+        column: CoordinateT,
     ) -> None:
         if self.__state is None:
             raise NotStarted
 
-        if player_index == self.__state.player_turn:
+        if player == self.__state.player_turn:
             ended = self.__state.move(row, column)
             await self.__notify_all()
 

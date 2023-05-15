@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+from copy import deepcopy
 from typing import Any, Dict, List, Literal, Optional, Set, TYPE_CHECKING
-
-from frozenlist import FrozenList
 
 from .errors import InvalidMove
 from ..utils import Serializable, json_encode
@@ -11,8 +10,10 @@ if TYPE_CHECKING:
     from .rooms import Room
 
 
-TileState: Optional[Literal[0, 1]]
-valid_index: Set[Literal[0, 1, 2]] = {0, 1, 2}
+BOARD_SIZE = 15
+TileState = Optional[Literal[0, 1]]
+CoordinateT = Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+valid_index: Set[CoordinateT] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}
 
 
 class State(Serializable):
@@ -20,7 +21,7 @@ class State(Serializable):
     __slots__ = (
         "__board",
         "__end",
-        "__player_index",
+        "__player_turn",
         "__start",
         "__winner",
         "room",
@@ -28,24 +29,22 @@ class State(Serializable):
     if TYPE_CHECKING:
         __board: List[List[TileState]]
         __end: asyncio.Event
-        __player_index: Literal[0, 1]
+        __player_turn: Literal[0, 1]
         __start: asyncio.Event
         __winner: Optional[Literal[0, 1]]
         room: Room
 
     def __init__(self, *, room: Room) -> None:
-        self.__board = [[None] * 3 for _ in range(3)]
+        self.__board = [[None] * BOARD_SIZE for _ in range(BOARD_SIZE)]
         self.__end = asyncio.Event()
-        self.__player_index = 0
+        self.__player_turn = 0
         self.__start = asyncio.Event()
         self.__winner = None
         self.room = room
 
     @property
-    def board(self) -> FrozenList[FrozenList[TileState]]:
-        result = FrozenList(FrozenList(row) for row in self.__board)
-        result.freeze()
-        return result
+    def board(self) -> List[List[TileState]]:
+        return deepcopy(self.__board)
 
     @property
     def started(self) -> bool:
@@ -60,8 +59,12 @@ class State(Serializable):
         return self.__winner
 
     @property
+    def draw(self) -> bool:
+        return self.ended and self.winner is None
+
+    @property
     def player_turn(self) -> Literal[0, 1]:
-        return self.__player_index
+        return self.__player_turn
 
     def to_json(self) -> Dict[str, Any]:
         return {
@@ -87,40 +90,98 @@ class State(Serializable):
 
     def move(
         self,
-        row: Literal[0, 1, 2],
-        column: Literal[0, 1, 2],
+        row: CoordinateT,
+        column: CoordinateT,
     ) -> bool:
         if self._move(row, column):
             # Set winner
-            self.end(1 - self.__player_index)
+            self.end(1 - self.__player_turn)
             return True
 
         return False
 
     def _move(
         self,
-        row: Literal[0, 1, 2],
-        column: Literal[0, 1, 2],
+        row: CoordinateT,
+        column: CoordinateT
     ) -> bool:
         board = self.__board
         if row not in valid_index or column not in valid_index or board[row][column] is not None:
             raise InvalidMove
 
-        player_index = self.__player_index
-        self.__player_index = 1 - self.__player_index
+        player_index = self.__player_turn
+        self.__player_turn = 1 - self.__player_turn
         board[row][column] = player_index
 
         # Does the move we just made result in a win?
-        if board[row][(column + 1) % 3] == board[row][(column + 2) % 3] == player_index:
-            return True
+        return any(
+            [
+                self._check_vertical(column=column, player=player_index),
+                self._check_horizontal(row=row, player=player_index),
+                self._check_diagonal(row=row, column=column, player=player_index),
+                self._check_antidiagonal(row=row, column=column, player=player_index),
+            ],
+        )
 
-        if board[(row + 1) % 3][column] == board[(row + 2) % 3][column] == player_index:
-            return True
+    def _check_vertical(self, *, column: CoordinateT, player: Literal[0, 1]) -> bool:
+        consecutive = 0
+        board = self.__board
+        for i in range(BOARD_SIZE):
+            if board[i][column] == player:
+                consecutive += 1
+                if consecutive == 5:
+                    return True
 
-        if board[(row + 1) % 3][(column + 1) % 3] == board[(row + 2) % 3][(column + 2) % 3] == player_index:
-            return True
+            else:
+                consecutive = 0
 
-        if board[(row + 1) % 3][(column - 1) % 3] == board[(row + 2) % 3][(column - 2) % 3] == player_index:
-            return True
+        return False
+
+    def _check_horizontal(self, *, row: CoordinateT, player: Literal[0, 1]) -> bool:
+        consecutive = 0
+        board = self.__board
+        for i in range(BOARD_SIZE):
+            if board[row][i] == player:
+                consecutive += 1
+                if consecutive == 5:
+                    return True
+
+            else:
+                consecutive = 0
+
+        return False
+
+    def _check_diagonal(self, *, row: CoordinateT, column: CoordinateT, player: Literal[0, 1]) -> bool:
+        i = max(0, row - column)
+        j = max(0, column - row)
+        consecutive = 0
+        board = self.__board
+        while i < BOARD_SIZE and j < BOARD_SIZE:
+            if board[i][j] == player:
+                consecutive += 1
+                if consecutive == 5:
+                    return True
+
+            else:
+                consecutive = 0
+
+            i += 1
+            j += 1
+
+        return False
+
+    def _check_antidiagonal(self, *, row: CoordinateT, column: CoordinateT, player: Literal[0, 1]) -> bool:
+        consecutive = 0
+        board = self.__board
+        for i in range(BOARD_SIZE):
+            j = row + column - i
+            if 0 <= j < BOARD_SIZE:
+                if board[i][j] == player:
+                    consecutive += 1
+                    if consecutive == 5:
+                        return True
+
+                else:
+                    consecutive = 0
 
         return False
