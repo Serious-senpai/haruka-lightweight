@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from os import path
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from aiohttp import web
 
@@ -10,16 +10,14 @@ if TYPE_CHECKING:
     from ..customs import Request
 
 
-avatar_url: Optional[str] = None
-
-
 @router.get("/favicon.ico")
 @router.get("/favicon.png")
 @router.get(r"/icons/{filename:.+?\.(?:png|jpg)}")
 async def handler(request: Request) -> web.Response:
-    global avatar_url
-    avatar_url = avatar_url or request.app.interface.clients[0].user.avatar.url
-    raise web.HTTPFound(avatar_url)
+    try:
+        raise web.HTTPFound(request.app.interface.clients[0].user.avatar.url)
+    except AttributeError:
+        raise web.HTTPNotFound
 
 
 @router.get(r"/{filename:.+?\.(?:html|css|js|json|otf|ttf)}")
