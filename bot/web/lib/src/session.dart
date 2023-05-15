@@ -53,6 +53,7 @@ class ClientSession {
       window.localStorage.remove(LOCAL_TOKEN_KEY);
     }
 
+    print("Authorization state updated. Client user: $clientUser");
     onAuthorizationStateChange();
   }
 
@@ -72,12 +73,11 @@ class ClientSession {
 
   /// Initialize a new [ClientSession], this should be called only once
   static Future<ClientSession> create() async {
+    print("Creating client session.");
     var object = ClientSession._();
 
     var token = window.localStorage[LOCAL_TOKEN_KEY];
-    if (token != null) {
-      object.authorizationState = await AuthorizationState.fromToken(token);
-    }
+    if (token != null) object.authorizationState = await AuthorizationState.fromToken(token);
 
     return object;
   }

@@ -3,6 +3,7 @@ from .help import *
 from .info import *
 from .otp import *
 from .ping import *
+from .rerun import *
 from .say import *
 from .source import *
 from .speak import *

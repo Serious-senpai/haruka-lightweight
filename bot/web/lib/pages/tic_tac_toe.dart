@@ -54,17 +54,28 @@ class _TicTacToePageState extends State<TicTacToePage> {
                     itemCount: data.length + 1,
                     itemBuilder: (context, index) {
                       if (index == 0) {
-                        return TextButton(
-                          onPressed: () async {
-                            try {
-                              var room = await Room.create(session: _http);
-                              if (!mounted) return;
-                              Navigator.pushNamed(context, "/tic-tac-toe/room/${room.id}");
-                            } on TicTacToeException catch (e) {
-                              await e.showMessage();
-                            }
-                          },
-                          child: const Text("Host a new game"),
+                        return Row(
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                _http.roomsLoader.resetRoomsFetcher();
+                                refresh();
+                              },
+                              icon: const Icon(Icons.refresh_outlined),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                try {
+                                  var room = await Room.create(session: _http);
+                                  if (!mounted) return;
+                                  Navigator.pushNamed(context, "/tic-tac-toe/room/${room.id}");
+                                } on TicTacToeException catch (e) {
+                                  await e.showMessage();
+                                }
+                              },
+                              child: const Text("Host a new game"),
+                            ),
+                          ],
                         );
                       }
 

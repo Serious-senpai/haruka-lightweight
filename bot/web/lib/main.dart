@@ -7,6 +7,7 @@ import "pages/tic_tac_toe.dart";
 Future<void> main() async {
   var session = await ClientSession.create();
 
+  print("Initialized client session. Starting application.");
   runApp(MainApp(session: session));
 }
 
@@ -28,9 +29,11 @@ class MainApp extends StatelessWidget {
         var name = settings.name;
         if (name != null) {
           var pattern = RegExp(r"^\/tic-tac-toe\/room\/(.+?)\/?$");
-          var roomId = pattern.firstMatch(name)!.group(1);
+          var roomId = pattern.firstMatch(name)?.group(1);
           return MaterialPageRoute(builder: (context) => TicTacToePage(roomId: roomId, session: _http));
         }
+
+        return null;
       },
     );
   }

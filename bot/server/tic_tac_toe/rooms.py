@@ -91,7 +91,10 @@ class Room(Serializable):
         else:
             raise ValueError(f"Invalid player index {player_index}")
 
-        await self.__notify_all()
+        if self.__players[0] is None:
+            await self.remove()
+        else:
+            await self.__notify_all()
 
     async def remove(self) -> None:
         with contextlib.suppress(KeyError):
