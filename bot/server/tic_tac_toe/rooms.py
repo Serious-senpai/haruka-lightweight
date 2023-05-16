@@ -72,13 +72,25 @@ class Room(Serializable):
     def is_full(self) -> bool:
         return self.__players[1] is not None
 
-    async def join(self, player: Player) -> None:
+    def index(self, player: Optional[Player], /) -> Optional[Literal[0, 1]]:
+        if player is None:
+            return
+
+        for index in range(2):
+            if player == self.__players[index]:
+                return index
+
+    async def try_join(self, player: Player) -> None:
+        if self.is_full():
+            return
+
         self.__players = (self.host, player)
         self.add_listener(player.websocket)
         await self.__notify_all()
 
-    async def leave(self, player_index: Literal[0, 1]) -> None:
-        if self.__players[player_index] is None:
+    async def leave(self, player: Optional[Player], /) -> None:
+        player_index = self.index(player)
+        if player_index is None or self.__players[player_index] is None:
             return
 
         if self.__state is not None:

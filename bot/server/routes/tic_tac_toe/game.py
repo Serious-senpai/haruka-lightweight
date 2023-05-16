@@ -4,9 +4,9 @@ from typing import TYPE_CHECKING
 
 from aiohttp import web, web_ws
 
-from .parsers import MOVE, START
+from .parsers import handle_message
 from ...router import router
-from ...tic_tac_toe import InvalidMove, InvalidTurn, NotStarted, Player, Room
+from ...tic_tac_toe import Player, Room
 if TYPE_CHECKING:
     from ...customs import Request
 
@@ -25,16 +25,12 @@ async def handler(request: Request) -> web.Response:
             }
         )
         await websocket.close()
-
         return websocket
 
-    is_spectator = True
     player = await Player.from_request(request)
     if player is not None:
         websocket = player.websocket
-        if not room.is_full():
-            await room.join(player)
-            is_spectator = False
+        await room.try_join(player)
     else:
         websocket = web.WebSocketResponse()
         await websocket.prepare(request)
@@ -44,53 +40,9 @@ async def handler(request: Request) -> web.Response:
 
     try:
         async for message in websocket:
-            if is_spectator:
-                # Ignore all client messages
-                continue
-
-            content = message.data
-            if isinstance(content, str):
-                if content == "PING":
-                    await websocket.send_str("PONG")
-                elif match := MOVE.fullmatch(content):
-                    row, column = match.groups()
-                    try:
-                        await room.move(1, int(row), int(column))
-                    except InvalidMove:
-                        await websocket.send_json(
-                            {
-                                "error": True,
-                                "message": "Invalid move!",
-                            }
-                        )
-                    except NotStarted:
-                        await websocket.send_json(
-                            {
-                                "error": True,
-                                "message": "Game hasn't started yet!",
-                            }
-                        )
-                    except InvalidTurn:
-                        await websocket.send_json(
-                            {
-                                "error": True,
-                                "message": "Not your turn yet!",
-                            }
-                        )
-
-                elif match := START.fullmatch(content):
-                    await websocket.send_json(
-                        {
-                            "error": True,
-                            "message": "Only the host can start the game!",
-                        }
-                    )
-
-            else:
-                await websocket.close(code=web_ws.WSCloseCode.UNSUPPORTED_DATA)
+            await handle_message(player=player, message=message, room=room)
 
     finally:
-        if not is_spectator:
-            await room.leave(1)
+        await room.leave(player)
 
     return websocket
