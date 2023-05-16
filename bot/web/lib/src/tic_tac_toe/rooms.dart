@@ -12,6 +12,7 @@ final hostedRooms = <String, Room>{};
 
 class Room {
   final String id;
+  List<String> logs;
   Pair<Player, Player?> players;
   final state = GameState();
 
@@ -38,9 +39,17 @@ class Room {
     WebSocketBroadcastChannel? websocket,
     required ClientSession session,
   })  : id = data["id"],
+        logs = List<String>.from(data["logs"]),
         players = Player.pairFromJson(data["players"]),
         _communicateWebSocket = websocket,
         _http = session {
+    if (data["state"] != null) state.update(data["state"]);
+  }
+
+  void update(Map<String, dynamic> data) {
+    assert(id == data["id"]);
+    logs = List<String>.from(data["logs"]);
+    players = Player.pairFromJson(data["players"]);
     if (data["state"] != null) state.update(data["state"]);
   }
 
@@ -74,12 +83,6 @@ class Room {
     return hostedRooms[room.id] = room;
   }
 
-  void update(Map<String, dynamic> data) {
-    assert(id == data["id"]);
-    players = Player.pairFromJson(data["players"]);
-    if (data["state"] != null) state.update(data["state"]);
-  }
-
   Stream<Room> _pollChanges() async* {
     addErrorHandler((error) => error.showMessage());
     await for (var message in communicateWebSocket.stream) {
@@ -106,6 +109,7 @@ class Room {
   void sendString(String data) => communicateWebSocket.sink.add(data);
   void move(int row, int column) => sendString("MOVE $row $column");
   void start() => sendString("START");
+  void chat(String content) => sendString("CHAT $content");
 }
 
 class RoomsLoader {

@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import secrets
-from typing import Any, Awaitable, Dict, Literal, Optional, Set, Tuple, TYPE_CHECKING
+from typing import Any, Awaitable, Dict, List, Literal, Optional, Set, Tuple, TYPE_CHECKING
 
 from aiohttp import web
 
@@ -18,6 +18,7 @@ class Room(Serializable):
     __slots__ = (
         "__id",
         "__listeners",
+        "__logs",
         "__players",
         "__state",
     )
@@ -25,6 +26,7 @@ class Room(Serializable):
     if TYPE_CHECKING:
         __id: int
         __listeners: Set[web.WebSocketResponse]
+        __logs: List[str]
         __players: Tuple[Player, Optional[Player]]
         __state: Optional[State]
 
@@ -36,6 +38,7 @@ class Room(Serializable):
         self.rooms[self.__id] = self
 
         self.__listeners = {host.websocket}
+        self.__logs = [f"Room hosted by {host.user}"]
         self.__players = (host, None)
         self.__state = None
 
@@ -56,9 +59,18 @@ class Room(Serializable):
         if self.__state is not None:
             return self.__state.winner
 
+    def chat(self, player: Optional[Player], content: str, /) -> Awaitable[None]:
+        user_display = str(player.user) if player is not None else "Anonymous"
+        return self.log(f"[{user_display}]: {content}")
+
+    async def log(self, content: str, /) -> None:
+        self.__logs.append(content)
+        await self.__notify_all()
+
     def to_json(self) -> Dict[str, Any]:
         return {
             "id": self.id,
+            "logs": self.__logs,
             "players": json_encode(self.players),
             "state": json_encode(self.__state),
         }
@@ -86,7 +98,7 @@ class Room(Serializable):
 
         self.__players = (self.host, player)
         self.add_listener(player.websocket)
-        await self.__notify_all()
+        await self.log(f"{player.user} joined the game")
 
     async def leave(self, player: Optional[Player], /) -> None:
         player_index = self.index(player)
@@ -96,6 +108,7 @@ class Room(Serializable):
         if self.__state is not None:
             assert (self.__state.started)
             self.__state.end(1 - player_index)
+            await self.log(f"{player.user} disconnected")
         elif player_index == 0:
             self.__players = (self.__players[1], None)
         elif player_index == 1:
@@ -145,6 +158,12 @@ class Room(Serializable):
             await self.__notify_all()
 
             if ended:
+                winner = self.__state.winner
+                if winner is None:
+                    await self.log("Game draw!")
+                else:
+                    await self.log(f"{self.players[winner].user} won!")
+
                 await self.remove()
                 for websocket in self.__listeners:
                     with contextlib.suppress(ConnectionError):

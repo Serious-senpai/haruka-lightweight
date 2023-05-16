@@ -117,69 +117,111 @@ class _TicTacToePageState extends State<TicTacToePage> {
                   stream: data.updateStream,
                   builder: (context, snapshot) {
                     var data = snapshot.data!;
-
                     var winner = data.state.winner == 0
                         ? data.players.first
                         : data.state.winner == 1
                             ? data.players.second
                             : null;
-                    var children = <Widget>[
-                      Row(
+
+                    var chatController = TextEditingController();
+                    var chatFocus = FocusNode();
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          data.players.first.user.displayAvatar(),
-                          seperator,
-                          Text(data.players.first.user.displayName, style: TextStyle(color: data.state.turn == 0 ? themeColor : null)),
-                          seperator,
-                          (winner != null && winner == data.players.first) ? const Icon(Icons.emoji_events_outlined, color: Colors.yellow) : const SizedBox.shrink(),
-                        ],
-                      ),
-                      seperator,
-                      data.players.second == null
-                          ? const Text("Waiting for another player...")
-                          : Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                data.players.second!.user.displayAvatar(),
-                                seperator,
-                                Text(data.players.second!.user.displayName, style: TextStyle(color: data.state.turn == 1 ? themeColor : null)),
-                                seperator,
-                                (winner != null && winner == data.players.second) ? const Icon(Icons.emoji_events_outlined, color: Colors.yellow) : const SizedBox.shrink(),
-                              ],
-                            ),
-                      seperator,
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: List<Widget>.generate(
-                            BOARD_SIZE,
-                            (row) => Row(
-                              children: List<Widget>.generate(
-                                BOARD_SIZE,
-                                (column) => GestureDetector(
-                                  onTap: () => data.move(row, column),
-                                  child: Container(
-                                    decoration: BoxDecoration(border: Border.all(color: Colors.white)),
-                                    padding: const EdgeInsets.all(3.0),
-                                    width: 40.0,
-                                    height: 40.0,
-                                    child: data.state.board[row][column] == null ? const SizedBox.shrink() : Icon(data.state.board[row][column] == 0 ? Icons.close : Icons.circle_outlined),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  data.players.first.user.displayAvatar(),
+                                  seperator,
+                                  Text(data.players.first.user.displayName, style: TextStyle(color: data.state.turn == 0 ? themeColor : null)),
+                                  seperator,
+                                  (winner != null && winner == data.players.first) ? const Icon(Icons.emoji_events_outlined, color: Colors.yellow) : const SizedBox.shrink(),
+                                ],
+                              ),
+                              seperator,
+                              data.players.second == null
+                                  ? const Text("Waiting for another player...")
+                                  : Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        data.players.second!.user.displayAvatar(),
+                                        seperator,
+                                        Text(data.players.second!.user.displayName, style: TextStyle(color: data.state.turn == 1 ? themeColor : null)),
+                                        seperator,
+                                        (winner != null && winner == data.players.second) ? const Icon(Icons.emoji_events_outlined, color: Colors.yellow) : const SizedBox.shrink(),
+                                      ],
+                                    ),
+                              seperator,
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  children: List<Widget>.generate(
+                                    BOARD_SIZE,
+                                    (row) => Row(
+                                      children: List<Widget>.generate(
+                                        BOARD_SIZE,
+                                        (column) => GestureDetector(
+                                          onTap: () => data.move(row, column),
+                                          child: Container(
+                                            decoration: BoxDecoration(border: Border.all(color: Colors.white)),
+                                            padding: const EdgeInsets.all(3.0),
+                                            width: 40.0,
+                                            height: 40.0,
+                                            child: data.state.board[row][column] == null ? const SizedBox.shrink() : Icon(data.state.board[row][column] == 0 ? Icons.close : Icons.circle_outlined),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
+                              seperator,
+                              data.started ? Text(data.ended ? "Game ended" : "Game started") : TextButton(onPressed: data.start, child: const Text("START")),
+                            ],
                           ),
-                        ),
-                      ),
-                      seperator,
-                      data.started ? const Text("Game started") : TextButton(onPressed: data.start, child: const Text("START")),
-                    ];
-
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: children,
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(3.0),
+                                decoration: BoxDecoration(border: Border.all(color: Colors.white)),
+                                width: 400.0,
+                                height: screenSize.height * 2 / 3,
+                                child: SingleChildScrollView(child: Text(data.logs.join("\n"), overflow: TextOverflow.visible)),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(3.0),
+                                decoration: BoxDecoration(border: Border.all(color: Colors.white)),
+                                child: TextField(
+                                  controller: chatController,
+                                  focusNode: chatFocus,
+                                  decoration: const InputDecoration(
+                                    hintText: "Chat input",
+                                    hintStyle: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                                  ),
+                                  showCursor: true,
+                                  autofocus: true,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  onSubmitted: (value) {
+                                    data.chat(value);
+                                    chatController.clear();
+                                    chatFocus.requestFocus();
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     );
                   },

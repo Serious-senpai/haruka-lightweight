@@ -21,6 +21,7 @@ class State(Serializable):
     __slots__ = (
         "__board",
         "__end",
+        "__move_count",
         "__player_turn",
         "__start",
         "__winner",
@@ -29,6 +30,7 @@ class State(Serializable):
     if TYPE_CHECKING:
         __board: List[List[TileState]]
         __end: asyncio.Event
+        __move_count: int
         __player_turn: Literal[0, 1]
         __start: asyncio.Event
         __winner: Optional[Literal[0, 1]]
@@ -37,6 +39,7 @@ class State(Serializable):
     def __init__(self, *, room: Room) -> None:
         self.__board = [[None] * BOARD_SIZE for _ in range(BOARD_SIZE)]
         self.__end = asyncio.Event()
+        self.__move_count = 0
         self.__player_turn = 0
         self.__start = asyncio.Event()
         self.__winner = None
@@ -84,23 +87,11 @@ class State(Serializable):
     async def start(self) -> None:
         self.__start.set()
 
-    def end(self, winner: Literal[0, 1]) -> None:
+    def end(self, winner: Optional[Literal[0, 1]]) -> None:
         self.__winner = winner
         self.__end.set()
 
     def move(
-        self,
-        row: CoordinateT,
-        column: CoordinateT,
-    ) -> bool:
-        if self._move(row, column):
-            # Set winner
-            self.end(1 - self.__player_turn)
-            return True
-
-        return False
-
-    def _move(
         self,
         row: CoordinateT,
         column: CoordinateT
@@ -113,15 +104,25 @@ class State(Serializable):
         self.__player_turn = 1 - self.__player_turn
         board[row][column] = player_index
 
+        self.__move_count += 1
+
         # Does the move we just made result in a win?
-        return any(
+        if any(
             [
                 self._check_vertical(column=column, player=player_index),
                 self._check_horizontal(row=row, player=player_index),
                 self._check_diagonal(row=row, column=column, player=player_index),
                 self._check_antidiagonal(row=row, column=column, player=player_index),
             ],
-        )
+        ):
+            self.end(player_index)
+            return True
+
+        if self.__move_count == BOARD_SIZE ** 2:
+            self.end(None)
+            return True
+
+        return False
 
     def _check_vertical(self, *, column: CoordinateT, player: Literal[0, 1]) -> bool:
         consecutive = 0

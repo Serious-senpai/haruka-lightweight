@@ -18,6 +18,7 @@ from ...tic_tac_toe import (
 )
 
 valid_index_group = "|".join(str(i) for i in range(BOARD_SIZE))
+CHAT = re.compile(r"^CHAT (.+?)$")
 MOVE = re.compile(rf"^MOVE ({valid_index_group}) ({valid_index_group})$")
 PING = re.compile(r"^PING$")
 START = re.compile(r"^START$")
@@ -30,7 +31,11 @@ async def handle_message(*, player: Optional[Player], message: web_ws.WSMessage,
     websocket = player.websocket
     data = message.data
     if isinstance(data, str):
-        if match := MOVE.fullmatch(data):
+        if match := CHAT.fullmatch(data):
+            content = match.group(1)
+            await room.chat(player, content)
+
+        elif match := MOVE.fullmatch(data):
             player_index = room.index(player)
 
             if player_index is not None:
