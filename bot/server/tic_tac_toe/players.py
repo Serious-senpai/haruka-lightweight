@@ -16,7 +16,6 @@ class Player(Serializable):
         "user",
         "websocket",
     )
-    cached_users: Dict[int, abc.User] = {}
     if TYPE_CHECKING:
         user: abc.User
         websocket: web.WebSocketResponse
@@ -42,7 +41,7 @@ class Player(Serializable):
             except (KeyError, ValueError):
                 return
             else:
-                user = cls.cached_users.get(id) or await request.app.interface.clients[0].fetch_user(id)
+                user = await request.app.fetch_user(id, api_call=False)
 
         websocket = web.WebSocketResponse()
         await websocket.prepare(request)

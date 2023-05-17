@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 async def handler(request: Request) -> web.Response:
     user = authenticate_request(request)
     if user is not None:
+        request.app.cached_users[user.id] = user
         return web.json_response({"success": True, "user": json_encode(user)})
 
     return web.json_response({"success": False})
@@ -26,6 +27,7 @@ async def handler(request: Request) -> web.Response:
     if key is not None:
         user = otp_cache.pop_key(key)
         if user is not None:
+            request.app.cached_users[user.id] = user
             token = token_mapping.generate_token(user)
             return web.json_response({"success": True, "user": json_encode(user), "token": token})
 
