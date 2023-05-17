@@ -192,7 +192,6 @@ class _TicTacToePageState extends State<TicTacToePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(3.0),
                                 decoration: BoxDecoration(border: Border.all(color: Colors.white)),
                                 width: 400.0,
                                 child: TextField(

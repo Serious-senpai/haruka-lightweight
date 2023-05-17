@@ -108,13 +108,17 @@ class Room(Serializable):
         if self.__state is not None:
             assert (self.__state.started)
             self.__state.end(1 - player_index)
-            await self.log(f"{player.user} disconnected")
+
         elif player_index == 0:
             self.__players = (self.__players[1], None)
+
         elif player_index == 1:
             self.__players = (self.__players[0], None)
+
         else:
             raise ValueError(f"Invalid player index {player_index}")
+
+        await self.log(f"{player.user} left the game")
 
         if self.__players[0] is None:
             await self.remove()
