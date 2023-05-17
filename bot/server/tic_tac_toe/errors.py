@@ -18,6 +18,10 @@ class NotEnoughPlayer(StartError):
     pass
 
 
+class AlreadyEnded(MoveError):
+    pass
+
+
 class NotStarted(MoveError):
     pass
 

@@ -7,7 +7,7 @@ from typing import Any, Awaitable, Dict, List, Literal, Optional, Set, Tuple, TY
 
 from aiohttp import web
 
-from .errors import AlreadyStarted, InvalidTurn, NotEnoughPlayer, NotStarted
+from .errors import AlreadyEnded, AlreadyStarted, InvalidTurn, NotEnoughPlayer, NotStarted
 from .players import Player
 from .state import CoordinateT, State
 from ..utils import Serializable, json_encode
@@ -152,6 +152,9 @@ class Room(Serializable):
     ) -> None:
         if self.__state is None:
             raise NotStarted
+
+        if self.__state.ended:
+            raise AlreadyEnded
 
         if player == self.__state.player_turn:
             ended = self.__state.move(row, column)
