@@ -201,6 +201,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
                               Container(
                                 padding: const EdgeInsets.all(3.0),
                                 decoration: BoxDecoration(border: Border.all(color: Colors.white)),
+                                width: 400.0,
                                 child: TextField(
                                   controller: chatController,
                                   focusNode: chatFocus,
