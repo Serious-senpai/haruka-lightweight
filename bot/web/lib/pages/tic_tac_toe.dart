@@ -195,13 +195,6 @@ class _TicTacToePageState extends State<TicTacToePage> {
                                 padding: const EdgeInsets.all(3.0),
                                 decoration: BoxDecoration(border: Border.all(color: Colors.white)),
                                 width: 400.0,
-                                height: screenSize.height * 2 / 3,
-                                child: SingleChildScrollView(child: Text(data.logs.join("\n"), overflow: TextOverflow.visible)),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(3.0),
-                                decoration: BoxDecoration(border: Border.all(color: Colors.white)),
-                                width: 400.0,
                                 child: TextField(
                                   controller: chatController,
                                   focusNode: chatFocus,
@@ -214,11 +207,18 @@ class _TicTacToePageState extends State<TicTacToePage> {
                                   autocorrect: false,
                                   enableSuggestions: false,
                                   onSubmitted: (value) {
-                                    data.chat(value);
                                     chatController.clear();
                                     chatFocus.requestFocus();
+                                    data.chat(value);
                                   },
                                 ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(3.0),
+                                decoration: BoxDecoration(border: Border.all(color: Colors.white)),
+                                width: 400.0,
+                                height: screenSize.height * 2 / 3,
+                                child: SingleChildScrollView(child: Text(data.logs.reversed.join("\n"), overflow: TextOverflow.visible)),
                               ),
                             ],
                           ),
