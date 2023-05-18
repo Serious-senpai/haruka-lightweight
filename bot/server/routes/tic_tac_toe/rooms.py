@@ -23,6 +23,9 @@ async def handler(request: Request) -> web.Response:
             if message.data == "PING":
                 await websocket.send_str("PONG")
 
+            elif message.data == "REQUEST":
+                await Room.rooms.notify(websocket)
+
     finally:
         Room.rooms.remove_listener(websocket)
 

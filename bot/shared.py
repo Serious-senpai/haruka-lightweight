@@ -147,15 +147,29 @@ class SharedInterface:
 
         self.log(f"Started serving on port {PORT}")
 
-        # Continue building binaries
-        process = await asyncio.create_subprocess_shell("apt install ffmpeg g++ -y", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
-        await process.communicate()
-
-        process = await asyncio.create_subprocess_shell(f"g++ -std=c++2a -Wall bot/c++/fuzzy.cpp -o {FUZZY_MATCH}", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
-        await process.communicate()
-
         if sys.platform == "linux":
             self.setup_signal_handler()
+
+            # Start dummy clients
+            clients: List[discord.Client] = []
+            coros: List[Awaitable[None]] = []
+            for bot in self.clients:
+                client = discord.Client(activity=discord.Game("Preparing..."), intents=discord.Intents.none)
+                clients.append(client)
+                coros.append(client.start(bot.token))
+
+            dummy_tasks = asyncio.create_task(asyncio.gather(*coros, return_exceptions=True))
+
+            # Continue building binaries (~6 minutes)
+            process = await asyncio.create_subprocess_shell("apt install ffmpeg g++ -y", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
+            await process.communicate()
+
+            process = await asyncio.create_subprocess_shell(f"g++ -std=c++2a -Wall bot/c++/fuzzy.cpp -o {FUZZY_MATCH}", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
+            await process.communicate()
+
+            # Stop dummy clients
+            await asyncio.gather(*[client.close() for client in clients], return_exceptions=True)
+            await dummy_tasks
 
         self.__ready.set()
 

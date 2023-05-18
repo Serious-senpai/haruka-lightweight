@@ -78,6 +78,3 @@ async def handle_message(*, player: Optional[Player], message: web_ws.WSMessage,
                     await websocket.send_json(error_message("Not enough players to start!"))
             else:
                 await websocket.send_json(error_message("Only the host can start the game!"))
-
-    else:
-        await websocket.close(code=aiohttp.WSCloseCode.UNSUPPORTED_DATA)

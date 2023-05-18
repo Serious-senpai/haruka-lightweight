@@ -115,18 +115,21 @@ class Room {
 class RoomsLoader {
   final ClientSession _http;
 
+  WebSocketBroadcastChannel? _websocket;
+  WebSocketBroadcastChannel get websocket => _websocket ??= WebSocketBroadcastChannel.connect(websocketUri("/tic-tac-toe/rooms"));
+
   RoomsLoader({required ClientSession session}) : _http = session;
 
   Stream<List<Room>>? _roomsFetcher;
   Stream<List<Room>> get roomsFetcher => _roomsFetcher ??= fetchRooms().asBroadcastStream();
 
   Stream<List<Room>> fetchRooms() async* {
-    var websocket = WebSocketBroadcastChannel.connect(websocketUri("/tic-tac-toe/rooms"));
     await for (var message in websocket.stream) {
       var data = List<Map<String, dynamic>>.from(jsonDecode(message));
       yield List<Room>.generate(data.length, (index) => Room(data[index], session: _http));
     }
   }
 
+  void request() => websocket.sink.add("REQUEST");
   void resetRoomsFetcher() => _roomsFetcher = null;
 }
