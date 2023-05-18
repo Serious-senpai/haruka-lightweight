@@ -154,7 +154,7 @@ class SharedInterface:
             clients: List[discord.Client] = []
             coros: List[Awaitable[None]] = []
             for bot in self.clients:
-                client = discord.Client(activity=discord.Game("Preparing..."), intents=discord.Intents.none)
+                client = discord.Client(activity=discord.Game("Preparing..."), intents=discord.Intents.none())
                 clients.append(client)
                 coros.append(client.start(bot.token))
 
