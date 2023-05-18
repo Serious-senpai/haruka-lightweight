@@ -33,8 +33,8 @@ class _TicTacToePageState extends State<TicTacToePage> {
     return TemplateScaffold(
       session: _http,
       child: roomId == null
-          ? FutureBuilder(
-              future: _http.roomsLoader.roomsFetcher,
+          ? StreamBuilder(
+              stream: _http.roomsLoader.roomsFetcher,
               builder: (context, snapshot) {
                 var error = snapshot.error;
                 if (error != null) throw error;

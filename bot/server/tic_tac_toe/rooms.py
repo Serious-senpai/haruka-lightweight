@@ -13,6 +13,64 @@ from .state import CoordinateT, State
 from ..utils import Serializable, json_encode
 
 
+class RoomsManager:
+
+    __slots__ = (
+        "__listeners",
+        "__notify_lock",
+        "__notify_semaphore",
+        "__rooms",
+    )
+    if TYPE_CHECKING:
+        __listeners: Set[web.WebSocketResponse]
+        __notify_lock: asyncio.Lock
+        __notify_semaphore: asyncio.Semaphore
+        __rooms: Dict[str, Room]
+
+    def __init__(self) -> None:
+        self.__listeners = set()
+        self.__notify_lock = asyncio.Lock()
+        self.__notify_semaphore = asyncio.Semaphore(2)
+        self.__rooms = {}
+
+    def add(self, room: Room, /) -> Awaitable[None]:
+        self.__rooms[room.id] = room
+        return self.notify_all()
+
+    def remove(self, room: Room, /) -> Awaitable[None]:
+        assert room == self.__rooms.pop(room.id)
+        return self.notify_all()
+
+    def get(self, room_id: str, /) -> Optional[Room]:
+        return self.__rooms.get(room_id)
+
+    def add_listener(self, websocket: web.WebSocketResponse, /) -> None:
+        self.__listeners.add(websocket)
+
+    def remove_listener(self, websocket: web.WebSocketResponse, /) -> None:
+        self.__listeners.remove(websocket)
+
+    def create_json(self) -> List[Dict[str, Any]]:
+        return [json_encode(room) for room in self.__rooms.values()]
+
+    async def notify_all(self) -> None:
+        if self.__notify_semaphore.locked():
+            return
+
+        async with self.__notify_semaphore:
+            async with self.__notify_lock:
+                data = self.create_json()
+                await asyncio.gather(*[websocket.send_json(data) for websocket in self.__listeners], return_exceptions=True)
+
+            await asyncio.sleep(1)
+
+    async def notify(self, websocket: web.WebSocketResponse, /) -> None:
+        await websocket.send_json(self.create_json())
+
+    def __contains__(self, room_id: str, /) -> bool:
+        return self.__rooms.__contains__(room_id)
+
+
 class Room(Serializable):
 
     __slots__ = (
@@ -20,14 +78,16 @@ class Room(Serializable):
         "__listeners",
         "__logs",
         "__players",
+        "__removed",
         "__state",
     )
-    rooms: Dict[str, Room] = {}
+    rooms: RoomsManager = RoomsManager()
     if TYPE_CHECKING:
         __id: int
         __listeners: Set[web.WebSocketResponse]
         __logs: List[str]
         __players: Tuple[Player, Optional[Player]]
+        __removed: bool
         __state: Optional[State]
 
     def __init__(self, *, host: Player) -> None:
@@ -35,11 +95,12 @@ class Room(Serializable):
         while self.__id in self.rooms:
             self.__id = secrets.token_urlsafe(8)
 
-        self.rooms[self.__id] = self
+        asyncio.create_task(self.rooms.add(self))
 
         self.__listeners = {host.websocket}
         self.__logs = [f"Room hosted by {host.user}"]
         self.__players = (host, None)
+        self.__removed = False
         self.__state = None
 
     @property
@@ -105,6 +166,8 @@ class Room(Serializable):
         if player_index is None or self.__players[player_index] is None:
             return
 
+        assert isinstance(player, Player)
+        await self.log(f"{player.user} left the game")
         if self.__state is not None:
             assert (self.__state.started)
             self.__state.end(1 - player_index)
@@ -118,17 +181,17 @@ class Room(Serializable):
         else:
             raise ValueError(f"Invalid player index {player_index}")
 
-        await self.log(f"{player.user} left the game")
-
         if self.__players[0] is None:
+            # Mustn't send state to avoid client-side errors
             await self.remove()
         else:
             await self.__notify_all()
 
     async def remove(self) -> None:
-        with contextlib.suppress(KeyError):
-            self.rooms.pop(self.__id)
-            await self.__notify_all()
+        if not self.__removed:
+            self.__removed = True
+            await self.rooms.remove(self)
+            self.__listeners.clear()
 
     async def start(self) -> None:
         if self.__state is not None:
@@ -179,7 +242,10 @@ class Room(Serializable):
             raise InvalidTurn
 
     def __notify_all(self) -> Awaitable[None]:
-        return asyncio.gather(*[self.notify(websocket) for websocket in self.__listeners])
+        if not self.__removed:
+            futures = [self.notify(websocket) for websocket in self.__listeners]
+            futures.append(self.rooms.notify_all())
+            return asyncio.gather(*futures)
 
     async def notify(self, websocket: web.WebSocketResponse) -> None:
         with contextlib.suppress(ConnectionError):

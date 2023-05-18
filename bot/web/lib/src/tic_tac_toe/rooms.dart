@@ -117,13 +117,15 @@ class RoomsLoader {
 
   RoomsLoader({required ClientSession session}) : _http = session;
 
-  Future<List<Room>>? _roomsFetcher;
-  Future<List<Room>> get roomsFetcher => _roomsFetcher ??= fetchRooms();
+  Stream<List<Room>>? _roomsFetcher;
+  Stream<List<Room>> get roomsFetcher => _roomsFetcher ??= fetchRooms().asBroadcastStream();
 
-  Future<List<Room>> fetchRooms() async {
-    var response = await _http.get(Uri.parse("/tic-tac-toe/rooms"));
-    var data = List<Map<String, dynamic>>.from(jsonDecode(response.body));
-    return List<Room>.generate(data.length, (index) => Room(data[index], session: _http));
+  Stream<List<Room>> fetchRooms() async* {
+    var websocket = WebSocketBroadcastChannel.connect(websocketUri("/tic-tac-toe/rooms"));
+    await for (var message in websocket.stream) {
+      var data = List<Map<String, dynamic>>.from(jsonDecode(message));
+      yield List<Room>.generate(data.length, (index) => Room(data[index], session: _http));
+    }
   }
 
   void resetRoomsFetcher() => _roomsFetcher = null;
