@@ -29,10 +29,9 @@ class _TicTacToePageState extends State<TicTacToePage> {
 
   @override
   Widget build(BuildContext context) {
-    var roomId = widget.roomId;
     return TemplateScaffold(
       session: _http,
-      child: roomId == null
+      child: widget.roomId == null
           ? StreamBuilder(
               stream: _http.roomsLoader.roomsFetcher,
               builder: (context, snapshot) {
@@ -67,8 +66,8 @@ class _TicTacToePageState extends State<TicTacToePage> {
                               onPressed: () async {
                                 try {
                                   var room = await Room.create(session: _http);
-                                  if (!mounted) return;
-                                  Navigator.pushNamed(context, "/tic-tac-toe/room/${room.id}");
+                                  refresh();
+                                  if (mounted) Navigator.pushNamed(context, "/tic-tac-toe/room/${room.id}");
                                 } on TicTacToeException catch (e) {
                                   await e.showMessage();
                                 }
@@ -93,7 +92,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
               },
             )
           : FutureBuilder(
-              future: Room.fromId(id: roomId, session: _http),
+              future: Room.fromId(id: widget.roomId!, session: _http),
               builder: (context, snapshot) {
                 var error = snapshot.error;
                 if (error != null) {

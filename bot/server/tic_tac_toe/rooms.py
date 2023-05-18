@@ -50,22 +50,19 @@ class RoomsManager:
     def remove_listener(self, websocket: web.WebSocketResponse, /) -> None:
         self.__listeners.remove(websocket)
 
-    def create_json(self) -> List[Dict[str, Any]]:
-        return [json_encode(room) for room in self.__rooms.values()]
-
     async def notify_all(self) -> None:
         if self.__notify_semaphore.locked():
             return
 
         async with self.__notify_semaphore:
             async with self.__notify_lock:
-                data = self.create_json()
-                await asyncio.gather(*[websocket.send_json(data) for websocket in self.__listeners], return_exceptions=True)
+                await asyncio.gather(*[self.notify(websocket) for websocket in self.__listeners])
 
-            await asyncio.sleep(1)
+            await asyncio.sleep(2)
 
     async def notify(self, websocket: web.WebSocketResponse, /) -> None:
-        await websocket.send_json(self.create_json())
+        with contextlib.suppress(ConnectionError):
+            await websocket.send_json([json_encode(room) for room in self.__rooms.values()])
 
     def __contains__(self, room_id: str, /) -> bool:
         return self.__rooms.__contains__(room_id)

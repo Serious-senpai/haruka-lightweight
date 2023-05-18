@@ -8,7 +8,7 @@ import "../utils.dart";
 
 typedef ErrorHandler = void Function(TicTacToeException error);
 
-final hostedRooms = <String, Room>{};
+final _roomsCache = <String, Room>{};
 
 class Room {
   final String id;
@@ -54,8 +54,8 @@ class Room {
   }
 
   static Future<Room> fromId({required String id, required ClientSession session}) async {
-    var cached = hostedRooms[id];
-    if (cached != null) return cached;
+    var cached = _roomsCache[id];
+    if (cached != null && cached.communicateWebSocket.closeCode == null) return cached;
 
     var websocket = WebSocketBroadcastChannel.connect(
       websocketUri(
@@ -66,7 +66,7 @@ class Room {
     var data = jsonDecode(await websocket.stream.first);
     if (data["error"]) throw TicTacToeException(data["message"]);
 
-    return Room(data["data"], websocket: websocket, session: session);
+    return _roomsCache[id] = Room(data["data"], websocket: websocket, session: session);
   }
 
   static Future<Room> create({required ClientSession session}) async {
@@ -80,7 +80,7 @@ class Room {
     if (data["error"]) throw TicTacToeException(data["message"]);
 
     var room = Room(data["data"], websocket: websocket, session: session);
-    return hostedRooms[room.id] = room;
+    return _roomsCache[room.id] = room;
   }
 
   Stream<Room> _pollChanges() async* {
