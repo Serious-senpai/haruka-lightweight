@@ -14,6 +14,7 @@ from discord import app_commands
 from discord.ext import commands
 from discord.utils import utcnow
 
+import utils
 from environment import COMMAND_PREFIX, FUZZY_MATCH, LOG_PATH, PORT
 from server import WebApp
 if TYPE_CHECKING:
@@ -147,31 +148,39 @@ class SharedInterface:
 
         self.log(f"Started serving on port {PORT}")
 
-        if sys.platform == "linux":
-            self.setup_signal_handler()
+        try:
+            if sys.platform == "linux":
+                self.setup_signal_handler()
 
-            # Start dummy clients
-            clients: List[discord.Client] = []
-            coros: List[Awaitable[None]] = []
-            for bot in self.clients:
-                client = discord.Client(activity=discord.Game("Preparing..."), intents=discord.Intents.none())
-                clients.append(client)
-                coros.append(client.start(bot.token))
+                # Start dummy clients
+                clients: List[discord.Client] = []
+                coros: List[Awaitable[None]] = []
+                for bot in self.clients:
+                    client = discord.Client(activity=discord.Game("Preparing..."), intents=discord.Intents.none())
+                    clients.append(client)
+                    coros.append(client.start(bot.token))
 
-            dummy_tasks = asyncio.create_task(asyncio.gather(*coros, return_exceptions=True))
+                self.log("Starting dummy clients")
+                dummy_start = asyncio.gather(*coros, return_exceptions=True)
 
-            # Continue building binaries (~6 minutes)
-            process = await asyncio.create_subprocess_shell("apt install ffmpeg g++ -y", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
-            await process.communicate()
+                # Continue building binaries (~6 minutes)
+                process = await asyncio.create_subprocess_shell("apt install ffmpeg g++ -y", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
+                await process.communicate()
 
-            process = await asyncio.create_subprocess_shell(f"g++ -std=c++2a -Wall bot/c++/fuzzy.cpp -o {FUZZY_MATCH}", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
-            await process.communicate()
+                process = await asyncio.create_subprocess_shell(f"g++ -std=c++2a -Wall bot/c++/fuzzy.cpp -o {FUZZY_MATCH}", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
+                await process.communicate()
 
-            # Stop dummy clients
-            await asyncio.gather(*[client.close() for client in clients], return_exceptions=True)
-            await dummy_tasks
+                # Stop dummy clients
+                async def stop_dummy_clients() -> None:
+                    self.log("Stopping dummy clients")
+                    await asyncio.gather(*[client.close() for client in clients], return_exceptions=True)
+                    await dummy_start
 
-        self.__ready.set()
+                    await asyncio.wait_for(stop_dummy_clients(), timeout=30)
+        except BaseException as exc:
+            self.log(utils.format_exception(exc))
+        finally:
+            self.__ready.set()
 
     async def wait_until_ready(self) -> None:
         await self.__ready.wait()
