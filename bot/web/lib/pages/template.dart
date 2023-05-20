@@ -1,6 +1,7 @@
+import "dart:html";
+
 import "package:flutter/material.dart";
 import "package:fluttertoast/fluttertoast.dart";
-import "package:url_launcher/url_launcher.dart";
 
 import "../src/environment.dart";
 import "../src/session.dart";
@@ -139,23 +140,21 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                   seperator,
                   TextButton(
                     onPressed: () async {
-                      await launchUrl(Uri.https("github.com", "Serious-senpai/haruka-lightweight"));
+                      window.open("https://github.com/Serious-senpai/haruka-lightweight", "haruka-lightweight");
                     },
                     child: const Text(
                       "Source code",
                       style: TextStyle(fontSize: 20, color: Colors.black),
-                      textAlign: TextAlign.right,
                     ),
                   ),
                   seperator,
                   TextButton(
                     onPressed: () async {
-                      await launchUrl(Uri.parse("/invite"));
+                      window.open("/invite", "Invite Haruka");
                     },
                     child: const Text(
                       "Invite URL",
                       style: TextStyle(fontSize: 20, color: Colors.black),
-                      textAlign: TextAlign.right,
                     ),
                   ),
                   seperator,
@@ -166,7 +165,6 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                     child: const Text(
                       "Main Page",
                       style: TextStyle(fontSize: 20, color: Colors.black),
-                      textAlign: TextAlign.right,
                     ),
                   ),
                   seperator,
@@ -177,7 +175,6 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                     child: const Text(
                       "Tic-tac-toe",
                       style: TextStyle(fontSize: 20, color: Colors.black),
-                      textAlign: TextAlign.right,
                     ),
                   ),
                 ],

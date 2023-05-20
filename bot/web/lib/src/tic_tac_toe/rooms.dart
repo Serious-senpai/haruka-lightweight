@@ -116,7 +116,14 @@ class RoomsLoader {
   final ClientSession _http;
 
   WebSocketBroadcastChannel? _websocket;
-  WebSocketBroadcastChannel get websocket => _websocket ??= WebSocketBroadcastChannel.connect(websocketUri("/tic-tac-toe/rooms"));
+  WebSocketBroadcastChannel get websocket {
+    var current = _websocket;
+    if (current == null || current.closeCode != null) {
+      current = WebSocketBroadcastChannel.connect(websocketUri("/tic-tac-toe/rooms"));
+    }
+
+    return _websocket = current;
+  }
 
   RoomsLoader({required ClientSession session}) : _http = session;
 
