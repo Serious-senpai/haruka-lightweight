@@ -8,6 +8,8 @@ import "../src/tic_tac_toe/errors.dart";
 import "../src/tic_tac_toe/rooms.dart";
 import "../src/tic_tac_toe/state.dart";
 
+final _chatController = TextEditingController();
+
 class TicTacToePage extends StatefulWidget {
   final ClientSession _http;
   final String? roomId;
@@ -130,7 +132,6 @@ class _TicTacToePageState extends State<TicTacToePage> {
                       ? data.players.second
                       : null;
 
-              var chatController = TextEditingController();
               var chatFocus = FocusNode();
               return SingleChildScrollView(
                 scrollDirection: Axis.vertical,
@@ -202,7 +203,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
                           decoration: BoxDecoration(border: Border.all(color: Colors.white)),
                           width: 400.0,
                           child: TextField(
-                            controller: chatController,
+                            controller: _chatController,
                             focusNode: chatFocus,
                             decoration: const InputDecoration(
                               hintText: "Chat input",
@@ -213,7 +214,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
                             autocorrect: false,
                             enableSuggestions: false,
                             onSubmitted: (value) {
-                              chatController.clear();
+                              _chatController.clear();
                               chatFocus.requestFocus();
                               data.chat(value);
                             },
