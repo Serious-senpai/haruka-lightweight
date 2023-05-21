@@ -1,9 +1,9 @@
 import "package:fluttertoast/fluttertoast.dart";
 
-class TicTacToeException implements Exception {
+class IdleGameException implements Exception {
   final String message;
 
-  TicTacToeException(this.message);
+  IdleGameException(this.message);
 
   Future<void> showMessage() => Fluttertoast.showToast(msg: message);
 }

@@ -25,7 +25,7 @@ class Room {
   WebSocketBroadcastChannel get communicateWebSocket => _communicateWebSocket ??= WebSocketBroadcastChannel.connect(
         websocketUri(
           "/tic-tac-toe/room/$id",
-          {"id": _http.clientUser?.id.toString() ?? ""},
+          {"id": _http.clientUser?.id ?? ""},
         ),
       );
 

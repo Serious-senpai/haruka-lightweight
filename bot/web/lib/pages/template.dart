@@ -160,7 +160,7 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                   seperator,
                   TextButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, "/");
+                      Navigator.pushReplacementNamed(context, "/");
                     },
                     child: const Text(
                       "Main Page",
@@ -170,10 +170,20 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                   seperator,
                   TextButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, "/tic-tac-toe");
+                      Navigator.pushReplacementNamed(context, "/tic-tac-toe");
                     },
                     child: const Text(
                       "Tic-tac-toe",
+                      style: TextStyle(fontSize: 20, color: Colors.black),
+                    ),
+                  ),
+                  seperator,
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, "/idle-game");
+                    },
+                    child: const Text(
+                      "Idle Game",
                       style: TextStyle(fontSize: 20, color: Colors.black),
                     ),
                   ),
@@ -181,7 +191,12 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
               ),
             ),
           ),
-          child,
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            width: screenSize.width * 4 / 5,
+            height: screenSize.height,
+            child: child,
+          ),
         ],
       ),
     );

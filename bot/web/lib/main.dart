@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 
 import "src/session.dart";
+import "pages/idle_game.dart";
 import "pages/main.dart";
 import "pages/tic_tac_toe.dart";
 
@@ -23,6 +24,7 @@ class MainApp extends StatelessWidget {
       theme: ThemeData.dark(),
       routes: {
         "/": (context) => MainPage(session: _http),
+        "/idle-game": (context) => IdleGamePage(session: _http),
         "/tic-tac-toe": (context) => TicTacToePage(session: _http),
       },
       onGenerateRoute: (settings) {
