@@ -23,7 +23,7 @@ class Item {
   double? _incrementRate;
 
   /// Cost for upgrade
-  double get upgradeCost => _upgradeCost ??= (pow(6, _level + 2) - 1) / 5 * baseRate;
+  double get upgradeCost => _upgradeCost ??= (pow(5, _level + 1) - 1) / 4 * baseRate;
   double? _upgradeCost;
 
   String get _lookupKey => "idle-item-$id";

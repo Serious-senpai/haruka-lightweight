@@ -28,11 +28,11 @@ class GameState {
   int _level;
 
   /// Coins gained per click;
-  double get coinsRate => _coinsRate ??= (pow(1.5, _level) - 1) / 0.5;
+  double get coinsRate => _coinsRate ??= (pow(1.8, _level) - 1) / 0.8;
   double? _coinsRate;
 
   /// Cost to upgrade player to the next level
-  double get upgradeCost => _upgradeCost ??= (pow(6, _level + 2) - 1) / 5;
+  double get upgradeCost => _upgradeCost ??= (pow(5, _level + 1) - 1) / 5;
   double? _upgradeCost;
 
   /// Current amount of coins
