@@ -18,11 +18,13 @@ PORT = int(os.environ["PORT"])
 
 
 BASH_PATH = "./bash.txt"
-EVAL_PATH = "./eval.txt"
 LOG_PATH = "./log.txt"
 FUZZY_MATCH = "./bot/c++/fuzzy.out"
 
 
+C_EVAL_PATH = "./cppeval.txt"
+C_EVAL_BINARY_PATH = "./bot/c++/eval.out"
+EVAL_PATH = "./eval.txt"
 EVAL_TASK_ATTR = "eval_task"
 
 

@@ -1,5 +1,6 @@
 from .bash import *
 from .cancel import *
+from .cppeval import *
 from .eval import *
 from .log import *
 from .send import *
