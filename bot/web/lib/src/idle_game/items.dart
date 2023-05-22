@@ -19,11 +19,11 @@ class Item {
   final double baseRate;
 
   /// Increment per second
-  double get incrementRate => _incrementRate ??= (pow(1.4, _level) - 1) / 0.4 * baseRate;
+  double get incrementRate => _incrementRate ??= _level > 0 ? baseRate * pow(2, _level) : 0;
   double? _incrementRate;
 
   /// Cost for upgrade
-  double get upgradeCost => _upgradeCost ??= (pow(5, _level + 1) - 1) / 4 * baseRate;
+  double get upgradeCost => _upgradeCost ??= max(baseRate * pow(2.5, _level - 1), 360 * incrementRate);
   double? _upgradeCost;
 
   String get _lookupKey => "idle-item-$id";
@@ -50,6 +50,12 @@ class Item {
 
     window.localStorage[_lookupKey] = _level.toString();
     _state.update();
+  }
+
+  void reset() {
+    _level = 0;
+    _incrementRate = _upgradeCost = null;
+    window.localStorage.remove(_lookupKey);
   }
 
   @override

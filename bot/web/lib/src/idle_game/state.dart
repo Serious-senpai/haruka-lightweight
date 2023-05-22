@@ -10,15 +10,16 @@ import "items.dart";
 class GameState {
   static const _coinsKey = "idle-coins";
   static const _levelKey = "idle-level";
+  static const _resetKey = "idle-reset-count";
 
   static final instance = GameState._();
 
   /// All current [Item]s
   List<Item> get items => _items ??= [
         Item(0, "Common Miner", 5, state: this),
-        Item(1, "Rare Miner", 50, state: this),
-        Item(2, "Epic Miner", 1000, state: this),
-        Item(3, "Elite Miner", 40000, state: this),
+        Item(1, "Rare Miner", 100, state: this),
+        Item(2, "Epic Miner", 2500, state: this),
+        Item(3, "Elite Miner", 1000000, state: this),
         Item(4, "Super Rare Miner", 3200000, state: this),
         Item(5, "Ultra Rare Miner", 512000000, state: this),
       ];
@@ -27,12 +28,12 @@ class GameState {
   double _coins;
   int _level;
 
-  /// Coins gained per click;
-  double get coinsRate => _coinsRate ??= (pow(1.8, _level) - 1) / 0.8;
+  /// Coins gained per click
+  double get coinsRate => _coinsRate ??= pow(3, _level - 1).toDouble();
   double? _coinsRate;
 
   /// Cost to upgrade player to the next level
-  double get upgradeCost => _upgradeCost ??= (pow(5, _level + 1) - 1) / 5;
+  double get upgradeCost => _upgradeCost ??= coinsRate * (1 + 2 * max(15, _level));
   double? _upgradeCost;
 
   /// Current amount of coins
@@ -40,6 +41,11 @@ class GameState {
 
   /// The player level
   int get level => _level;
+
+  int _resetCount = 0;
+
+  /// Number of reset made
+  int get resetCount => _resetCount;
 
   /// Whether the game is currently active
   ///
@@ -95,6 +101,25 @@ class GameState {
     _coinsRate = _upgradeCost = null;
     // Yes, we use local storage. Feel free to hack it.
     window.localStorage[_levelKey] = _level.toString();
+    update();
+  }
+
+  void reset() {
+    active = false;
+    _coins = 0;
+    _level = 1;
+    _resetCount++;
+    window.localStorage[_coinsKey] = _coins.toString();
+    window.localStorage[_levelKey] = _level.toString();
+    window.localStorage[_resetKey] = _resetCount.toString();
+
+    _coinsRate = _upgradeCost = null;
+
+    for (var item in items) {
+      item.reset();
+    }
+
+    active = true;
     update();
   }
 }

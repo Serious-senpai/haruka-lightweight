@@ -71,6 +71,14 @@ class _IdleGamePageState extends State<IdleGamePage> {
                           right: 1.0,
                           child: Text("💲${state.coins.floor()}"),
                         ),
+                        Positioned(
+                          right: 1.0,
+                          bottom: 1.0,
+                          child: TextButton(
+                            onPressed: state.reset,
+                            child: Text("RESET (reset count: ${state.resetCount})"),
+                          ),
+                        ),
                       ],
                     ),
                   ),
