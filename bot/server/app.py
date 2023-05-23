@@ -30,7 +30,10 @@ class WebApp(web.Application):
         self._cached_users = {}
 
         with open("./bot/server/build/index.html", "rt", encoding="utf-8") as f:
-            self._html = f.read().replace("A new Flutter project.", "Haruka frontend server")
+            html = f.read()
+            html = html.replace("A new Flutter project.", "Haruka frontend server")
+            html = html.replace("haruka", "Haruka")
+            self._html = html
 
         self.interface = interface
         super().__init__()

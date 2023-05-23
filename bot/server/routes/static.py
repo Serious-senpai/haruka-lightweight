@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from os import path
+from random import randint
 from typing import TYPE_CHECKING
 
 from aiohttp import web
+from yarl import URL
 
 from ..router import router
 if TYPE_CHECKING:
@@ -20,9 +22,10 @@ async def handler(request: Request) -> web.Response:
         raise web.HTTPNotFound
 
 
-@router.get(r"/{filename:.+?\.(?:html|css|js|json|otf|ttf)}")
+@router.get(r"/{file:.+?\.(?:html|css|js|json|otf|ttf)}")
 async def handler(request: Request) -> web.Response:
-    filepath = path.join("bot/server/build", request.match_info["filename"])
+    file = request.match_info["file"]
+    filepath = path.join("bot/server/build", file)
 
     if not path.isfile(filepath):
         raise web.HTTPNotFound

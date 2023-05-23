@@ -52,6 +52,68 @@ class _IdleGamePageState extends State<IdleGamePage> {
               );
             }
 
+            var shopDisplay = <Widget>[
+              ListTile(
+                leading: const Icon(Icons.ads_click_outlined),
+                title: const Text("Coins per click"),
+                subtitle: Text("Lv.${state.level} (💲${state.coinsRate.floor()}/click)"),
+                trailing: Column(
+                  children: [
+                    Text("💲${state.upgradeCost.ceil()}"),
+                    const Text("UPGRADE"),
+                  ],
+                ),
+                onTap: () async {
+                  try {
+                    state.upgrade();
+                  } on IdleGameException catch (e) {
+                    await e.showMessage();
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.restart_alt_outlined),
+                title: const Text("Rebirth"),
+                subtitle: Text("Reset your progress. Reset count: ${data.resetCount}"),
+                trailing: Column(
+                  children: [
+                    Text("💲${data.resetCost}"),
+                    const Text("RESET"),
+                  ],
+                ),
+                onTap: () async {
+                  try {
+                    state.reset();
+                  } on IdleGameException catch (e) {
+                    await e.showMessage();
+                  }
+                },
+              ),
+            ];
+
+            for (var item in data.items) {
+              shopDisplay.add(
+                ListTile(
+                  leading: const Icon(Icons.precision_manufacturing_outlined),
+                  title: Text(item.name),
+                  subtitle: Text(item.level == 0 ? "Not yet purchased" : "Lv.${item.level} (💲${item.incrementRate.floor()}/s)"),
+                  trailing: Column(
+                    children: [
+                      Text("💲${item.upgradeCost.ceil()}"),
+                      Text(item.level == 0 ? "PURCHASE" : "UPGRADE"),
+                    ],
+                  ),
+                  onTap: () async {
+                    try {
+                      item.upgrade();
+                    } on IdleGameException catch (e) {
+                      await e.showMessage();
+                    }
+                  },
+                ),
+              );
+            }
+
             return Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(
@@ -70,14 +132,6 @@ class _IdleGamePageState extends State<IdleGamePage> {
                           top: 1.0,
                           right: 1.0,
                           child: Text("💲${state.coins.floor()}"),
-                        ),
-                        Positioned(
-                          right: 1.0,
-                          bottom: 1.0,
-                          child: TextButton(
-                            onPressed: state.reset,
-                            child: Text("RESET (reset count: ${state.resetCount})"),
-                          ),
                         ),
                       ],
                     ),
@@ -106,50 +160,7 @@ class _IdleGamePageState extends State<IdleGamePage> {
                         ),
                         SizedBox(
                           height: screenSize.height - 30.0,
-                          child: ListView.builder(
-                            itemCount: state.items.length + 1,
-                            itemBuilder: (context, index) {
-                              if (index == 0) {
-                                return ListTile(
-                                  leading: const Icon(Icons.ads_click_outlined),
-                                  title: const Text("Coins per click"),
-                                  subtitle: Text("Lv.${state.level} (💲${state.coinsRate.floor()}/click)"),
-                                  trailing: Column(
-                                    children: [
-                                      Text("💲${state.upgradeCost.ceil()}"),
-                                      const Text("UPGRADE"),
-                                    ],
-                                  ),
-                                  onTap: () async {
-                                    try {
-                                      state.upgrade();
-                                    } on IdleGameException catch (e) {
-                                      await e.showMessage();
-                                    }
-                                  },
-                                );
-                              }
-                              var item = state.items[index - 1];
-                              return ListTile(
-                                leading: const Icon(Icons.precision_manufacturing_outlined),
-                                title: Text(item.name),
-                                subtitle: Text(item.level == 0 ? "Purchase" : "Lv.${item.level} (💲${item.incrementRate.floor()}/s)"),
-                                trailing: Column(
-                                  children: [
-                                    Text("💲${item.upgradeCost.ceil()}"),
-                                    const Text("UPGRADE"),
-                                  ],
-                                ),
-                                onTap: () async {
-                                  try {
-                                    item.upgrade();
-                                  } on IdleGameException catch (e) {
-                                    await e.showMessage();
-                                  }
-                                },
-                              );
-                            },
-                          ),
+                          child: ListView(children: shopDisplay),
                         ),
                       ],
                     ),

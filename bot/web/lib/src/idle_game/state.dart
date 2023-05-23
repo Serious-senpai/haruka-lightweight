@@ -47,6 +47,9 @@ class GameState {
   /// Number of reset made
   int get resetCount => _resetCount;
 
+  /// Cost for a reset
+  final resetCost = 1e+30;
+
   /// Whether the game is currently active
   ///
   /// Set this to `false` will pause the game
@@ -105,7 +108,9 @@ class GameState {
   }
 
   void reset() {
+    spendCoins(resetCost);
     active = false;
+
     _coins = 0;
     _level = 1;
     _resetCount++;
