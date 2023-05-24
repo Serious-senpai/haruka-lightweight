@@ -13,7 +13,7 @@ INTENTS.message_content = True
 INTENTS.auto_moderation = INTENTS.typing = False
 
 
-HOST = "https://haruka39.azurewebsites.net/"
+HOST = "https://haruka39.me"
 PORT = int(os.environ["PORT"])
 
 
