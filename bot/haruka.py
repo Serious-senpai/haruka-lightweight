@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import aioodbc
 import asyncio
 import datetime
-from typing import Any, Awaitable, Dict, Optional, Set, TYPE_CHECKING
+from typing import Any, Dict, Optional, Set, TYPE_CHECKING
 
 import aiohttp
 import discord
@@ -246,6 +247,10 @@ class Haruka(commands.Bot):
         await self.interface.close()
         await self.report("Terminating bot. This is the final report.")
         await super().close()
+
+    @property
+    def pool(self) -> Optional[aioodbc.Pool]:
+        return self.interface.pool
 
     @property
     def session(self) -> aiohttp.ClientSession:

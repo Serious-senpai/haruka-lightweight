@@ -28,9 +28,6 @@ EVAL_PATH = "./eval.txt"
 EVAL_TASK_ATTR = "eval_task"
 
 
-# Required
 TOKEN = os.environ["TOKEN"]
-
-
-# Optional
 TOKEN1 = os.environ["TOKEN1"]
+ODBC_CONNECTION_STRING = os.environ["ODBC_CONNECTION_STRING"]

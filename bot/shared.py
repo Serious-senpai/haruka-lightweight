@@ -8,6 +8,7 @@ import sys
 from typing import Any, Awaitable, Callable, ClassVar, Concatenate, List, Optional, ParamSpec, Set, Union, TYPE_CHECKING
 
 import aiohttp
+import aioodbc
 import discord
 from aiohttp import web
 from discord import app_commands
@@ -15,7 +16,7 @@ from discord.ext import commands
 from discord.utils import utcnow
 
 import utils
-from environment import COMMAND_PREFIX, FUZZY_MATCH, LOG_PATH, PORT
+from environment import COMMAND_PREFIX, FUZZY_MATCH, LOG_PATH, ODBC_CONNECTION_STRING, PORT
 from server import WebApp
 if TYPE_CHECKING:
     from haruka import Haruka
@@ -31,6 +32,7 @@ class SharedInterface:
 
     __instance__: ClassVar[Optional[SharedInterface]] = None
     __slots__ = (
+        "__pool",
         "__ready",
         "__session",
         "__webapp",
@@ -43,6 +45,7 @@ class SharedInterface:
         "uptime",
     )
     if TYPE_CHECKING:
+        __pool: Optional[aioodbc.Pool]
         __ready: asyncio.Event
         __session: Optional[aiohttp.ClientSession]
         __webapp: Optional[WebApp]
@@ -57,6 +60,7 @@ class SharedInterface:
     def __new__(cls) -> SharedInterface:
         if cls.__instance__ is None:
             self = super().__new__(cls)
+            self.__pool = None
             self.__ready = asyncio.Event()
             self.__session = None
             self.__webapp = None
@@ -71,6 +75,10 @@ class SharedInterface:
             cls.__instance__ = self
 
         return cls.__instance__
+
+    @property
+    def pool(self) -> Optional[aioodbc.Pool]:
+        return self.__pool
 
     @property
     def session(self) -> aiohttp.ClientSession:
@@ -136,6 +144,16 @@ class SharedInterface:
         return decorator
 
     async def start(self) -> None:
+        if self.__pool is not None:
+            return
+
+        self.__pool = await aioodbc.create_pool(
+            dsn=ODBC_CONNECTION_STRING,
+            minsize=1,
+            maxsize=10,
+            autocommit=True,
+        )
+
         if self.__webapp is not None:
             return
 
@@ -203,6 +221,10 @@ class SharedInterface:
             if self.__session is not None:
                 await self.__session.close()
                 self.log("Closed HTTP session")
+
+            if self.__pool is not None:
+                await self.__pool.close()
+                self.log("Closed database pool")
 
             self.logfile.close()
             self.log = print
