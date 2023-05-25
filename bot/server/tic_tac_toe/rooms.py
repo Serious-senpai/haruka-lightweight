@@ -238,11 +238,11 @@ class Room(Serializable):
         else:
             raise InvalidTurn
 
-    def __notify_all(self) -> Awaitable[None]:
+    async def __notify_all(self) -> None:
         if not self.__removed:
             futures = [self.notify(websocket) for websocket in self.__listeners]
             futures.append(self.rooms.notify_all())
-            return asyncio.gather(*futures)
+            return await asyncio.gather(*futures)
 
     async def notify(self, websocket: web.WebSocketResponse) -> None:
         with contextlib.suppress(ConnectionError):
