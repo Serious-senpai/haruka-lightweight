@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from aiohttp import web, web_ws
+from aiohttp import web
 
 from .parsers import handle_message
 from ...router import router

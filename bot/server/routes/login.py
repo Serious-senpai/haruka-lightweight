@@ -6,14 +6,14 @@ from aiohttp import web
 
 from ..router import router
 from ..utils import json_encode
-from ..verification import otp_cache, token_mapping, authenticate_request
+from ..verification import authenticate_request, generate_token, otp_cache
 if TYPE_CHECKING:
     from ..customs import Request
 
 
 @router.get("/login")
 async def handler(request: Request) -> web.Response:
-    user = authenticate_request(request)
+    user = await authenticate_request(request, interface=request.app.interface)
     if user is not None:
         request.app.cached_users[user.id] = user
         return web.json_response({"success": True, "user": json_encode(user)})
@@ -28,7 +28,7 @@ async def handler(request: Request) -> web.Response:
         user = otp_cache.pop_key(key)
         if user is not None:
             request.app.cached_users[user.id] = user
-            token = token_mapping.generate_token(user)
+            token = await generate_token(user, interface=request.app.interface)
             return web.json_response({"success": True, "user": json_encode(user), "token": token})
 
     return web.json_response({"success": False})

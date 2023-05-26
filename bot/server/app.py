@@ -41,15 +41,6 @@ class WebApp(web.Application):
         self.add_routes(router)
         self.on_startup.append(lambda self: otp_cache.start_countdown())
 
-    async def fetch_user(self, id: int, *, api_call: bool = True) -> abc.User:
-        with contextlib.suppress(KeyError):
-            return self._cached_users[id]
-
-        if api_call:
-            with contextlib.suppress(discord.HTTPException):
-                user = self._cached_users[id] = await self.interface.clients[0].fetch_user(id)
-                return user
-
     @property
     def cached_users(self) -> Dict[int, abc.User]:
         return self._cached_users

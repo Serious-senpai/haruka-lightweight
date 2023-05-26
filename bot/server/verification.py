@@ -5,13 +5,15 @@ import contextlib
 import datetime
 import secrets
 from collections import deque
-from typing import ClassVar, Deque, Dict, NamedTuple, Optional, TYPE_CHECKING, overload
+from typing import ClassVar, Deque, Dict, NamedTuple, Optional, TYPE_CHECKING
 
 from discord import abc
 from discord.ext import tasks
 from discord.utils import utcnow, sleep_until
 
 from .customs import Request
+if TYPE_CHECKING:
+    from shared import SharedInterface
 
 
 class OTPCountdown(NamedTuple):
@@ -68,65 +70,25 @@ class OTPCache:
         return self.__data[key]
 
 
-class TokenMapping:
-    """Mapping between users and their tokens"""
-
-    __instance__: Optional[TokenMapping] = None
-    __slots__ = (
-        "__user_to_token",
-        "__token_to_user",
-    )
-    if TYPE_CHECKING:
-        __user_to_token: Dict[abc.User, str]
-        __token_to_user: Dict[str, abc.User]
-
-    def __new__(cls) -> TokenMapping:
-        if cls.__instance__ is None:
-            self = super().__new__(TokenMapping)
-            self.__user_to_token = {}
-            self.__token_to_user = {}
-
-            cls.__instance__ = self
-
-        return cls.__instance__
-
-    def generate_token(self, user: abc.User) -> str:
-        """Return the token of a user, or generate a new one if
-        that user doesn't have one yet
-        """
-        try:
-            return self[user]
-        except KeyError:
-            token = f"{user.id}.{secrets.token_hex(16)}"
-            self.__user_to_token[user] = token
-            self.__token_to_user[token] = user
-            return token
-
-    def check_token(self, token: str) -> Optional[abc.User]:
-        """Return the user from a given token"""
-        return self.__token_to_user.get(token)
-
-    @overload
-    def __getitem__(self, key: str) -> abc.User: ...
-
-    @overload
-    def __getitem__(self, key: abc.User) -> str: ...
-
-    def __getitem__(self, key):
-        if isinstance(key, str):
-            return self.__token_to_user[key]
-
-        if isinstance(key, abc.User):
-            return self.__user_to_token[key]
-
-        raise TypeError(f"Expected str or discord.abc.User, not {key.__class__.__name__}")
-
-
 otp_cache = OTPCache()
-token_mapping = TokenMapping()
 
 
-def authenticate_request(request: Request) -> Optional[abc.User]:
+async def generate_token(user: abc.User, *, interface: SharedInterface) -> str:
+    token = f"{user.id}.{secrets.token_hex(16)}"
+    async with interface.pool.acquire() as connection:
+        async with connection.cursor() as cursor:
+            await cursor.execute("INSERT INTO tokens (token) values (?)", token)
+
+    return token
+
+
+async def authenticate_request(request: Request, *, interface: SharedInterface) -> Optional[abc.User]:
     token = request.headers.get("X-Auth-Token")
     if isinstance(token, str):
-        return token_mapping.check_token(token)
+        async with interface.pool.acquire() as connection:
+            async with connection.cursor() as cursor:
+                await cursor.execute("IF EXISTS (SELECT * FROM test WHERE CONVERT(varchar, token) = '4d') SELECT existence = 1 ELSE SELECT existence = 0")
+                row = await cursor.fetchone()
+
+                if row[0] == 1:
+                    return await interface.clients[0].fetch_user(int(token.split(".")[0]))

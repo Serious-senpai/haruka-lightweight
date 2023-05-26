@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 @router.get("/commands")
 async def handler(request: Request) -> web.Response:
-    user = authenticate_request(request)
+    user = await authenticate_request(request, interface=request.app.interface)
     show_hidden = False
     if user is not None:
         show_hidden = user.id == OWNER_ID

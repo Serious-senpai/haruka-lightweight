@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 from typing import Literal, Optional, TypedDict
 
-import aiohttp
 from aiohttp import web_ws
 
 from ...tic_tac_toe import (

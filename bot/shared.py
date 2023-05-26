@@ -16,6 +16,7 @@ from discord.ext import commands
 from discord.utils import utcnow
 
 import utils
+from customs import Pool
 from environment import COMMAND_PREFIX, FUZZY_MATCH, LOG_PATH, ODBC_CONNECTION_STRING, PORT
 from server import WebApp
 if TYPE_CHECKING:
@@ -37,6 +38,7 @@ class SharedInterface:
         "__session",
         "__webapp",
         "_closed",
+        "_started",
         "clients",
         "commands",
         "log",
@@ -45,11 +47,12 @@ class SharedInterface:
         "uptime",
     )
     if TYPE_CHECKING:
-        __pool: Optional[aioodbc.Pool]
+        __pool: Optional[Pool]
         __ready: asyncio.Event
         __session: Optional[aiohttp.ClientSession]
         __webapp: Optional[WebApp]
         _closed: bool
+        _started: bool
         clients: List[Haruka]
         commands: Set[commands.Command]
         log: Callable[[str], None]
@@ -65,6 +68,7 @@ class SharedInterface:
             self.__session = None
             self.__webapp = None
             self._closed = False
+            self._started = False
             self.clients = []
             self.commands = set()
             self.log = self._log
@@ -77,7 +81,7 @@ class SharedInterface:
         return cls.__instance__
 
     @property
-    def pool(self) -> Optional[aioodbc.Pool]:
+    def pool(self) -> Optional[Pool]:
         return self.__pool
 
     @property
@@ -144,27 +148,33 @@ class SharedInterface:
         return decorator
 
     async def start(self) -> None:
-        if self.__pool is not None:
+        if self._started:
             return
 
-        self.__pool = await aioodbc.create_pool(
-            dsn=ODBC_CONNECTION_STRING,
-            minsize=1,
-            maxsize=10,
-            autocommit=True,
-        )
+        self._started = True
 
-        if self.__webapp is not None:
-            return
+        if self.__pool is None:
+            self.__pool = pool = await aioodbc.create_pool(
+                dsn=ODBC_CONNECTION_STRING,
+                minsize=1,
+                maxsize=10,
+                autocommit=True,
+            )
+            async with pool.acquire() as connection:
+                async with connection.cursor() as cursor:
+                    await cursor.execute("IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'tokens') CREATE TABLE tokens (token text)")
 
-        # Start the server first so Azure will not complain
-        self.__webapp = webapp = WebApp(interface=self)
-        runner = web.AppRunner(webapp)
-        await runner.setup()
-        site = web.TCPSite(runner, port=PORT)
-        await site.start()
+            self.log("Initialized database")
 
-        self.log(f"Started serving on port {PORT}")
+        if self.__webapp is None:
+            # Start the server first so Azure will not complain
+            self.__webapp = webapp = WebApp(interface=self)
+            runner = web.AppRunner(webapp)
+            await runner.setup()
+            site = web.TCPSite(runner, port=PORT)
+            await site.start()
+
+            self.log(f"Started serving on port {PORT}")
 
         try:
             if sys.platform == "linux":
@@ -223,7 +233,8 @@ class SharedInterface:
                 self.log("Closed HTTP session")
 
             if self.__pool is not None:
-                await self.__pool.close()
+                self.__pool.close()
+                await self.__pool.wait_closed()
                 self.log("Closed database pool")
 
             self.logfile.close()

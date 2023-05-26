@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 from os import path
-from random import randint
 from typing import TYPE_CHECKING
 
 from aiohttp import web
-from yarl import URL
 
 from ..router import router
 if TYPE_CHECKING:

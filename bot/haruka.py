@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import aioodbc
 import asyncio
 import datetime
 from typing import Any, Dict, Optional, Set, TYPE_CHECKING
@@ -11,7 +10,7 @@ from discord.ext import commands, tasks
 
 import environment
 import utils
-from customs import Context, Loop
+from customs import Context, Loop, Pool
 from shared import SharedInterface
 from trees import SlashCommandTree
 from commands.general.help import HelpCommand
@@ -30,6 +29,7 @@ class Haruka(commands.Bot):
     __instances__: Dict[str, Haruka] = {}
     __processed_message_ids: Set[int] = set()
     if TYPE_CHECKING:
+        __users_cache: Dict[int, discord.abc.User]
         cooldown_notify: Dict[int, Dict[str, bool]]
         interface: SharedInterface
         loop: Loop
@@ -50,6 +50,7 @@ class Haruka(commands.Bot):
             case_insensitive=True,
         )
 
+        self.__users_cache = {}
         self.cooldown_notify = {}
         self.interface = SharedInterface()
         self.owner = None
@@ -248,8 +249,15 @@ class Haruka(commands.Bot):
         await self.report("Terminating bot. This is the final report.")
         await super().close()
 
+    async def fetch_user(self, user_id: int, /) -> discord.User:
+        try:
+            return self.__users_cache[user_id]
+        except KeyError:
+            self.__users_cache[user_id] = user = await super().fetch_user(user_id)
+            return user
+
     @property
-    def pool(self) -> Optional[aioodbc.Pool]:
+    def pool(self) -> Optional[Pool]:
         return self.interface.pool
 
     @property

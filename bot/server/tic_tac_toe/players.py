@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
+import discord
 from aiohttp import web
 from discord import abc
 
@@ -34,14 +35,17 @@ class Player(Serializable):
 
     @classmethod
     async def from_request(cls, request: Request) -> Optional[Player]:
-        user = authenticate_request(request)
+        user = await authenticate_request(request, interface=request.app.interface)
         if user is None:
             try:
                 id = int(request.query["id"])
             except (KeyError, ValueError):
                 return
             else:
-                user = await request.app.fetch_user(id, api_call=False)
+                try:
+                    user = await request.app.interface.clients[0].fetch_user(id)
+                except discord.NotFound:
+                    raise web.HTTPNotFound
 
         websocket = web.WebSocketResponse()
         await websocket.prepare(request)

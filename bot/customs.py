@@ -3,9 +3,11 @@ from __future__ import annotations
 import asyncio
 import datetime
 import sys
-from typing import Optional, Union, TYPE_CHECKING
+from typing import Generic, Optional, TypeVar, Union, TYPE_CHECKING
 
+import aioodbc
 import discord
+from aioodbc.cursor import Cursor
 from discord.ext import commands
 
 if TYPE_CHECKING:
@@ -49,6 +51,20 @@ discord.Embed = _Embed  # Not a good practice, but whatever
 
 
 if TYPE_CHECKING:
+    T = TypeVar("T")
+
+    # Context managers type hint
+
+    class _ContextManager(Generic[T]):
+        def __enter__(self) -> T:
+            ...
+
+    class _AsyncContextManager(Generic[T]):
+        async def __aenter__(self) -> T:
+            ...
+
+    # Overwrite type hint from discord.py
+
     class Guild(discord.Guild):
         voice_client: Optional[AudioPlayer]
 
@@ -59,8 +75,19 @@ if TYPE_CHECKING:
     class Interaction(discord.Interaction[Haruka]):
         guild: Optional[Guild]
 
-else:
+    # Overwrite (actually implement) type hint from aioodbc
 
+    class Connection(aioodbc.Connection):
+        def cursor(self) -> _AsyncContextManager[Cursor]:
+            ...
+
+    class Pool(aioodbc.Pool):
+        def acquire(self) -> _AsyncContextManager[Connection]:
+            ...
+
+else:
     Guild = discord.Guild
     Context = commands.Context
     Interaction = discord.Interaction
+    Connection = aioodbc.Connection
+    Pool = aioodbc.Pool
