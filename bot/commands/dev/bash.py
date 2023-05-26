@@ -22,7 +22,7 @@ from shared import interface
 )
 @commands.is_owner()
 @commands.max_concurrency(1)
-async def _handler(ctx: Context, *, cmd: str):
+async def _handler(ctx: Context, *, cmd: str) -> None:
     with open(BASH_PATH, "w", encoding="utf-8") as writer:
         with utils.TimingContextManager() as measure:
             try:

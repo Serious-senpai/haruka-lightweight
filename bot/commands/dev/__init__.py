@@ -4,5 +4,6 @@ from .cppeval import *
 from .eval import *
 from .log import *
 from .send import *
+from .sql import *
 from .sync import *
 from .throw import *
