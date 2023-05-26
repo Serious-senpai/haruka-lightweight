@@ -53,7 +53,7 @@ async def _handler(ctx: Context, *, cmd: str) -> None:
                     for row in rows:
                         for value, column_size in zip(row, column_sizes):
                             to_write = str(value)
-                            output.write(" "+to_write + " " * (column_size - len(to_write) + 1) + "|")
+                            output.write(" " + to_write + " " * (column_size - len(to_write) + 1) + "|")
 
                         output.write("\n")
 
