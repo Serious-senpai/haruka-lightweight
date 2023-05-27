@@ -11,9 +11,9 @@ from discord import abc
 from discord.ext import tasks
 from discord.utils import utcnow, sleep_until
 
-from .customs import Request
 if TYPE_CHECKING:
     from shared import SharedInterface
+    from .customs import Request
 
 
 class OTPCountdown(NamedTuple):
@@ -96,4 +96,4 @@ async def authenticate_request(request: Request, *, interface: SharedInterface) 
                 row = await cursor.fetchone()
 
                 if row is not None:
-                    return await interface.clients[0].fetch_user(int(row[0]))
+                    return await interface.client.fetch_user(int(row[0]))

@@ -6,9 +6,10 @@ import discord
 from aiohttp import web
 from discord import abc
 
-from ..customs import Request
-from ..utils import Serializable, json_encode
 from ..verification import authenticate_request
+from ..web_utils import Serializable, json_encode
+if TYPE_CHECKING:
+    from ..customs import Request
 
 
 class Player(Serializable):
@@ -43,7 +44,7 @@ class Player(Serializable):
                 return
             else:
                 try:
-                    user = await request.app.interface.clients[0].fetch_user(id)
+                    user = await request.app.interface.client.fetch_user(id)
                 except discord.NotFound:
                     raise web.HTTPNotFound
 

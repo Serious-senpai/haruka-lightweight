@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 @router.get(r"/icons/{filename:.+?\.(?:png|jpg)}")
 async def handler(request: Request) -> web.Response:
     try:
-        raise web.HTTPFound(request.app.interface.clients[0].user.avatar.url)
+        raise web.HTTPFound(request.app.interface.client.user.avatar.url)
     except AttributeError:
         raise web.HTTPNotFound
 

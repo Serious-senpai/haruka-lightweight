@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import datetime
 import io
 import signal
@@ -96,6 +97,11 @@ class SharedInterface:
             )
 
         return self.__session
+
+    @property
+    def client(self) -> Optional[Haruka]:
+        with contextlib.suppress(IndexError):
+            return self.clients[0]
 
     def add_client(self, client: Haruka) -> None:
         self.clients.append(client)

@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING
 from aiohttp import web
 
 from ..router import router
-from ..utils import json_encode
 from ..verification import authenticate_request, generate_token, otp_cache
+from ..web_utils import json_encode
 if TYPE_CHECKING:
     from ..customs import Request
 

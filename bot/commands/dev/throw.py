@@ -11,6 +11,7 @@ from shared import interface
 
 @interface.command(
     name="throw",
+    aliases=["raise"],
     brief="dev.throw",
     description="Throw (raise) a random exception",
     hidden=True,

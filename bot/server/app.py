@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import contextlib
-from typing import Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
-import discord
 from aiohttp import web
-from discord import abc
 
+from .middleware_group import middleware_group
+from .middlewares import *
 from .router import router
 from .routes import *
 from .verification import otp_cache
@@ -32,7 +31,7 @@ class WebApp(web.Application):
             self._html = html
 
         self.interface = interface
-        super().__init__()
+        super().__init__(middlewares=middleware_group.to_list())
 
         self.add_routes(router)
         self.on_startup.append(lambda self: otp_cache.start_countdown())

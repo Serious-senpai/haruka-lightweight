@@ -5,7 +5,7 @@ from copy import deepcopy
 from typing import Any, Dict, List, Literal, Optional, Set, TYPE_CHECKING
 
 from .errors import InvalidMove
-from ..utils import Serializable, json_encode
+from ..web_utils import Serializable, json_encode
 if TYPE_CHECKING:
     from .rooms import Room
 

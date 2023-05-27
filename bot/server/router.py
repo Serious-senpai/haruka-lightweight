@@ -8,6 +8,7 @@ from aiohttp import web
 class RouteTableDef(web.RouteTableDef):
 
     __instance__: ClassVar[Optional[RouteTableDef]] = None
+    __slots__ = ()
 
     def __new__(cls) -> RouteTableDef:
         if cls.__instance__ is None:

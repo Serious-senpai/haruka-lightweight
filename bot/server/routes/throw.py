@@ -1,23 +1,30 @@
 from __future__ import annotations
 
+import random
 from typing import TYPE_CHECKING
 
 from aiohttp import web
 
+import utils
 from environment import OWNER_ID
 from ..router import router
 from ..verification import authenticate_request
-from ..web_utils import json_encode
 if TYPE_CHECKING:
     from ..customs import Request
 
 
-@router.get("/commands")
+@router.get("/throw")
 async def handler(request: Request) -> web.Response:
     user = await authenticate_request(request, interface=request.app.interface)
-    show_hidden = False
-    if user is not None:
-        show_hidden = user.id == OWNER_ID
+    if user is not None and user.id == OWNER_ID:
+        errors = tuple(utils.get_all_subclasses(BaseException))
+        try:
+            error_type = random.choice(errors)
+            error = error_type()
+        except TypeError:
+            error = TypeError()
 
-    commands = [command for command in request.app.interface.commands if show_hidden or not command.hidden]
-    return web.json_response(json_encode(commands))
+        raise error
+
+    else:
+        raise web.HTTPForbidden

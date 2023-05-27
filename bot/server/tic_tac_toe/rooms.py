@@ -10,7 +10,7 @@ from aiohttp import web
 from .errors import AlreadyEnded, AlreadyStarted, InvalidTurn, NotEnoughPlayer, NotStarted
 from .players import Player
 from .state import CoordinateT, State
-from ..utils import Serializable, json_encode
+from ..web_utils import Serializable, json_encode
 
 
 class RoomsManager:
