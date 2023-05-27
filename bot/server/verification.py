@@ -74,12 +74,17 @@ otp_cache = OTPCache()
 
 
 async def generate_token(user: abc.User, *, interface: SharedInterface) -> str:
-    token = f"{user.id}.{secrets.token_hex(16)}"
     async with interface.pool.acquire() as connection:
         async with connection.cursor() as cursor:
-            await cursor.execute("INSERT INTO tokens (token) VALUES (?)", token)
+            await cursor.execute("SELECT * FROM tokens WHERE id = ?", str(user.id))
+            row = await cursor.fetchone()
+            if row is not None:
+                return row[1]
 
-    return token
+            token = f"{user.id}.{secrets.token_hex(16)}"
+            await cursor.execute("INSERT INTO tokens (id, token) VALUES (?, ?)", str(user.id), token)
+
+            return token
 
 
 async def authenticate_request(request: Request, *, interface: SharedInterface) -> Optional[abc.User]:
@@ -87,8 +92,8 @@ async def authenticate_request(request: Request, *, interface: SharedInterface) 
     if isinstance(token, str):
         async with interface.pool.acquire() as connection:
             async with connection.cursor() as cursor:
-                await cursor.execute("IF EXISTS (SELECT * FROM tokens WHERE token = ?) SELECT existence = 1 ELSE SELECT existence = 0", token)
+                await cursor.execute("SELECT * FROM tokens WHERE token = ?", token)
                 row = await cursor.fetchone()
 
-                if row[0] == 1:
-                    return await interface.clients[0].fetch_user(int(token.split(".")[0]))
+                if row is not None:
+                    return await interface.clients[0].fetch_user(int(row[0]))

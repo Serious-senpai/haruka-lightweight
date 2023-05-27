@@ -162,7 +162,7 @@ class SharedInterface:
             )
             async with pool.acquire() as connection:
                 async with connection.cursor() as cursor:
-                    await cursor.execute("IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'tokens') CREATE TABLE tokens (token varchar(max))")
+                    await cursor.execute("IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'tokens') CREATE TABLE tokens (id varchar(max), token varchar(max))")
 
             self.log("Initialized database")
 
