@@ -24,13 +24,14 @@ async def _handler(ctx: Context, *, cmd: str) -> None:
         async with connection.cursor() as cursor:
             content = ""
             output = io.StringIO()
+            send_output = True
             try:
                 with utils.TimingContextManager() as measure:
                     await cursor.execute(cmd)
 
                 columns = cursor.description
                 if columns is None:
-                    output.write("---No SELECT statement---")
+                    send_output = False
                 else:
                     column_names = [str(column[0]) for column in columns]
                     column_sizes = [len(column_name) for column_name in column_names]
@@ -63,4 +64,4 @@ async def _handler(ctx: Context, *, cmd: str) -> None:
             finally:
                 content = f"Process completed after {utils.format(measure.result)}\n{content}"
                 output.seek(0)
-                await ctx.send(content, file=discord.File(output, filename="sql.txt"))
+                await ctx.send(content, file=discord.File(output, filename="sql.txt") if send_output else None)
