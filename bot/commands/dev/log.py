@@ -17,4 +17,5 @@ from shared import interface
 )
 @commands.is_owner()
 async def _handler(ctx: Context) -> None:
+    interface.flush_logs()
     await ctx.send(embed=ctx.bot.display_status, file=discord.File(LOG_PATH))

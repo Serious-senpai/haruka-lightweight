@@ -163,6 +163,7 @@ class Haruka(commands.Bot):
         send_log: bool = True
     ) -> Optional[discord.Message]:
         if self.owner is not None:
+            self.interface.flush_logs()
             return await self.owner.send(
                 message,
                 embed=self.display_status if send_state else None,  # type: ignore

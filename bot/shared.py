@@ -106,6 +106,9 @@ class SharedInterface:
     def add_client(self, client: Haruka) -> None:
         self.clients.append(client)
 
+    def flush_logs(self) -> None:
+        self.logfile.flush()
+
     def _log(self, content: str) -> None:
         self.logfile.write(content + "\n")
         self.logfile.flush()
