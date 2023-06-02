@@ -213,7 +213,8 @@ class SharedInterface:
                     await asyncio.gather(*[client.close() for client in clients], return_exceptions=True)
                     await dummy_start
 
-                    await asyncio.wait_for(stop_dummy_clients(), timeout=30)
+                await asyncio.wait_for(stop_dummy_clients(), timeout=30)
+
         except BaseException as exc:
             self.log(utils.format_exception(exc))
         finally:
