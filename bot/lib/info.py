@@ -10,7 +10,7 @@ def user_info(user: discord.User) -> discord.Embed:
         name="Information collected",
         icon_url=user._state.user.avatar.url,
     )
-    embed.set_thumbnail(url=user.avatar.url if user.avatar else None)
+    embed.set_thumbnail(url=user.display_avatar.url)
     embed.set_image(url=user.banner.url if user.banner else None)
     embed.set_footer(text="From Discord")
     return embed

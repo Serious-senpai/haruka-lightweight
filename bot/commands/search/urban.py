@@ -18,8 +18,8 @@ async def _handler(ctx: Context, *, query: str):
     if result:
         embed = await result.create_embed()
         embed.set_author(
-            name=f"{ctx.author.name} searched for {query}",
-            icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
+            name=f"{ctx.author.display_name} searched for {query}",
+            icon_url=ctx.author.display_avatar.url,
         )
         await ctx.send(embed=embed)
     else:
@@ -37,8 +37,8 @@ async def _handler(interaction: Interaction, query: str) -> None:
     if result:
         embed = await result.create_embed()
         embed.set_author(
-            name=f"{interaction.user.name} searched for {query}",
-            icon_url=interaction.user.avatar.url if interaction.user.avatar else None,
+            name=f"{interaction.user.display_name} searched for {query}",
+            icon_url=interaction.user.display_avatar.url,
         )
         await interaction.followup.send(embed=embed)
     else:

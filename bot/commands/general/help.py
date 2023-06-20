@@ -69,7 +69,7 @@ class HelpCommand(commands.HelpCommand):
             name=f"{self.bot.user} command list",
             icon_url=self.bot.user.avatar.url,
         )
-        embed.set_thumbnail(url=self.context.author.avatar.url if self.context.author.avatar else None)
+        embed.set_thumbnail(url=self.context.author.display_avatar.url)
 
         for category in categories:
             icon = category_icons.get(category)
@@ -101,8 +101,8 @@ class HelpCommand(commands.HelpCommand):
             description=f"```\n{command.usage}\n```\n**Description**\n{description}\n**Aliases**\n" + ", ".join(f"`{alias}`" for alias in command.aliases) + "\n" + cooldown_notify,
         )
         embed.set_author(
-            name=f"{self.context.author.name}, this is an instruction for {command.qualified_name}!",
-            icon_url=self.context.author.avatar.url if self.context.author.avatar else None,
+            name=f"{self.context.author.display_name}, this is an instruction for {command.qualified_name}!",
+            icon_url=self.context.author.display_avatar.url,
         )
         await self.context.send(embed=embed)
 

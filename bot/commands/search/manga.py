@@ -46,8 +46,8 @@ async def _handler(ctx: Context, *, query: str) -> None:
                 else:
                     embed = manga.create_embed()
                     embed.set_author(
-                        name=f"{ctx.author.name}'s request",
-                        icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
+                        name=f"{ctx.author.display_name}'s request",
+                        icon_url=ctx.author.display_avatar.url,
                     )
                     await ctx.send(embed=embed)
             else:
