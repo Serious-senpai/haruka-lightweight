@@ -9,7 +9,3 @@ eval.txt
 log.txt
 
 bot/server/build/
-bot/web/*
-!bot/web/lib/
-!bot/web/analysis_options.yaml
-!bot/web/pubspec.yaml

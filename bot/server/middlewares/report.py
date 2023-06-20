@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @middleware_group
-async def _error_handler(request: Request, handler: Handler) -> web.Response:
+async def error_handler(request: Request, handler: Handler) -> web.Response:
     try:
         return await handler(request)
     except web.HTTPException:

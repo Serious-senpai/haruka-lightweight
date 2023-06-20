@@ -15,4 +15,8 @@ async def handler(request: Request) -> web.Response:
         text=request.app.html,
         status=200,
         content_type="text/html",
+    ) if request.app.interface.is_ready() else web.Response(
+        text="Server is preparing",
+        status=200,
+        content_type="text/plain",
     )

@@ -220,6 +220,9 @@ class SharedInterface:
         finally:
             self.__ready.set()
 
+    def is_ready(self) -> bool:
+        return self.__ready.is_set()
+
     async def wait_until_ready(self) -> None:
         await self.__ready.wait()
 
