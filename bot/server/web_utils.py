@@ -32,7 +32,6 @@ def json_encode(obj: Any) -> Any:
         return {
             "id": str(obj.id),
             "name": obj.display_name,
-            "discriminator": obj.discriminator,
             "avatar": json_encode(obj.display_avatar),
         }
 
