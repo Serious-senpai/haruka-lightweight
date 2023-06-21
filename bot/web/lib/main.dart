@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 
 import "src/session.dart";
 import "pages/idle_game.dart";
@@ -6,6 +7,12 @@ import "pages/main.dart";
 import "pages/tic_tac_toe.dart";
 
 Future<void> main() async {
+  SystemChrome.setPreferredOrientations(
+    [
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ],
+  );
   var session = await ClientSession.create();
 
   print("Initialized client session. Starting application.");

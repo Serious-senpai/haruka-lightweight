@@ -107,11 +107,13 @@ class SharedInterface:
         self.clients.append(client)
 
     def flush_logs(self) -> None:
-        self.logfile.flush()
+        if not self.logfile.closed:
+            self.logfile.flush()
 
     def _log(self, content: str) -> None:
-        self.logfile.write(content + "\n")
-        self.logfile.flush()
+        if not self.logfile.closed:
+            self.logfile.write(content + "\n")
+            self.flush_logs()
 
     def command(
         self,
