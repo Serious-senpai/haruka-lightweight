@@ -61,11 +61,16 @@ class Track:
 
         return embed
 
-    async def get_audio_url(self, *, interface: SharedInterface, format: Literal["140", "mp3128"] = "mp3128", max_retry: int = 5) -> URL:
+    async def get_audio_url(self, *, interface: SharedInterface, format: Literal["64", "96", "140", "192", "256", "320", "mp3128"] = "mp3128", max_retry: int = 5) -> URL:
         client = YouTubeClient(interface=interface)
+        payload = {
+            "k_query": str(self.url),
+            "k_page": "mp3",
+            "hl": "en",
+        }
         while True:
             try:
-                async with client.session.post(self._analyzer, data={"k_query": str(self.url)}) as response:
+                async with client.session.post(self._analyzer, data=payload) as response:
                     response.raise_for_status()
                     data = await response.json(encoding="utf-8")
 
