@@ -18,17 +18,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Setup virtual environment
-        run: python3 -m venv .venv
-
-      - name: Install dependencies
-        run: .venv/bin/pip3 install -Ur requirements.txt
-
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:

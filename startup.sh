@@ -1,1 +1,2 @@
-.venv/bin/python3 bot/main.py
+pip install -Ur requirements.txt
+python3 bot/main.py
