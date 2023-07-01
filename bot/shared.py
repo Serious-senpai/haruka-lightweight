@@ -203,7 +203,7 @@ class SharedInterface:
                 dummy_start = asyncio.gather(*coros, return_exceptions=True)
 
                 # Continue building binaries (~6 minutes)
-                process = await asyncio.create_subprocess_shell("apt install ffmpeg g++ -y", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
+                process = await asyncio.create_subprocess_shell("apt install ffmpeg g++ git -y", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
                 await process.communicate()
 
                 process = await asyncio.create_subprocess_shell(f"g++ -std=c++2a -Wall bot/c++/fuzzy.cpp -o {FUZZY_MATCH}", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
