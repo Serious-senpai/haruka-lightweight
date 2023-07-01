@@ -1,3 +1,2 @@
-apt install git -y
-pip install -r requirements.txt
+source .venv/bin/activate
 python3 bot/main.py

@@ -41,6 +41,17 @@ jobs:
           name: haruka-build
           path: .
 
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
+      - name: Setup virtual environment
+        run: |
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip3 install -U -r requirements.txt
+
   deploy:
     name: Deploy to Azure
     runs-on: ubuntu-latest
