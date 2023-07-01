@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import asyncio
-import io
-
 import discord
 from discord.ext import commands
 
@@ -25,21 +22,12 @@ async def _handler(ctx: Context) -> None:
         raise commands.UserInputError
     else:
         async with ctx.typing():
+            path, stderr = await wows_renderer.render(await attachment.read(), ctx.message.id)
+
             try:
-                path = await asyncio.to_thread(
-                    wows_renderer.render,
-                    io.BytesIO(await attachment.read()),
-                    ctx.message.id,
-                )
-
-            except Exception:
-                try:
-                    await ctx.reply("Cannot render replay file!")
-                except discord.HTTPException:
-                    await ctx.send("Cannot render replay file!")
-
-            else:
                 try:
                     await ctx.reply(file=discord.File(path))
                 except discord.HTTPException:
                     await ctx.send(file=discord.File(path))
+            except FileNotFoundError:
+                await ctx.send(f"Cannot render replay file!\n```{stderr}```")
