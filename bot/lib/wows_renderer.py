@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import importlib
 import os
 from typing import Any, Callable, Tuple
 
@@ -8,7 +9,6 @@ from typing import Any, Callable, Tuple
 __all__ = ("render",)
 
 
-installed = False
 install_lock = asyncio.Lock()
 WOWS_DIR = "wows-replay"
 if not os.path.isdir(WOWS_DIR):
@@ -17,21 +17,21 @@ if not os.path.isdir(WOWS_DIR):
 
 async def install_minimap_renderer() -> None:
     process = await asyncio.create_subprocess_shell(
-        "pip install --upgrade --force-reinstall git+https://github.com/WoWs-Builder-Team/minimap_renderer.git",
+        "pip install -U git+https://github.com/WoWs-Builder-Team/minimap_renderer",
         stdout=asyncio.subprocess.DEVNULL,
         stderr=asyncio.subprocess.DEVNULL,
     )
     await process.communicate()
 
-    global installed
-    installed = True
-
 
 async def render(data: bytes, *, id: int, log_func: Callable[[str], Any]) -> Tuple[str, str]:
     async with install_lock:
-        if not installed:
-            log_func("Installing minimap_renderer")
+        try:
+            importlib.import_module("render")
+        except ModuleNotFoundError:
+            log_func("minimap_renderer not found. Installing...")
             await install_minimap_renderer()
+            log_func("minimap_renderer installed!")
 
     name = f"replay-{id}"
     input_path = os.path.join(WOWS_DIR, f"{name}.wowsreplay")

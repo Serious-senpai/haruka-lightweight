@@ -28,7 +28,7 @@ jobs:
       run: pip install -Ur requirements.txt
 
     - name: Install WoWs minimap renderer
-      run: pip install --upgrade --force-reinstall git+https://github.com/WoWs-Builder-Team/minimap_renderer.git
+      run: pip install -U git+https://github.com/WoWs-Builder-Team/minimap_renderer
 
     - name: Check dependencies compatibility
       run: pip check
