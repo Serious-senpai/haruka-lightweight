@@ -16,7 +16,15 @@ from shared import interface
 )
 @commands.is_owner()
 async def _handler(ctx: Context) -> None:
-    return
+    async with interface.pool.acquire() as connection:
+        async with connection.cursor() as cursor:
+            await cursor.execute("SELECT * FROM blacklist")
+            rows = await cursor.fetchall()
+
+    if len(rows) == 1:
+        await ctx.send("There is 1 user in the blacklist.")
+    else:
+        await ctx.send(f"There are {len(rows)} users in the blacklist.")
 
 
 @_handler.command(
@@ -25,12 +33,13 @@ async def _handler(ctx: Context) -> None:
     description="Add a user to the blacklist",
     hidden=True,
 )
+@commands.is_owner()
 async def _add_handler(ctx: Context, user: discord.User) -> None:
     async with interface.pool.acquire() as connection:
         async with connection.cursor() as cursor:
             await cursor.execute("INSERT INTO blacklist VALUES (?)", str(user.id))
 
-    await ctx.send(f"Added {user} to the blacklist!")
+    await ctx.send(f"Added **{user}** to the blacklist!")
 
 
 @_handler.command(
@@ -39,9 +48,10 @@ async def _add_handler(ctx: Context, user: discord.User) -> None:
     description="Remove a user from the blacklist",
     hidden=True,
 )
+@commands.is_owner()
 async def _remove_handler(ctx: Context, user: discord.User) -> None:
     async with interface.pool.acquire() as connection:
         async with connection.cursor() as cursor:
             await cursor.execute("DELETE FROM blacklist WHERE id = ?", str(user.id))
 
-    await ctx.send(f"Removed {user} from the blacklist!")
+    await ctx.send(f"Removed **{user}** from the blacklist!")
