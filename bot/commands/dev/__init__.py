@@ -1,4 +1,5 @@
 from .bash import *
+from .blacklist import *
 from .cancel import *
 from .cppeval import *
 from .eval import *

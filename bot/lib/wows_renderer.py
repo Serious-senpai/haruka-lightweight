@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import Tuple
+from typing import Any, Callable, Tuple
 
 
 __all__ = ("render",)
@@ -27,9 +27,10 @@ async def install_minimap_renderer() -> None:
     installed = True
 
 
-async def render(data: bytes, id: int) -> Tuple[str, str]:
+async def render(data: bytes, *, id: int, log_func: Callable[[str], Any]) -> Tuple[str, str]:
     async with install_lock:
         if not installed:
+            log_func("Installing minimap_renderer")
             await install_minimap_renderer()
 
     name = f"replay-{id}"

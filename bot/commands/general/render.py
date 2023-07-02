@@ -22,7 +22,7 @@ async def _handler(ctx: Context) -> None:
         raise commands.UserInputError
     else:
         async with ctx.typing():
-            path, stderr = await wows_renderer.render(await attachment.read(), ctx.message.id)
+            path, stderr = await wows_renderer.render(await attachment.read(), id=ctx.message.id, log_func=interface.log)
 
             try:
                 try:

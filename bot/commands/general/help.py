@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, List, Mapping, Optional, TYPE_CHECKING
+from typing import Any, Dict, List, Mapping, Optional, TYPE_CHECKING
 
 import discord
 from discord.ext import commands
+from discord.ext.commands.core import Group
 
 import utils
 from environment import COMMAND_PREFIX
@@ -54,6 +55,7 @@ class HelpCommand(commands.HelpCommand):
             if show_hidden or not command.hidden:
                 match = category_matcher.fullmatch(command.brief)
                 assert match is not None
+                # assert match.group(2) == command.name
                 category = match.group(1)
                 category_mapping.setdefault(category, [])
                 category_mapping[category].append(command.name)
@@ -84,9 +86,17 @@ class HelpCommand(commands.HelpCommand):
 
     async def send_command_help(self, command: commands.Command) -> None:
         if command.aliases and command.qualified_name not in command.aliases:
+            assert isinstance(command.aliases, list)
             command.aliases.insert(0, command.qualified_name)
         elif not command.aliases:
             command.aliases = [command.qualified_name]
+
+        if command.usage is None:
+            command.usage = command.qualified_name
+
+        # Ensure that command prefix is added properly
+        command.usage = command.usage.replace(COMMAND_PREFIX, "")
+        command.usage = COMMAND_PREFIX + command.usage.replace("\n", f"\n{COMMAND_PREFIX}")
 
         description = command.description.format(prefix=COMMAND_PREFIX)
 
@@ -102,6 +112,23 @@ class HelpCommand(commands.HelpCommand):
         )
         embed.set_author(
             name=f"{self.context.author.display_name}, this is an instruction for {command.qualified_name}!",
+            icon_url=self.context.author.display_avatar.url,
+        )
+        await self.context.send(embed=embed)
+
+    async def send_group_help(self, group: Group) -> None:
+        if group.aliases and group.aliases not in group.aliases:
+            assert isinstance(group.aliases, list)
+            group.aliases.insert(0, group.qualified_name)
+        elif not group.aliases:
+            group.aliases = [group.qualified_name]
+
+        embed = discord.Embed(
+            title=group.qualified_name,
+            description=f"**Description**\n{group.description}\n**Commands**\n```" + "\n".join(sorted(command.qualified_name for command in group.commands)) + "```",
+        )
+        embed.set_author(
+            name=f"{self.context.author.display_name}, this is an instruction for {group.qualified_name}!",
             icon_url=self.context.author.display_avatar.url,
         )
         await self.context.send(embed=embed)

@@ -27,6 +27,7 @@ if TYPE_CHECKING:
 if TYPE_CHECKING:
     P = ParamSpec("P")
     CommandCallback = Callable[Concatenate[commands.Context[Haruka], P], Awaitable[Any]]
+    GroupCallback = Callable[Concatenate[commands.Context[Haruka], P], Awaitable[Any]]
     SlashCommandCallback = Callable[Concatenate[discord.Interaction[Haruka], P], Awaitable[Any]]
 
 
@@ -131,11 +132,31 @@ class SharedInterface:
                 brief=brief,
                 **kwargs,
             )
-            command.usage = command.usage if command.usage else command.qualified_name
-            command.usage = COMMAND_PREFIX + command.usage.replace("\n", f"\n{COMMAND_PREFIX}")
 
             self.commands.add(command)
             return command
+
+        return decorator
+
+    def group(
+        self,
+        *,
+        name: str,
+        brief: str,  # For classifying groups
+        description: str,
+        **kwargs: Any,
+    ) -> Callable[[Union[commands.Group, GroupCallback]], commands.Group]:
+        def decorator(func: Union[commands.Group, GroupCallback]) -> commands.Group:
+            group = func if isinstance(func, commands.Group) else commands.Group(
+                func,
+                name=name,
+                description=description,
+                brief=brief,
+                **kwargs,
+            )
+
+            self.commands.add(group)
+            return group
 
         return decorator
 
@@ -165,15 +186,17 @@ class SharedInterface:
         self._started = True
 
         if self.__pool is None:
-            self.__pool = pool = await aioodbc.create_pool(
+            self.__pool = await aioodbc.create_pool(
                 dsn=ODBC_CONNECTION_STRING,
                 minsize=1,
                 maxsize=10,
                 autocommit=True,
             )
+            pool = self.pool
             async with pool.acquire() as connection:
                 async with connection.cursor() as cursor:
                     await cursor.execute("IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'tokens') CREATE TABLE tokens (id varchar(max), token varchar(max))")
+                    await cursor.execute("IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'blacklist') CREATE TABLE blacklist (id varchar(max))")
 
             self.log("Initialized database")
 
