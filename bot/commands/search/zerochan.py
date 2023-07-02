@@ -14,7 +14,7 @@ from shared import interface
     aliases=["zero"],
     brief="search.zerochan",
     description="Search zerochan for images",
-    usage="zerochan <query>",
+    usage="{prefix}zerochan <query>",
 )
 @commands.cooldown(1, 5, commands.BucketType.user)
 async def _handler(ctx: Context, *, query: str):

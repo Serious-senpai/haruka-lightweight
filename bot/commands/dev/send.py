@@ -16,7 +16,7 @@ from shared import interface
     name="send",
     brief="dev.send",
     description="Download data from provided URL(s) and send them to the current channel. If any of the given URL(s) contain data exceeding the file size limit, the URL will be sent instead.",
-    usage="send <URL(s)>",
+    usage="{prefix}send <URL(s)>",
     hidden=True,
 )
 @commands.is_owner()

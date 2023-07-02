@@ -13,7 +13,7 @@ from shared import interface
     name="speak",
     brief="general.speak",
     description="Make the bot say something. Unlike `say`, this will attempt to delete your command message first",
-    usage="speak <content>",
+    usage="{prefix}speak <content>",
 )
 async def _handler(ctx: Context, *, content: str = "") -> None:
     if not content and not ctx.message.attachments:

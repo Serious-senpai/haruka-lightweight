@@ -13,7 +13,7 @@ from shared import interface
     name="info",
     brief="general.info",
     description="View a Discord user's information",
-    usage="info <user | default: yourself>",
+    usage="{prefix}info <user | default: yourself>",
 )
 async def _handler(ctx: Context, user: discord.User = commands.Author) -> None:
     await ctx.send(embed=info.user_info(user))

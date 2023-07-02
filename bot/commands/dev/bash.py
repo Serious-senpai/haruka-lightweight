@@ -17,7 +17,7 @@ from shared import interface
     aliases=["sh", "ssh"],
     brief="dev.bash",
     description="Execute a bash command",
-    usage="bash <command>",
+    usage="{prefix}bash <command>",
     hidden=True,
 )
 @commands.is_owner()

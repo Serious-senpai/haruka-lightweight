@@ -10,7 +10,7 @@ from shared import interface
     name="urban",
     brief="search.urban",
     description="Search for a term from Urban Dictionary",
-    usage="urban <query>"
+    usage="{prefix}urban <query>"
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _handler(ctx: Context, *, query: str):

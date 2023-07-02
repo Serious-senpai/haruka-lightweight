@@ -25,7 +25,7 @@ async def join_voice(ctx: Context, channel: discord.VoiceChannel) -> youtube.Aud
     name="play",
     brief="music.play",
     description="Play audio from YouTube. `URL` can be a URL to a YouTube video or a YouTube playlist.",
-    usage="play <URL>",
+    usage="{prefix}play <URL>",
 )
 @commands.guild_only()
 @commands.max_concurrency(1, commands.BucketType.guild, wait=True)

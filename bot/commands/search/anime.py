@@ -14,7 +14,7 @@ from shared import interface
     name="anime",
     brief="search.anime",
     description="Search for an anime in the MyAnimeList database",
-    usage="anime <query>"
+    usage="{prefix}anime <query>"
 )
 @commands.cooldown(1, 3, commands.BucketType.user)
 async def _handler(ctx: Context, *, query: str) -> None:

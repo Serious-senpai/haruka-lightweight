@@ -13,7 +13,7 @@ from shared import interface
     name="source",
     brief="general.source",
     description="Get the source code of a command",
-    usage="source <command name>",
+    usage="{prefix}source <command name>",
 )
 async def _handler(ctx: Context, command_name: str) -> None:
     command_name = command_name.lower()

@@ -15,7 +15,7 @@ from shared import interface
     name="sql",
     brief="dev.sql",
     description="Execute a SQL command",
-    usage="sql <command>",
+    usage="{prefix}sql <command>",
     hidden=True,
 )
 @commands.is_owner()

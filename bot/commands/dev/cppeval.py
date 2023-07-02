@@ -18,7 +18,7 @@ from shared import interface
     aliases=["cppexec"],
     brief="dev.cppeval",
     description="Attach a C++ source file, compile and run.\nProgram stdin is read from the text message.",
-    usage="cppeval <stdin> <attachment>",
+    usage="{prefix}cppeval <stdin> <attachment>",
     hidden=True,
 )
 @commands.is_owner()

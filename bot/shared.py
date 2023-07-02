@@ -18,7 +18,7 @@ from discord.utils import utcnow
 
 import utils
 from customs import Pool
-from environment import COMMAND_PREFIX, FUZZY_MATCH, LOG_PATH, ODBC_CONNECTION_STRING, PORT
+from environment import FUZZY_MATCH, LOG_PATH, ODBC_CONNECTION_STRING, PORT
 from server import WebApp
 if TYPE_CHECKING:
     from haruka import Haruka
@@ -193,10 +193,12 @@ class SharedInterface:
                 autocommit=True,
             )
             pool = self.pool
+            assert pool is not None
             async with pool.acquire() as connection:
                 async with connection.cursor() as cursor:
-                    await cursor.execute("IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'tokens') CREATE TABLE tokens (id varchar(max), token varchar(max))")
                     await cursor.execute("IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'blacklist') CREATE TABLE blacklist (id varchar(max))")
+                    await cursor.execute("IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'prefix') CREATE TABLE prefix (id varchar(max), pref varchar(max))")
+                    await cursor.execute("IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'tokens') CREATE TABLE tokens (id varchar(max), token varchar(max))")
 
             self.log("Initialized database")
 

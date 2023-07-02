@@ -12,7 +12,7 @@ from shared import interface
     name="render",
     brief="general.render",
     description="Render a WoWs replay",
-    usage="render <replay file>"
+    usage="{prefix}render <replay file>"
 )
 @commands.cooldown(1, 90, commands.BucketType.user)
 async def _handler(ctx: Context) -> None:

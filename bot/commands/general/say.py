@@ -11,7 +11,7 @@ from shared import interface
     name="say",
     brief="general.say",
     description="Make the bot say something",
-    usage="say <content>",
+    usage="{prefix}say <content>",
 )
 async def _handler(ctx: Context, *, content: str = "") -> None:
     if not content and not ctx.message.attachments:

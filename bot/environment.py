@@ -4,7 +4,7 @@ import discord
 
 
 INVITE_URL = r"https://discord.com/api/oauth2/authorize?client_id=848178172536946708&permissions=70643008&scope=bot%20applications.commands"
-COMMAND_PREFIX = "$"
+DEFAULT_COMMAND_PREFIX = "$"
 OWNER_ID = 618361466248232960
 
 

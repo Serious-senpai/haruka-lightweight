@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, Mapping, Optional, TYPE_CHECKING
+from typing import Dict, List, Mapping, Optional, TYPE_CHECKING
 
 import discord
 from discord.ext import commands
 from discord.ext.commands.core import Group
 
 import utils
-from environment import COMMAND_PREFIX
 if TYPE_CHECKING:
     from haruka import Haruka
 
@@ -48,6 +47,7 @@ class HelpCommand(commands.HelpCommand):
         return self.context.bot
 
     async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]], /) -> None:
+        prefix = await utils.get_prefix(self.bot, self.context.message)
         show_hidden = await self.bot.is_owner(self.context.author)
 
         category_mapping: Dict[str, List[str]] = {}
@@ -65,7 +65,7 @@ class HelpCommand(commands.HelpCommand):
             value.sort()
 
         embed = discord.Embed(
-            description=f"You can also invoke command with <@!{self.bot.user.id}> as a prefix.\nTo get help for a command, type `{COMMAND_PREFIX}help <command>`."
+            description=f"You can always invoke command with <@!{self.bot.user.id}> as a prefix.\nTo get help for a command, type `{prefix}help <command>`."
         )
         embed.set_author(
             name=f"{self.bot.user} command list",
@@ -85,6 +85,8 @@ class HelpCommand(commands.HelpCommand):
         await self.context.send(embed=embed)
 
     async def send_command_help(self, command: commands.Command) -> None:
+        prefix = await utils.get_prefix(self.bot, self.context.message)
+
         if command.aliases and command.qualified_name not in command.aliases:
             assert isinstance(command.aliases, list)
             command.aliases.insert(0, command.qualified_name)
@@ -92,13 +94,10 @@ class HelpCommand(commands.HelpCommand):
             command.aliases = [command.qualified_name]
 
         if command.usage is None:
-            command.usage = command.qualified_name
+            command.usage = prefix + command.qualified_name
 
-        # Ensure that command prefix is added properly
-        command.usage = command.usage.replace(COMMAND_PREFIX, "")
-        command.usage = COMMAND_PREFIX + command.usage.replace("\n", f"\n{COMMAND_PREFIX}")
-
-        description = command.description.format(prefix=COMMAND_PREFIX)
+        usage = command.usage.format(prefix=prefix)
+        description = command.description.format(prefix=prefix)
 
         cooldown = command._buckets
         cooldown_notify = "**Cooldown**\nNo cooldown"
@@ -108,7 +107,7 @@ class HelpCommand(commands.HelpCommand):
 
         embed = discord.Embed(
             title=command.qualified_name,
-            description=f"```\n{command.usage}\n```\n**Description**\n{description}\n**Aliases**\n" + ", ".join(f"`{alias}`" for alias in command.aliases) + "\n" + cooldown_notify,
+            description=f"```\n{usage}\n```\n**Description**\n{description}\n**Aliases**\n" + ", ".join(f"`{alias}`" for alias in command.aliases) + "\n" + cooldown_notify,
         )
         embed.set_author(
             name=f"{self.context.author.display_name}, this is an instruction for {command.qualified_name}!",
@@ -117,6 +116,7 @@ class HelpCommand(commands.HelpCommand):
         await self.context.send(embed=embed)
 
     async def send_group_help(self, group: Group) -> None:
+        prefix = await utils.get_prefix(self.bot, self.context.message)
         if group.aliases and group.aliases not in group.aliases:
             assert isinstance(group.aliases, list)
             group.aliases.insert(0, group.qualified_name)
@@ -125,7 +125,7 @@ class HelpCommand(commands.HelpCommand):
 
         embed = discord.Embed(
             title=group.qualified_name,
-            description=f"**Description**\n{group.description}\n**Commands**\n```" + "\n".join(sorted(command.qualified_name for command in group.commands)) + "```",
+            description=f"**Description**\n{group.description}\n**Commands**\n```" + "\n".join(sorted(prefix + command.qualified_name for command in group.commands)) + "```",
         )
         embed.set_author(
             name=f"{self.context.author.display_name}, this is an instruction for {group.qualified_name}!",

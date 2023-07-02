@@ -43,7 +43,7 @@ class Haruka(commands.Bot):
 
         super().__init__(
             activity=discord.Game("with my senpai!"),
-            command_prefix=commands.when_mentioned_or(environment.COMMAND_PREFIX),
+            command_prefix=utils.get_prefixes,
             help_command=HelpCommand(),
             tree_cls=SlashCommandTree,
             intents=environment.INTENTS,

@@ -12,7 +12,7 @@ from shared import interface
     name="ava",
     brief="general.ava",
     description="View someone's avatar",
-    usage="ava <user | default: yourself>",
+    usage="{prefix}ava <user | default: yourself>",
 )
 async def _handler(ctx: Context, user: discord.User = commands.Author) -> None:
     embed = discord.Embed()

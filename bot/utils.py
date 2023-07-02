@@ -6,14 +6,63 @@ import datetime
 import time
 import traceback
 from types import TracebackType
-from typing import Iterator, Optional, Type, TypeVar, TYPE_CHECKING
+from typing import Iterator, List, Optional, Type, TypeVar, TYPE_CHECKING
 
 import discord
+from discord.ext import commands
 
-from environment import FUZZY_MATCH
+from environment import DEFAULT_COMMAND_PREFIX, FUZZY_MATCH
+if TYPE_CHECKING:
+    from haruka import Haruka
 
 
 T = TypeVar("T")
+
+
+async def get_custom_prefix(bot: Haruka, message: discord.Message) -> Optional[str]:
+    """This function is a coroutine
+
+    Attempt to get the custom prefix of the current invocation
+    context.
+
+    Parameters
+    -----
+    bot: ``Haruka``
+        The bot to handle the command
+    message: ``discord.Message``
+        The message to check for command prefix
+
+    Returns
+    -----
+    Optional[``str``]
+        The custom prefix of the current invocation context, will
+        be None if the database pool hasn't been initialized yet
+    """
+    if message.guild is None:
+        return DEFAULT_COMMAND_PREFIX
+
+    pool = bot.pool
+    if pool is not None:
+        async with pool.acquire() as connection:
+            async with connection.cursor() as cursor:
+                await cursor.execute("SELECT pref FROM prefix WHERE id = ?", str(message.guild.id))
+                row = await cursor.fetchone()
+                return DEFAULT_COMMAND_PREFIX if row is None else row[0]
+
+
+async def get_prefixes(bot: Haruka, message: discord.Message) -> List[str]:
+    prefixes = []
+    custom_prefix = await get_custom_prefix(bot, message)
+    if custom_prefix is not None:
+        prefixes.append(custom_prefix)
+
+    getter = commands.when_mentioned_or(*prefixes)
+    return getter(bot, message)
+
+
+async def get_prefix(bot: Haruka, message: discord.Message) -> str:
+    prefixes = await get_prefixes(bot, message)
+    return prefixes[-1]
 
 
 def get_all_subclasses(cls: Type[T]) -> Iterator[Type[T]]:

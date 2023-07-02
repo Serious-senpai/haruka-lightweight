@@ -3,12 +3,13 @@ from __future__ import annotations
 import asyncio
 import datetime
 import sys
-from typing import Generic, Optional, TypeVar, Union, TYPE_CHECKING
+from typing import Generic, List, Optional, TypeVar, Union, TYPE_CHECKING
 
 import aioodbc
 import discord
-from aioodbc.cursor import Cursor
+from aioodbc import cursor
 from discord.ext import commands
+from pyodbc import Row
 
 if TYPE_CHECKING:
     from haruka import Haruka
@@ -76,6 +77,15 @@ if TYPE_CHECKING:
         guild: Optional[Guild]
 
     # Overwrite (actually implement) type hint from aioodbc
+    class Cursor(cursor.Cursor):
+        async def execute(self, sql: str, *params) -> Cursor:
+            ...
+
+        async def fetchone(self) -> Optional[Row]:
+            ...
+
+        async def fetchall(self) -> List[Row]:
+            ...
 
     class Connection(aioodbc.Connection):
         def cursor(self) -> _AsyncContextManager[Cursor]:

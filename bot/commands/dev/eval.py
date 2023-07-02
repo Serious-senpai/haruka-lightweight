@@ -23,7 +23,7 @@ INDENT = " " * 4
     aliases=["exec"],
     brief="dev.eval",
     description="Evaluate a Python code",
-    usage="eval <code>",
+    usage="{prefix}eval <code>",
     hidden=True,
 )
 @commands.is_owner()
