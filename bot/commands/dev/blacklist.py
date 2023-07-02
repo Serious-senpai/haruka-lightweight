@@ -21,10 +21,11 @@ async def _handler(ctx: Context) -> None:
             await cursor.execute("SELECT * FROM blacklist")
             rows = await cursor.fetchall()
 
-    if len(rows) == 1:
+    count = len(set(rows))
+    if count == 1:
         await ctx.send("There is 1 user in the blacklist.")
     else:
-        await ctx.send(f"There are {len(rows)} users in the blacklist.")
+        await ctx.send(f"There are {count} users in the blacklist.")
 
 
 @_handler.command(

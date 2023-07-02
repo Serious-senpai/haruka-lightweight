@@ -59,7 +59,7 @@ class Haruka(commands.Bot):
 
         self.interface.add_client(self)
 
-        # Ensure that a command message is processed only once in case of running multiple instances
+        # Global command check
         async def _global_check(ctx: Context) -> bool:
             if ctx.message.id in self.__processed_message_ids:
                 return False
