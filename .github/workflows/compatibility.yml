@@ -24,11 +24,11 @@ jobs:
     - name: Upgrade pip
       run: pip install --upgrade pip
 
-    - name: Install dependencies
-      run: pip install -Ur requirements.txt
-
     - name: Install WoWs minimap renderer
       run: pip install -U git+https://github.com/WoWs-Builder-Team/minimap_renderer
+
+    - name: Install dependencies
+      run: pip install -Ur requirements.txt
 
     - name: Check dependencies compatibility
       run: pip check
