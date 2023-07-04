@@ -65,10 +65,7 @@ class Haruka(commands.Bot):
                 return False
 
             self.__processed_message_ids.add(ctx.message.id)
-            async with self.pool.acquire() as connection:
-                async with connection.cursor() as cursor:
-                    await cursor.execute("SELECT * FROM blacklist WHERE id = ?", str(ctx.author.id))
-                    return await cursor.fetchone() is None
+            return not await self.interface.is_in_blacklist(ctx.author.id)
 
         self.add_check(_global_check)
 

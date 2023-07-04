@@ -263,6 +263,12 @@ class SharedInterface:
         loop.add_signal_handler(signal.SIGTERM, graceful_exit)
         self.log("Added signal handler")
 
+    async def is_in_blacklist(self, id: int) -> bool:
+        async with self.pool.acquire() as connection:
+            async with connection.cursor() as cursor:
+                await cursor.execute("SELECT * FROM blacklist WHERE id = ?", str(id))
+                return await cursor.fetchone() is not None
+
     async def close(self) -> None:
         if not self._closed:
             self._closed = True
