@@ -1,4 +1,4 @@
-name: Dependencies Analysis
+name: Dependencies analysis
 
 on: push
 
@@ -7,12 +7,11 @@ permissions:
   contents: read
 
 jobs:
-  analyze:
-    name: Check packages compatibility
+  pip-analyze:
+    name: Check Python packages compatibility
     runs-on: ubuntu-latest
 
     steps:
-
     - name: Checkout repository
       uses: actions/checkout@v3
 
@@ -32,3 +31,24 @@ jobs:
 
     - name: Check dependencies compatibility
       run: pip check
+
+  pub-analyze:
+    name: Check Dart packages compatibility
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: "3.7.0"
+
+    - name: View Flutter status
+      run: |
+        flutter --version
+        flutter doctor -v
+
+    - name: Check dependencies compatibility
+      run: flutter create --platforms web --project-name haruka bot/web
