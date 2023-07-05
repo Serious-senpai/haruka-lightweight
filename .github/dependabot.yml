@@ -9,11 +9,19 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
+    commit-message:
+      prefix: "[Python] "
+    reviewers:
+      - "Serious-senpai"
 
-  - package-ecosystem: "pub" # See documentation for possible values
-    directory: "/bot/web" # Location of package manifests
+  - package-ecosystem: "pub"
+    directory: "/bot/web"
     schedule:
       interval: "daily"
+    commit-message:
+      prefix: "[Dart] "
+    reviewers:
+      - "Serious-senpai"
 
   - package-ecosystem: "github-actions"
     # Workflow files stored in the
@@ -21,3 +29,7 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    commit-message:
+      prefix: "[Actions] "
+    reviewers:
+      - "Serious-senpai"
