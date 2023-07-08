@@ -6,6 +6,8 @@ import discord
 from discord.ext import commands
 from frozenlist import FrozenList
 
+import utils
+
 
 class Serializable:
     def to_json(self) -> Union[List[Any], Dict[str, Any]]:
@@ -20,12 +22,13 @@ def json_encode(obj: Any) -> Any:
         return obj.to_json()
 
     if isinstance(obj, commands.Command):
+        command = utils.fill_command_metadata(obj, prefix="$")
         return {
-            "name": obj.name,
-            "aliases": obj.aliases,
-            "brief": obj.brief,
-            "description": obj.description,
-            "usage": obj.usage,
+            "name": command.name,
+            "aliases": command.aliases,
+            "brief": command.brief,
+            "description": command.description,
+            "usage": command.usage,
         }
 
     if isinstance(obj, discord.abc.User):

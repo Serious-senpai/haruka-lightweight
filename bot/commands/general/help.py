@@ -87,17 +87,7 @@ class HelpCommand(commands.HelpCommand):
     async def send_command_help(self, command: commands.Command) -> None:
         prefix = await utils.get_prefix(self.bot, self.context.message)
 
-        if command.aliases and command.qualified_name not in command.aliases:
-            assert isinstance(command.aliases, list)
-            command.aliases.insert(0, command.qualified_name)
-        elif not command.aliases:
-            command.aliases = [command.qualified_name]
-
-        if command.usage is None:
-            command.usage = prefix + command.qualified_name
-
-        usage = command.usage.format(prefix=prefix)
-        description = command.description.format(prefix=prefix)
+        command = utils.fill_command_metadata(command, prefix=prefix)
 
         cooldown = command._buckets
         cooldown_notify = "**Cooldown**\nNo cooldown"
@@ -107,7 +97,7 @@ class HelpCommand(commands.HelpCommand):
 
         embed = discord.Embed(
             title=command.qualified_name,
-            description=f"```\n{usage}\n```\n**Description**\n{description}\n**Aliases**\n" + ", ".join(f"`{alias}`" for alias in command.aliases) + "\n" + cooldown_notify,
+            description=f"```\n{command.usage}\n```\n**Description**\n{command.description}\n**Aliases**\n" + ", ".join(f"`{alias}`" for alias in command.aliases) + "\n" + cooldown_notify,
         )
         embed.set_author(
             name=f"{self.context.author.display_name}, this is an instruction for {command.qualified_name}!",
@@ -117,11 +107,7 @@ class HelpCommand(commands.HelpCommand):
 
     async def send_group_help(self, group: Group) -> None:
         prefix = await utils.get_prefix(self.bot, self.context.message)
-        if group.aliases and group.aliases not in group.aliases:
-            assert isinstance(group.aliases, list)
-            group.aliases.insert(0, group.qualified_name)
-        elif not group.aliases:
-            group.aliases = [group.qualified_name]
+        group = utils.fill_group_metadata(group)
 
         embed = discord.Embed(
             title=group.qualified_name,

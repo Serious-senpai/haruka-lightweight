@@ -19,6 +19,36 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
+def fill_command_metadata(command: commands.Command, *, prefix: str) -> commands.Command:
+    """Return a copy of `command` with the appropriate metadata"""
+    command = command.copy()
+    if command.aliases and command.qualified_name not in command.aliases:
+        assert isinstance(command.aliases, list)
+        command.aliases.insert(0, command.qualified_name)
+    elif not command.aliases:
+        command.aliases = [command.qualified_name]
+
+    if command.usage is None:
+        command.usage = prefix + command.qualified_name
+
+    command.usage = command.usage.format(prefix=prefix)
+    command.description = command.description.format(prefix=prefix)
+
+    return command
+
+
+def fill_group_metadata(group: commands.Group) -> commands.Group:
+    """Return a copy of `group` with the appropriate metadata"""
+    group = group.copy()
+    if group.aliases and group.aliases not in group.aliases:
+        assert isinstance(group.aliases, list)
+        group.aliases.insert(0, group.qualified_name)
+    elif not group.aliases:
+        group.aliases = [group.qualified_name]
+
+    return group
+
+
 async def get_custom_prefix(bot: Haruka, message: discord.Message) -> Optional[str]:
     """This function is a coroutine
 

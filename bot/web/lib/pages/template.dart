@@ -120,14 +120,10 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                                   refresh();
                                   await Fluttertoast.showToast(
                                     msg: "Welcome, ${user.displayName}!",
-                                    timeInSecForIosWeb: 5,
-                                    gravity: ToastGravity.TOP_RIGHT,
                                   );
                                 } else {
                                   await Fluttertoast.showToast(
                                     msg: "Invalid password",
-                                    timeInSecForIosWeb: 5,
-                                    gravity: ToastGravity.TOP_RIGHT,
                                   );
                                 }
                               }
