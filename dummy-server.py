@@ -4,7 +4,7 @@ import os
 import signal
 import threading
 from typing import TYPE_CHECKING
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 
 class DummyServerHandler(BaseHTTPRequestHandler):
@@ -19,10 +19,10 @@ class ServerThread(threading.Thread):
 
     __slots__ = ("__server", "__poll_interval")
     if TYPE_CHECKING:
-        __server: HTTPServer
+        __server: ThreadingHTTPServer
         __poll_interval: float
 
-    def __init__(self, *args, server: HTTPServer, poll_interval: float = 0.5, **kwargs) -> None:
+    def __init__(self, *args, server: ThreadingHTTPServer, poll_interval: float = 0.5, **kwargs) -> None:
         self.__server = server
         self.__poll_interval = poll_interval
         super().__init__(*args, **kwargs)
@@ -33,7 +33,9 @@ class ServerThread(threading.Thread):
 
 hostname = "localhost"
 port = int(os.environ.get("PORT", 8000))
-server = HTTPServer((hostname, port), DummyServerHandler)
+
+print("Initializing dummy server...")
+server = ThreadingHTTPServer((hostname, port), DummyServerHandler)
 print(f"Dummy HTTP server starting on port {port}")
 
 thread = ServerThread(name="dummy-thread", server=server)
