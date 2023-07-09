@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import os
+import socket
 import subprocess
 import threading
 from typing import TYPE_CHECKING
@@ -15,14 +17,22 @@ class DummyServerHandler(BaseHTTPRequestHandler):
         self.wfile.write("Server is preparing...".encode("utf-8"))
 
 
+class DummyHTTPServer(ThreadingHTTPServer):
+    def server_bind(self):
+        with contextlib.suppress(Exception):
+            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+
+        return super().server_bind()
+
+
 class ServerThread(threading.Thread):
 
     __slots__ = ("__server", "__poll_interval")
     if TYPE_CHECKING:
-        __server: ThreadingHTTPServer
+        __server: DummyHTTPServer
         __poll_interval: float
 
-    def __init__(self, *args, server: ThreadingHTTPServer, poll_interval: float = 0.5, **kwargs) -> None:
+    def __init__(self, *args, server: DummyHTTPServer, poll_interval: float = 0.5, **kwargs) -> None:
         self.__server = server
         self.__poll_interval = poll_interval
         super().__init__(*args, **kwargs)
@@ -35,7 +45,7 @@ hostname = "localhost"
 port = int(os.environ.get("PORT", 8000))
 
 print("Initializing dummy server...")
-server = ThreadingHTTPServer((hostname, port), DummyServerHandler)
+server = DummyHTTPServer((hostname, port), DummyServerHandler)
 print(f"Dummy HTTP server starting on port {port}")
 
 thread = ServerThread(name="dummy-thread", server=server)
