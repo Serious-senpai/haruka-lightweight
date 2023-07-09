@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-import signal
+import subprocess
 import threading
 from typing import TYPE_CHECKING
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -42,10 +42,22 @@ thread = ServerThread(name="dummy-thread", server=server)
 thread.start()
 
 
-signal.signal(signal.SIGTERM, lambda signum, frame: server.shutdown())
+processes = [
+    subprocess.Popen("pip install -r requirements.txt", shell=True),
+    subprocess.Popen("apt install ffmpeg g++ git -y", shell=True),
+]
+
+
+for process in processes:
+    process.wait()
+
+
+process = subprocess.Popen("g++ -std=c++2a -Wall bot/c++/fuzzy.cpp -o bot/c++/fuzzy.out", shell=True)
+process.wait()
 
 
 try:
+    server.shutdown()
     thread.join()
 finally:
-    print("Server stopped")
+    print("Completed preparation. Launching main application.")
