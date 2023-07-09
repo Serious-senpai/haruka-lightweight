@@ -35,6 +35,12 @@ jobs:
         working-directory: bot/web
         run: flutter build web --output ../server/build
 
+      - name: Setup Python
+        uses: actions/setup-python@v4
+
+      - name: Pre-install dependencies
+        run: pip install --cache-dir pip-cache -r requirements.txt
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
