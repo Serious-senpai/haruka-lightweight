@@ -8,6 +8,7 @@ bash.txt
 eval.txt
 log.txt
 
+.venv/
 uploaded/
 wows-replay/
 bot/server/build/

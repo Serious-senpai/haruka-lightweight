@@ -1,6 +1,7 @@
 from .ava import *
 from .help import *
 from .info import *
+from .miku_or_fubuki import *
 from .otp import *
 from .ping import *
 from .prefix import *
