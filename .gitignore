@@ -9,7 +9,6 @@ eval.txt
 log.txt
 
 .venv/
-pip-cache/
 uploaded/
 wows-replay/
 bot/server/build/
