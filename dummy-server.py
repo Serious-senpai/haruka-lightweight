@@ -19,4 +19,8 @@ async def main(request: web.Request) -> web.Response:
 
 app = web.Application()
 app.add_routes(routes)
-web.run_app(app, port=int(os.environ["PORT"]))
+
+port = int(os.environ["PORT"])
+
+print(f"Starting dummy server on port {port}")
+web.run_app(app, port=port)
