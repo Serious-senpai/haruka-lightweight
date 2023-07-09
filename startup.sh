@@ -1,8 +1,9 @@
 #!/bin/bash
 
-pip install aiohttp
-python3 dummy-server.py &
-pid = $!
+echo "Starting dummy server on port $PORT"
+python3 -m http.server $PORT &
+pid=$!
+echo "Server started"
 
 pip install -r requirements.txt
 
