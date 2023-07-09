@@ -16,9 +16,8 @@ from discord import app_commands
 from discord.ext import commands
 from discord.utils import utcnow
 
-import utils
 from customs import Pool
-from environment import FUZZY_MATCH, LOG_PATH, ODBC_CONNECTION_STRING, PORT
+from environment import LOG_PATH, ODBC_CONNECTION_STRING, PORT
 from server import WebApp
 if TYPE_CHECKING:
     from haruka import Haruka

@@ -9,4 +9,5 @@ apt install ffmpeg g++ git -y
 g++ -std=c++2a -Wall bot/c++/fuzzy.cpp -o bot/c++/fuzzy.out
 
 kill $pid
+wait $pid
 python3 bot/main.py
