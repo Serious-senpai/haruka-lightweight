@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 from aiohttp import web
 
 
@@ -17,4 +19,4 @@ async def main(request: web.Request) -> web.Response:
 
 app = web.Application()
 app.add_routes(routes)
-web.run_app(app)
+web.run_app(app, port=int(os.environ["PORT"]))
