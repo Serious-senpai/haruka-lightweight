@@ -14,14 +14,13 @@ class DummyServer(BaseHTTPRequestHandler):
 
 hostname = "localhost"
 port = int(os.environ.get("PORT", 8000))
-if __name__ == "__main__":
-    server = HTTPServer((hostname, port), DummyServer)
-    print(f"Dummy HTTP server started on port {port}")
+server = HTTPServer((hostname, port), DummyServer)
+print(f"Dummy HTTP server started on port {port}")
 
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        server.server_close()
-        print("Server stopped")
+try:
+    server.serve_forever()
+except KeyboardInterrupt:
+    pass
+finally:
+    server.server_close()
+    print("Server stopped")
