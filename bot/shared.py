@@ -203,7 +203,6 @@ class SharedInterface:
             self.log("Initialized database")
 
         if self.__webapp is None:
-            # Start the server first so Azure will not complain
             self.__webapp = webapp = WebApp(interface=self)
             runner = web.AppRunner(webapp)
             await runner.setup()
@@ -212,40 +211,10 @@ class SharedInterface:
 
             self.log(f"Started serving on port {PORT}")
 
-        try:
-            if sys.platform == "linux":
-                self.setup_signal_handler()
+        if sys.platform == "linux":
+            self.setup_signal_handler()
 
-                # Start dummy clients
-                clients: List[discord.Client] = []
-                coros: List[Awaitable[None]] = []
-                for bot in self.clients:
-                    client = discord.Client(activity=discord.Game("Preparing..."), intents=discord.Intents.none())
-                    clients.append(client)
-                    coros.append(client.start(bot.token))
-
-                self.log("Starting dummy clients")
-                dummy_start = asyncio.gather(*coros, return_exceptions=True)
-
-                # Continue building binaries (~6 minutes)
-                process = await asyncio.create_subprocess_shell("apt install ffmpeg g++ git -y", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
-                await process.communicate()
-
-                process = await asyncio.create_subprocess_shell(f"g++ -std=c++2a -Wall bot/c++/fuzzy.cpp -o {FUZZY_MATCH}", stdout=asyncio.subprocess.DEVNULL, stderr=self.logfile)
-                await process.communicate()
-
-                # Stop dummy clients
-                async def stop_dummy_clients() -> None:
-                    self.log("Stopping dummy clients")
-                    await asyncio.gather(*[client.close() for client in clients], return_exceptions=True)
-                    await dummy_start
-
-                await asyncio.wait_for(stop_dummy_clients(), timeout=30)
-
-        except BaseException as exc:
-            self.log(utils.format_exception(exc))
-        finally:
-            self.__ready.set()
+        self.__ready.set()
 
     def is_ready(self) -> bool:
         return self.__ready.is_set()
