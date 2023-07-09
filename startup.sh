@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo "startup.sh started"
 python3 dummy-server.py &
 pid=$!
 
