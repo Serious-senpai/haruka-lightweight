@@ -84,7 +84,7 @@ typing_extensions==4.7.1
 tzdata==2023.3
 urllib3==2.0.3
 wasabi==1.1.2
-yarl==1.8.2
+yarl==1.9.2
 
 # Comment out these dependencies in Windows
 nvidia-cudnn-cu11==8.5.0.96
