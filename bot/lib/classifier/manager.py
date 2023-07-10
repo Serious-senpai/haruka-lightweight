@@ -4,6 +4,7 @@ import asyncio
 import contextlib
 import pathlib
 import sys
+import threading
 from types import TracebackType
 from typing import Any, Awaitable, ClassVar, Dict, Final, Optional, Tuple, Type, TYPE_CHECKING
 
@@ -35,15 +36,17 @@ class _PosixPathMonkeyPatch(contextlib.AbstractContextManager):
 
 class LearnerManager:
 
-    __slots__ = ("__mapping",)
+    __slots__ = ("__load_lock", "__mapping",)
     __instance__: ClassVar[Optional[Learner]] = None
     MODEL_PATH: Final[pathlib.Path] = pathlib.Path("bot/models")
     if TYPE_CHECKING:
+        __load_lock: threading.Lock
         __mapping: Dict[str, Learner]
 
     def __new__(cls) -> LearnerManager:
         if cls.__instance__ is None:
             self = super().__new__(cls)
+            self.__load_lock = threading.Lock()
             self.__mapping = {}
 
             cls.__instance__ = self
@@ -54,9 +57,10 @@ class LearnerManager:
         return asyncio.to_thread(self._load_learner, name)
 
     def _load_learner(self, name: str, /) -> None:
-        if name not in self.__mapping:
-            with _PosixPathMonkeyPatch():
-                self.__mapping[name] = load_learner(self.MODEL_PATH / f"{name}.pkl", cpu=True)
+        with self.__load_lock:
+            if name not in self.__mapping:
+                with _PosixPathMonkeyPatch():
+                    self.__mapping[name] = load_learner(self.MODEL_PATH / f"{name}.pkl", cpu=True)
 
     def predict(self, name: str, *, item: Any, with_input: bool = False) -> Awaitable[Tuple[Any, Any, Any]]:
         learner = self.__mapping[name]
