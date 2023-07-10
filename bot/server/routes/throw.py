@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from ..customs import Request
 
 
-@router.get("/throw")
+@router.post("/throw")
 async def handler(request: Request) -> web.Response:
     user = await authenticate_request(request, interface=request.app.interface)
     if user is not None and user.id == OWNER_ID:

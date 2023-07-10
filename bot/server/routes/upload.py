@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
+from typing import Set, TYPE_CHECKING
 
 from aiohttp import web
 
@@ -17,10 +17,14 @@ if not os.path.isdir(UPLOAD_DIR):
     os.mkdir(UPLOAD_DIR)
 
 
+router.static("/uploaded", UPLOAD_DIR, show_index=True)
+allowed_uploads: Set[int] = set([OWNER_ID])
+
+
 @router.post("/upload")
 async def handler(request: Request) -> web.Response:
     user = await authenticate_request(request, interface=request.app.interface)
-    if user is not None and user.id == OWNER_ID:
+    if user is not None and user.id in allowed_uploads:
         try:
             name = request.query["name"]
         except KeyError:
