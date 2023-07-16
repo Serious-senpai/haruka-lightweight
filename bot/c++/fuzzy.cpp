@@ -6,8 +6,6 @@
 
 #define INF INT_MAX
 
-using namespace std;
-
 template <typename T>
 const T &min(const T &_x, const T &_y, const T &_z)
 {
@@ -15,8 +13,8 @@ const T &min(const T &_x, const T &_y, const T &_z)
 }
 
 int n, m;
-string original, compare;
-vector<vector<int>> dp;
+std::string original, compare;
+std::vector<std::vector<int>> dp;
 
 int distance(int original_index, int compare_index)
 {
@@ -51,18 +49,18 @@ int distance(int original_index, int compare_index)
 int main(int argc, char *argv[])
 {
     assert(argc >= 3);
-    original = string(argv[1]);
+    original = std::string(argv[1]);
     n = original.length();
 
     int min_diff = INF;
-    string result;
+    std::string result;
     for (int i = 2; i < argc; i++)
     {
-        compare = string(argv[i]);
+        compare = std::string(argv[i]);
         m = compare.length();
 
         dp.clear();
-        dp.resize(n + 1, vector<int>(m + 1, -1));
+        dp.resize(n + 1, std::vector<int>(m + 1, -1));
 
         int diff = distance(0, 0);
         if (diff < min_diff)
@@ -72,5 +70,5 @@ int main(int argc, char *argv[])
         }
     }
 
-    cout << result;
+    std::cout << result;
 }
