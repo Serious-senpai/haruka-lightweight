@@ -19,5 +19,5 @@ async def _handler(ctx: Context) -> None:
         ctx.voice_client.append_state(embed)
         await ctx.send(f"Currently playing in {ctx.voice_client.channel.mention}", embed=embed)
     except AttributeError:
-        if not await ctx.bot.transfer(ctx):
+        if not await interface.transfer(ctx):
             await ctx.send("No audio player is currently playing!")

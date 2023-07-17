@@ -161,9 +161,6 @@ class Haruka(commands.Bot):
 
         await self.invoke(ctx)
 
-    def transfer(self, context: Context, /) -> Awaitable[bool]:
-        return self.interface.transfer(self, context)
-
     def log(self, content: str) -> None:
         is_single_line = "\n" not in content
         logging = f"[HARUKA {self.user} ID={self.user.id}]:"

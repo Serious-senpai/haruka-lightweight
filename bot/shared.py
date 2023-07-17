@@ -121,12 +121,13 @@ class SharedInterface:
             self.logfile.write(content + "\n")
             self.flush_logs()
 
-    async def transfer(self, invoker: Haruka, original_ctx: Context) -> bool:
+    async def transfer(self, original_ctx: Context) -> bool:
         command = original_ctx.command
         if not self.is_transferable(command):
             raise ValueError(f"Command \"{command}\" is not transferable")
 
         message_id = original_ctx.message.id
+        invoker = original_ctx.bot
         try:
             self._transfer_exclusion[message_id].add(invoker)
         except KeyError:
@@ -135,6 +136,8 @@ class SharedInterface:
         for client in self.clients:
             if client not in self._transfer_exclusion[message_id]:
                 transferable_context_cache = client.transferable_context_cache
+                await asyncio.sleep(0)  # Make sure that transferable_context_cache is properly populated
+
                 # Binary search transferable_context_cache, hopefully it is sorted (it should be) according to message IDs
                 low = 0
                 high = len(transferable_context_cache)

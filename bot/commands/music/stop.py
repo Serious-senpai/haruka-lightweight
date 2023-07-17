@@ -20,5 +20,5 @@ async def _handler(ctx: Context) -> None:
         await ctx.voice_client.disconnect(force=True)
         await ctx.send("Stopped audio.")
     except AttributeError:
-        if not await ctx.bot.transfer(ctx):
+        if not await interface.transfer(ctx):
             await ctx.send("No audio player is currently playing!")

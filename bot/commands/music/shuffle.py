@@ -23,5 +23,5 @@ async def _handler(ctx: Context) -> None:
             await ctx.send("`SHUFFLE` mode is off. Songs will be played in the original order.")
 
     except AttributeError:
-        if not await ctx.bot.transfer(ctx):
+        if not await interface.transfer(ctx):
             await ctx.send("No audio player is currently playing!")
