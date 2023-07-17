@@ -16,7 +16,7 @@ from discord import app_commands
 from discord.ext import commands
 from discord.utils import utcnow
 
-from customs import Pool
+from customs import Context, Pool
 from environment import LOG_PATH, ODBC_CONNECTION_STRING, PORT
 from server import WebApp
 if TYPE_CHECKING:
@@ -37,6 +37,7 @@ class SharedInterface:
         "__pool",
         "__ready",
         "__session",
+        "__transferable_commands",
         "__webapp",
         "_closed",
         "_started",
@@ -51,6 +52,7 @@ class SharedInterface:
         __pool: Optional[Pool]
         __ready: asyncio.Event
         __session: Optional[aiohttp.ClientSession]
+        __transferable_commands: Set[commands.Command]
         __webapp: Optional[WebApp]
         _closed: bool
         _started: bool
@@ -67,6 +69,7 @@ class SharedInterface:
             self.__pool = None
             self.__ready = asyncio.Event()
             self.__session = None
+            self.__transferable_commands = set()
             self.__webapp = None
             self._closed = False
             self._started = False
@@ -115,12 +118,29 @@ class SharedInterface:
             self.logfile.write(content + "\n")
             self.flush_logs()
 
+    async def transfer(self, invoker: Haruka, context: Context) -> bool:
+        if not self.is_transferable(context.command):
+            raise ValueError(f"Command \"{context.command}\" is not transferable")
+
+        for client in self.clients:
+            if client != invoker:
+                for message in reversed(client.transferable_message_cache):
+                    if message.id == context.message.id:
+                        await client.process_commands(message, cache_if_transferable=False)
+                        return True
+
+        return False
+
+    def is_transferable(self, command: Union[commands.Command, commands.Group]) -> bool:
+        return command in self.__transferable_commands
+
     def command(
         self,
         *,
         name: str,
         brief: str,  # For classifying commands
         description: str,
+        transferable: bool = False,
         **kwargs: Any,
     ) -> Callable[[Union[commands.Command, CommandCallback]], commands.Command]:
         def decorator(func: Union[commands.Command, CommandCallback]) -> commands.Command:
@@ -133,6 +153,9 @@ class SharedInterface:
             )
 
             self.commands.add(command)
+            if transferable:
+                self.__transferable_commands.add(command)
+
             return command
 
         return decorator
@@ -143,6 +166,7 @@ class SharedInterface:
         name: str,
         brief: str,  # For classifying groups
         description: str,
+        transferable: bool = False,
         **kwargs: Any,
     ) -> Callable[[Union[commands.Group, GroupCallback]], commands.Group]:
         def decorator(func: Union[commands.Group, GroupCallback]) -> commands.Group:
@@ -155,6 +179,9 @@ class SharedInterface:
             )
 
             self.commands.add(group)
+            if transferable:
+                self.__transferable_commands.add(group)
+
             return group
 
         return decorator

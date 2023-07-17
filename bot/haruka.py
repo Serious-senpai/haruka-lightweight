@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-from typing import Any, Dict, Optional, Set, TYPE_CHECKING
+from typing import Any, Awaitable, Dict, List, Optional, Set, TYPE_CHECKING
 
 import aiohttp
 import discord
@@ -36,6 +36,7 @@ class Haruka(commands.Bot):
         owner: Optional[discord.User]
         owner_id: int
         token: str
+        transferable_message_cache: List[discord.Message]
 
     def __init__(self, *, token: str) -> None:
         assert token not in self.__instances__
@@ -54,8 +55,9 @@ class Haruka(commands.Bot):
         self.cooldown_notify = {}
         self.interface = SharedInterface()
         self.owner = None
-        self.token = token
         self.owner_id = environment.OWNER_ID
+        self.token = token
+        self.transferable_message_cache = []
 
         self.interface.add_client(self)
 
@@ -147,6 +149,21 @@ class Haruka(commands.Bot):
     async def on_error(self, event_method: str, /, *args, **kwargs) -> None:
         await super().on_error(event_method, *args, **kwargs)
         await self.report("An error has just occured and was handled by `Haruka.on_error`", send_state=False)
+
+    async def process_commands(self, message: discord.Message, *, cache_if_transferable: bool = True) -> None:
+        if message.author.bot:
+            return
+
+        ctx = await self.get_context(message)
+        if cache_if_transferable:
+            command = ctx.command
+            if command is not None and self.interface.is_transferable(command):
+                self.transferable_message_cache.append(message)
+
+        await self.invoke(ctx)
+
+    def transfer(self, context: Context, /) -> Awaitable[bool]:
+        return self.interface.transfer(self, context)
 
     def log(self, content: str) -> None:
         is_single_line = "\n" not in content

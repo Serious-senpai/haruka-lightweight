@@ -10,6 +10,7 @@ from shared import interface
     name="stop",
     brief="music.stop",
     description="Stop the current audio player",
+    transferable=True,
 )
 @commands.guild_only()
 @commands.max_concurrency(1, commands.BucketType.guild, wait=True)
@@ -19,4 +20,5 @@ async def _handler(ctx: Context) -> None:
         await ctx.voice_client.disconnect(force=True)
         await ctx.send("Stopped audio.")
     except AttributeError:
-        await ctx.send("No audio player is currently playing!")
+        if not await ctx.bot.transfer(ctx):
+            await ctx.send("No audio player is currently playing!")

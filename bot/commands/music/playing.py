@@ -10,6 +10,7 @@ from shared import interface
     name="playing",
     brief="music.playing",
     description="Display the current playing source",
+    transferable=True,
 )
 @commands.guild_only()
 async def _handler(ctx: Context) -> None:
@@ -18,4 +19,5 @@ async def _handler(ctx: Context) -> None:
         ctx.voice_client.append_state(embed)
         await ctx.send(f"Currently playing in {ctx.voice_client.channel.mention}", embed=embed)
     except AttributeError:
-        await ctx.send("No audio player is currently playing!")
+        if not await ctx.bot.transfer(ctx):
+            await ctx.send("No audio player is currently playing!")

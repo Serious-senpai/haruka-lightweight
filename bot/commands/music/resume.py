@@ -10,6 +10,7 @@ from shared import interface
     name="resume",
     brief="music.resume",
     description="Resume the current audio player",
+    transferable=True,
 )
 @commands.guild_only()
 @commands.max_concurrency(1, commands.BucketType.guild, wait=True)
@@ -18,4 +19,5 @@ async def _handler(ctx: Context) -> None:
         await ctx.voice_client.resume()
         await ctx.send("Resumed audio.")
     except AttributeError:
-        await ctx.send("No audio player is currently playing!")
+        if not await ctx.bot.transfer(ctx):
+            await ctx.send("No audio player is currently playing!")
