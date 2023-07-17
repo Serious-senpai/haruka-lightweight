@@ -136,7 +136,7 @@ class SharedInterface:
         for client in self.clients:
             if client not in self._transfer_exclusion[message_id]:
                 transferable_context_cache = client.transferable_context_cache
-                await asyncio.sleep(0)  # Make sure that transferable_context_cache is properly populated
+                await client.wait_for_transferable_cache(message_id, timeout=1.0)  # Make sure that transferable_context_cache is properly populated
 
                 # Binary search transferable_context_cache, hopefully it is sorted (it should be) according to message IDs
                 low = 0

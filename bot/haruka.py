@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-from typing import Any, Awaitable, Dict, List, Optional, Set, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Set, TYPE_CHECKING
 
 import aiohttp
+import async_timeout
 import discord
 from discord.ext import commands, tasks
 
@@ -29,6 +30,7 @@ class Haruka(commands.Bot):
     __instances__: Dict[str, Haruka] = {}
     __processed_message_ids: Set[int] = set()
     if TYPE_CHECKING:
+        __transferable_context_cache_update: asyncio.Event
         __users_cache: Dict[int, discord.abc.User]
         cooldown_notify: Dict[int, Dict[str, bool]]
         interface: SharedInterface
@@ -51,6 +53,7 @@ class Haruka(commands.Bot):
             case_insensitive=True,
         )
 
+        self.__transferable_context_cache_update = asyncio.Event()
         self.__users_cache = {}
         self.cooldown_notify = {}
         self.interface = SharedInterface()
@@ -158,8 +161,15 @@ class Haruka(commands.Bot):
         command = ctx.command
         if command is not None and self.interface.is_transferable(command):
             self.transferable_context_cache.append(ctx)
+            self.__transferable_context_cache_update.set()
+            self.__transferable_context_cache_update.clear()
 
         await self.invoke(ctx)
+
+    async def wait_for_transferable_cache(self, message_id: int, *, timeout: Optional[float] = None) -> None:
+        async with async_timeout.timeout(timeout) as timeout:
+            while len(self.transferable_context_cache) == 0 or self.transferable_context_cache[-1].message.id < message_id:
+                await self.__transferable_context_cache_update.wait()
 
     def log(self, content: str) -> None:
         is_single_line = "\n" not in content
