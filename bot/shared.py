@@ -6,7 +6,7 @@ import datetime
 import io
 import signal
 import sys
-from typing import Any, Awaitable, Callable, ClassVar, Concatenate, List, Optional, ParamSpec, Set, Union, TYPE_CHECKING
+from typing import Any, Awaitable, Callable, ClassVar, Concatenate, Dict, List, Optional, ParamSpec, Set, Union, TYPE_CHECKING
 
 import aiohttp
 import aioodbc
@@ -41,6 +41,7 @@ class SharedInterface:
         "__webapp",
         "_closed",
         "_started",
+        "_transfer_exclusion",
         "clients",
         "commands",
         "log",
@@ -56,6 +57,7 @@ class SharedInterface:
         __webapp: Optional[WebApp]
         _closed: bool
         _started: bool
+        _transfer_exclusion: Dict[int, Set[Haruka]]
         clients: List[Haruka]
         commands: Set[commands.Command]
         log: Callable[[str], None]
@@ -73,6 +75,7 @@ class SharedInterface:
             self.__webapp = None
             self._closed = False
             self._started = False
+            self._transfer_exclusion = {}
             self.clients = []
             self.commands = set()
             self.log = self._log
@@ -118,16 +121,25 @@ class SharedInterface:
             self.logfile.write(content + "\n")
             self.flush_logs()
 
-    async def transfer(self, invoker: Haruka, context: Context) -> bool:
-        if not self.is_transferable(context.command):
-            raise ValueError(f"Command \"{context.command}\" is not transferable")
+    async def transfer(self, invoker: Haruka, original_ctx: Context) -> bool:
+        command = original_ctx.command
+        if not self.is_transferable(command):
+            raise ValueError(f"Command \"{command}\" is not transferable")
+
+        message_id = original_ctx.message.id
+        try:
+            self._transfer_exclusion[message_id].add(invoker)
+        except KeyError:
+            self._transfer_exclusion[message_id] = {invoker}
 
         for client in self.clients:
-            if client != invoker:
+            if client not in self._transfer_exclusion[message_id]:
                 for message in reversed(client.transferable_message_cache):
-                    if message.id == context.message.id:
-                        await client.process_commands(message, cache_if_transferable=False)
-                        return True
+                    if message.id == message_id:
+                        ctx = await client.get_context(message)
+                        if ctx.valid:
+                            asyncio.create_task(ctx.reinvoke())
+                            return True
 
         return False
 

@@ -150,15 +150,14 @@ class Haruka(commands.Bot):
         await super().on_error(event_method, *args, **kwargs)
         await self.report("An error has just occured and was handled by `Haruka.on_error`", send_state=False)
 
-    async def process_commands(self, message: discord.Message, *, cache_if_transferable: bool = True) -> None:
+    async def process_commands(self, message: discord.Message, /) -> None:
         if message.author.bot:
             return
 
         ctx = await self.get_context(message)
-        if cache_if_transferable:
-            command = ctx.command
-            if command is not None and self.interface.is_transferable(command):
-                self.transferable_message_cache.append(message)
+        command = ctx.command
+        if command is not None and self.interface.is_transferable(command):
+            self.transferable_message_cache.append(message)
 
         await self.invoke(ctx)
 
@@ -288,5 +287,8 @@ class Haruka(commands.Bot):
 
         return NotImplemented
 
+    def __hash__(self) -> int:
+        return hash(self.token)
+
     def __repr__(self) -> str:
-        return f"<Haruka user={self.user} id={self.id}>"
+        return f"<Haruka user={self.user}>"
