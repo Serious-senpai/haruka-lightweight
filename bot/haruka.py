@@ -36,7 +36,7 @@ class Haruka(commands.Bot):
         owner: Optional[discord.User]
         owner_id: int
         token: str
-        transferable_message_cache: List[discord.Message]
+        transferable_context_cache: List[Context]
 
     def __init__(self, *, token: str) -> None:
         assert token not in self.__instances__
@@ -57,7 +57,7 @@ class Haruka(commands.Bot):
         self.owner = None
         self.owner_id = environment.OWNER_ID
         self.token = token
-        self.transferable_message_cache = []
+        self.transferable_context_cache = []
 
         self.interface.add_client(self)
 
@@ -157,7 +157,7 @@ class Haruka(commands.Bot):
         ctx = await self.get_context(message)
         command = ctx.command
         if command is not None and self.interface.is_transferable(command):
-            self.transferable_message_cache.append(message)
+            self.transferable_context_cache.append(ctx)
 
         await self.invoke(ctx)
 

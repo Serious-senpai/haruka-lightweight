@@ -134,12 +134,27 @@ class SharedInterface:
 
         for client in self.clients:
             if client not in self._transfer_exclusion[message_id]:
-                for message in reversed(client.transferable_message_cache):
-                    if message.id == message_id:
-                        ctx = await client.get_context(message)
-                        if ctx.valid:
-                            asyncio.create_task(ctx.reinvoke())
-                            return True
+                transferable_context_cache = client.transferable_context_cache
+                # Binary search transferable_context_cache, hopefully it is sorted (it should be) according to message IDs
+                low = 0
+                high = len(transferable_context_cache)
+
+                if high == 0:
+                    continue
+
+                # Result is in interval [low, high)
+                while high - low > 1:
+                    mid = (low + high) // 2
+                    ctx = transferable_context_cache[mid]
+                    if ctx.message.id > message_id:
+                        high = mid
+                    else:
+                        low = mid
+
+                ctx = transferable_context_cache[low]
+                if ctx.message.id == message_id and ctx.valid:
+                    asyncio.create_task(ctx.reinvoke())
+                    return True
 
         return False
 
