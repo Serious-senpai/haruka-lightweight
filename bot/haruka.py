@@ -66,10 +66,12 @@ class Haruka(commands.Bot):
 
         # Global command check
         async def _global_check(ctx: Context) -> bool:
-            if ctx.message.id in self.__processed_message_ids:
-                return False
+            if not self.interface.is_parallel_command(ctx.command):
+                if ctx.message.id in self.__processed_message_ids:
+                    return False
 
-            self.__processed_message_ids.add(ctx.message.id)
+                self.__processed_message_ids.add(ctx.message.id)
+
             return not await self.interface.is_in_blacklist(ctx.author.id)
 
         self.add_check(_global_check)
@@ -159,7 +161,7 @@ class Haruka(commands.Bot):
 
         ctx = await self.get_context(message)
         command = ctx.command
-        if command is not None and self.interface.is_transferable(command):
+        if command is not None and self.interface.is_transferable_command(command) and ctx.valid:
             self.transferable_context_cache.append(ctx)
             self.__transferable_context_cache_update.set()
             self.__transferable_context_cache_update.clear()

@@ -9,6 +9,7 @@ from shared import interface
     name="ping",
     brief="general.ping",
     description="Measure the bot's latency",
+    parallel=True,
 )
 async def _handler(ctx: Context) -> None:
     with utils.TimingContextManager() as measure:

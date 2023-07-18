@@ -34,6 +34,7 @@ class SharedInterface:
 
     __instance__: ClassVar[Optional[SharedInterface]] = None
     __slots__ = (
+        "__parallel_commands",
         "__pool",
         "__ready",
         "__session",
@@ -50,6 +51,7 @@ class SharedInterface:
         "uptime",
     )
     if TYPE_CHECKING:
+        __parallel_commands: Set[commands.Command]
         __pool: Optional[Pool]
         __ready: asyncio.Event
         __session: Optional[aiohttp.ClientSession]
@@ -68,6 +70,7 @@ class SharedInterface:
     def __new__(cls) -> SharedInterface:
         if cls.__instance__ is None:
             self = super().__new__(cls)
+            self.__parallel_commands = set()
             self.__pool = None
             self.__ready = asyncio.Event()
             self.__session = None
@@ -123,7 +126,7 @@ class SharedInterface:
 
     async def transfer(self, original_ctx: Context) -> bool:
         command = original_ctx.command
-        if not self.is_transferable(command):
+        if not self.is_transferable_command(command):
             raise ValueError(f"Command \"{command}\" is not transferable")
 
         message_id = original_ctx.message.id
@@ -155,13 +158,16 @@ class SharedInterface:
                         low = mid
 
                 ctx = transferable_context_cache[low]
-                if ctx.message.id == message_id and ctx.valid:
+                if ctx.message.id == message_id:
                     asyncio.create_task(ctx.reinvoke())
                     return True
 
         return False
 
-    def is_transferable(self, command: Union[commands.Command, commands.Group]) -> bool:
+    def is_parallel_command(self, command: Any) -> bool:
+        return command in self.__parallel_commands
+
+    def is_transferable_command(self, command: Any) -> bool:
         return command in self.__transferable_commands
 
     def command(
@@ -170,6 +176,7 @@ class SharedInterface:
         name: str,
         brief: str,  # For classifying commands
         description: str,
+        parallel: bool = False,
         transferable: bool = False,
         **kwargs: Any,
     ) -> Callable[[Union[commands.Command, CommandCallback]], commands.Command]:
@@ -183,7 +190,12 @@ class SharedInterface:
             )
 
             self.commands.add(command)
-            if transferable:
+            if parallel and transferable:
+                raise ValueError("A command cannot be both parallel and transferable")
+
+            if parallel:
+                self.__parallel_commands.add(command)
+            elif transferable:
                 self.__transferable_commands.add(command)
 
             return command
@@ -196,6 +208,7 @@ class SharedInterface:
         name: str,
         brief: str,  # For classifying groups
         description: str,
+        parallel: bool = False,
         transferable: bool = False,
         **kwargs: Any,
     ) -> Callable[[Union[commands.Group, GroupCallback]], commands.Group]:
@@ -209,7 +222,12 @@ class SharedInterface:
             )
 
             self.commands.add(group)
-            if transferable:
+            if parallel and transferable:
+                raise ValueError("A group cannot be both parallel and transferable")
+
+            if parallel:
+                self.__parallel_commands.add(group)
+            elif transferable:
                 self.__transferable_commands.add(group)
 
             return group
