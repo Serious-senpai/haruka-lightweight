@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import asyncio
 import contextlib
-from typing import Any, ClassVar, Dict, Literal, Optional, Union, TYPE_CHECKING
+from typing import Any, Awaitable, ClassVar, Dict, Literal, Optional, Union, TYPE_CHECKING
 
 import discord
 from discord.utils import escape_markdown as escape
@@ -61,33 +60,33 @@ class Track:
 
         return embed
 
-    async def get_audio_url(self, *, interface: SharedInterface, format: Literal["64", "96", "140", "192", "256", "320", "mp3128"] = "mp3128", max_retry: int = 5) -> URL:
+    def get_audio_url(self, *, interface: SharedInterface, audio_format: Literal["64", "96", "140", "192", "256", "320", "mp3128"] = "mp3128") -> Awaitable[str]:
         client = YouTubeClient(interface=interface)
         payload = {
             "k_query": str(self.url),
             "k_page": "mp3",
             "hl": "en",
         }
-        while True:
-            try:
-                async with client.session.post(self._analyzer, data=payload) as response:
-                    response.raise_for_status()
-                    data = await response.json(encoding="utf-8")
 
-                key = data["links"]["mp3"][format]["k"]
+        @utils.max_retry(retry_count=5)
+        async def extract() -> str: 
+            async with client.session.post(self._analyzer, data=payload) as response:
+                response.raise_for_status()
+                data = await response.json(encoding="utf-8")
+
+            key = data["links"]["mp3"][audio_format]["k"]
+
+            @utils.max_retry(retry_count=5, sleep=0.5)
+            async def convert() -> str:
                 async with client.session.post(self._converter, data={"vid": self.id, "k": key}) as response:
                     response.raise_for_status()
                     data = await response.json(encoding="utf-8")
 
                 return data["dlink"]
+            
+            return await convert()
 
-            except Exception:
-                # Unavailable video (deleted, private,...), connection issues,...
-                max_retry -= 1
-                if max_retry == 0:
-                    raise
-
-                await asyncio.sleep(0.5)
+        return extract()
 
     @classmethod
     async def from_id(cls, id: str, *, interface: SharedInterface) -> Optional[Track]:

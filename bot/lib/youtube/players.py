@@ -124,6 +124,7 @@ class AudioPlayer(discord.VoiceClient):
         Raises
         -----
         `ValueError`: The set playlist is empty
+
         `TypeError`: No audio source was set or the audio source is invalid
         """
         async with self.__play_lock:
@@ -196,6 +197,7 @@ class AudioPlayer(discord.VoiceClient):
                     options=shlex.join(options),
                 )
 
+                embed.add_field(name="Playing in", value=self.channel.mention)
                 await self.notify(embed=embed)
 
             if self.__stop_request or not self.is_connected():

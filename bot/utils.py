@@ -6,7 +6,7 @@ import datetime
 import time
 import traceback
 from types import TracebackType
-from typing import Iterator, List, Optional, Type, TypeVar, TYPE_CHECKING
+from typing import Awaitable, Callable, Iterator, List, Optional, ParamSpec, Type, TypeVar, TYPE_CHECKING
 
 import discord
 from discord.ext import commands
@@ -16,7 +16,9 @@ if TYPE_CHECKING:
     from haruka import Haruka
 
 
-T = TypeVar("T")
+if TYPE_CHECKING:
+    T = TypeVar("T")
+    P = ParamSpec("P")
 
 
 def fill_command_metadata(command: commands.Command, *, prefix: str) -> commands.Command:
@@ -100,6 +102,25 @@ def get_all_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
     for subclass in cls.__subclasses__():
         yield subclass
         yield from get_all_subclasses(subclass)
+
+
+def max_retry(retry_count: int, *, sleep: float = 0.0) -> Callable[[Callable[P, Awaitable[T]]], Callable[P, Awaitable[T]]]:
+    def decorator(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
+        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            retry = retry_count
+            while True:
+                try:
+                    return await func(*args, **kwargs)
+                except Exception:
+                    retry -= 1
+                    if retry > 0:
+                        await asyncio.sleep(sleep)
+                    else:
+                        raise
+
+        return wrapper
+
+    return decorator
 
 
 def format_exception(error: Exception) -> str:
