@@ -69,7 +69,7 @@ class Track:
         }
 
         @utils.max_retry(retry_count=5)
-        async def extract() -> str: 
+        async def extract() -> str:
             async with client.session.post(self._analyzer, data=payload) as response:
                 response.raise_for_status()
                 data = await response.json(encoding="utf-8")
@@ -83,7 +83,7 @@ class Track:
                     data = await response.json(encoding="utf-8")
 
                 return data["dlink"]
-            
+
             return await convert()
 
         return extract()

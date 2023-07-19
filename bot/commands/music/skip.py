@@ -17,6 +17,7 @@ from shared import interface
 async def _handler(ctx: Context) -> None:
     try:
         await ctx.voice_client.skip()
+        await ctx.send("Skipped to the next track!")
     except AttributeError:
         if not await interface.transfer(ctx):
             await ctx.send("No audio player is currently playing!")

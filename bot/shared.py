@@ -141,7 +141,7 @@ class SharedInterface:
                 transferable_context_cache = client.transferable_context_cache
                 await client.wait_for_transferable_cache(message_id, timeout=1.0)  # Make sure that transferable_context_cache is properly populated
 
-                # Binary search transferable_context_cache, hopefully it is sorted (it should be) according to message IDs
+                # Binary search transferable_context_cache, hopefully it is sorted (it should be!) according to message IDs
                 low = 0
                 high = len(transferable_context_cache)
 
