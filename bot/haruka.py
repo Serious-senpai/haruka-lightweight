@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime
+import io
 from typing import Any, Dict, List, Optional, Set, TYPE_CHECKING
 
 import aiohttp
@@ -189,11 +190,16 @@ class Haruka(commands.Bot):
     ) -> Optional[discord.Message]:
         if self.owner is not None:
             self.interface.flush_logs()
-            return await self.owner.send(
-                message,
-                embed=self.display_status if send_state else None,  # type: ignore
-                file=discord.File(environment.LOG_PATH) if send_log else None,  # type: ignore
-            )
+            kwargs: Dict[str, Any] = {}
+            
+            if send_state:
+                kwargs["embed"] = self.display_status
+            
+            if send_log:
+                with open(environment.LOG_PATH, "r", encoding="utf-8") as file:
+                    kwargs["file"] = discord.File(io.StringIO(file.read()), filename="log.txt")
+
+            return await self.owner.send(message, **kwargs)
 
     @property
     def display_status(self) -> discord.Embed:
