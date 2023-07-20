@@ -6,10 +6,13 @@
 
 #define INF INT_MAX
 
-template <typename T>
-const T &min(const T &_x, const T &_y, const T &_z)
+namespace std
 {
-    return min(_x, min(_y, _z));
+    template <typename T>
+    const T &min(const T &_x, const T &_y, const T &_z)
+    {
+        return std::min(_x, std::min(_y, _z));
+    }
 }
 
 int n, m;
@@ -38,9 +41,9 @@ int distance(int original_index, int compare_index)
     }
     else
     {
-        result = 1 + min(distance(original_index, compare_index + 1),
-                         distance(original_index + 1, compare_index),
-                         distance(original_index + 1, compare_index + 1));
+        result = 1 + std::min(distance(original_index, compare_index + 1),
+                              distance(original_index + 1, compare_index),
+                              distance(original_index + 1, compare_index + 1));
     }
 
     return dp[original_index][compare_index] = result;
