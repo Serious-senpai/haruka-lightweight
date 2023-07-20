@@ -13,7 +13,7 @@ from shared import interface
     description="Make the bot say something",
     usage="{prefix}say <content>",
 )
-async def _handler(ctx: Context, *, content: str = "") -> None:
+async def handler_a(ctx: Context, *, content: str = "") -> None:
     if not content and not ctx.message.attachments:
         raise commands.UserInputError
 
@@ -25,5 +25,5 @@ async def _handler(ctx: Context, *, content: str = "") -> None:
     description="Make the bot say something, can be used to send animated emojis",
 )
 @app_commands.describe(content="The message to repeat")
-async def _handler(interaction: Interaction, content: str) -> None:
+async def handler_b(interaction: Interaction, content: str) -> None:
     await interaction.response.send_message(content)

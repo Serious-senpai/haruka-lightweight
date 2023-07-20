@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from typing import List
+
+import discord
 from discord.ext import commands
 
 import emoji_ui
@@ -35,7 +38,7 @@ async def _send_single_sauce(ctx: Context, image_url: str) -> None:
     usage="{prefix}sauce <image URL(s)>\n{prefix}sauce <attachment(s)>",
 )
 @commands.cooldown(1, 5, commands.BucketType.user)
-async def _handler(ctx: Context, *image_urls: str) -> None:
+async def handler(ctx: Context, *image_urls: str) -> None:
     urls = list(image_urls)
     for attachment in ctx.message.attachments:
         urls.append(attachment.url)
@@ -47,8 +50,8 @@ async def _handler(ctx: Context, *image_urls: str) -> None:
     if total == 1:
         await _send_single_sauce(ctx, urls[0])
     else:
-        embeds = []
-        breakpoints = []
+        embeds: List[discord.Embed] = []
+        breakpoints: List[int] = []
         for index, url in enumerate(urls):
             results = await saucenao.SauceResult.get_sauce(url, session=interface.session)
             result_total = len(results)

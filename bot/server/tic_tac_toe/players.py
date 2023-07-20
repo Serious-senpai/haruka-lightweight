@@ -41,7 +41,7 @@ class Player(Serializable):
             try:
                 id = int(request.query["id"])
             except (KeyError, ValueError):
-                return
+                return None
             else:
                 try:
                     user = await request.app.interface.client.fetch_user(id)

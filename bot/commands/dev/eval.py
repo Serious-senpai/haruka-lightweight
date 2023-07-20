@@ -28,7 +28,7 @@ INDENT = " " * 4
 )
 @commands.is_owner()
 @commands.max_concurrency(1)
-async def _handler(ctx: Context, *, code: str) -> None:
+async def handler(ctx: Context, *, code: str) -> None:
     if getattr(ctx.bot, EVAL_TASK_ATTR, None) is not None:
         await ctx.send("Another task is running, please wait for it to terminate!")
         return

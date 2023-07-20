@@ -103,7 +103,7 @@ class SauceResult:
 def _parse_result(html: bs4.BeautifulSoup) -> Optional[SauceResult]:
     table = html.find("table", attrs={"class": "resulttable"})
     if not table:
-        return
+        return None
 
     with contextlib.suppress(AttributeError):
         thumbnail_url = table.find("div", attrs={"class": "resultimage"}).find("img").get("src")

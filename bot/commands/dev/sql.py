@@ -19,7 +19,7 @@ from shared import interface
     hidden=True,
 )
 @commands.is_owner()
-async def _handler(ctx: Context, *, cmd: str) -> None:
+async def handler(ctx: Context, *, cmd: str) -> None:
     async with interface.pool.acquire() as connection:
         async with connection.cursor() as cursor:
             content = ""

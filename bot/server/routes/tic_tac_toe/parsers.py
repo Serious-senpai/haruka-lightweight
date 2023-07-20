@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Literal, Optional, TypedDict
+from typing import Literal, Optional, TypedDict, cast
 
 from aiohttp import web_ws
 
@@ -9,6 +9,7 @@ from ...tic_tac_toe import (
     BOARD_SIZE,
     AlreadyEnded,
     AlreadyStarted,
+    CoordinateT,
     InvalidMove,
     InvalidTurn,
     NotEnoughPlayer,
@@ -53,7 +54,7 @@ async def handle_message(*, player: Optional[Player], message: web_ws.WSMessage,
             if player_index is not None:
                 row, column = match.groups()
                 try:
-                    await room.move(player_index, int(row), int(column))
+                    await room.move(player_index, cast(CoordinateT, int(row)), cast(CoordinateT, int(column)))
                 except AlreadyEnded:
                     await websocket.send_json(error_message("Game has already ended!"))
                 except InvalidMove:

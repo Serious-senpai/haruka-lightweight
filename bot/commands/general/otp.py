@@ -12,7 +12,7 @@ from server.verification import otp_cache
     name="otp",
     description="Generate an OTP (One-Time Password) for your account",
 )
-async def _handler(interaction: Interaction) -> None:
+async def handler(interaction: Interaction) -> None:
     otp = otp_cache.add_key(interaction.user)
 
     embed = discord.Embed(description=f"Your OTP is `{otp}`\nUse this OTP to login [here]({HOST})")

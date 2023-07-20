@@ -13,7 +13,7 @@ class RouteTableDef(web.RouteTableDef):
     def __new__(cls) -> RouteTableDef:
         if cls.__instance__ is None:
             self = super().__new__(cls)
-            self.__init__()
+            RouteTableDef.__init__(self)
 
             cls.__instance__ = self
 

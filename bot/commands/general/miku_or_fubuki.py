@@ -31,7 +31,7 @@ async def process_url(url: str, /) -> Tuple[str, float, bytes]:
     usage="{prefix}mof <url or image>",
 )
 @commands.cooldown(1, 5, commands.BucketType.user)
-async def _handler(ctx: Context, *, url: Optional[str] = None) -> None:
+async def handler_a(ctx: Context, *, url: Optional[str] = None) -> None:
     try:
         attachment = ctx.message.attachments[0]
     except IndexError:
@@ -62,7 +62,7 @@ async def _handler(ctx: Context, *, url: Optional[str] = None) -> None:
     image="An image of Hatsune Miku or Shirakami Fubuki",
     url="The URL to an image of Hatsune Miku or Shirakami Fubuki",
 )
-async def _handler(interaction: Interaction, image: Optional[discord.Attachment] = None, url: Optional[str] = None) -> None:
+async def handler_b(interaction: Interaction, image: Optional[discord.Attachment] = None, url: Optional[str] = None) -> None:
     await interaction.response.defer()
 
     if image is not None:

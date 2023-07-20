@@ -15,7 +15,7 @@ from shared import interface
     description="Make the bot say something. Unlike `say`, this will attempt to delete your command message first",
     usage="{prefix}speak <content>",
 )
-async def _handler(ctx: Context, *, content: str = "") -> None:
+async def handler(ctx: Context, *, content: str = "") -> None:
     if not content and not ctx.message.attachments:
         raise commands.UserInputError
 

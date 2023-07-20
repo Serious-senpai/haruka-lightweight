@@ -6,7 +6,7 @@ import datetime
 import io
 import signal
 import sys
-from typing import Any, Awaitable, Callable, ClassVar, Concatenate, Dict, List, Optional, ParamSpec, Set, Union, TYPE_CHECKING
+from typing import Any, Callable, ClassVar, Coroutine, Dict, List, Optional, Set, Union, TYPE_CHECKING
 
 import aiohttp
 import aioodbc
@@ -15,6 +15,8 @@ from aiohttp import web
 from discord import app_commands
 from discord.ext import commands
 from discord.utils import utcnow
+if TYPE_CHECKING:
+    from typing_extensions import Concatenate, ParamSpec
 
 from customs import Context, Pool
 from environment import LOG_PATH, ODBC_CONNECTION_STRING, PORT
@@ -25,9 +27,9 @@ if TYPE_CHECKING:
 
 if TYPE_CHECKING:
     P = ParamSpec("P")
-    CommandCallback = Callable[Concatenate[commands.Context[Haruka], P], Awaitable[Any]]
-    GroupCallback = Callable[Concatenate[commands.Context[Haruka], P], Awaitable[Any]]
-    SlashCommandCallback = Callable[Concatenate[discord.Interaction[Haruka], P], Awaitable[Any]]
+    CommandCallback = Callable[Concatenate[commands.Context[Haruka], P], Coroutine]
+    GroupCallback = Callable[Concatenate[commands.Context[Haruka], P], Coroutine]
+    SlashCommandCallback = Callable[Concatenate[discord.Interaction[Haruka], P], Coroutine]
 
 
 class SharedInterface:
@@ -285,7 +287,6 @@ class SharedInterface:
 
             self.log(f"Started serving on port {PORT}")
 
-        if sys.platform == "linux":
             self.setup_signal_handler()
 
         self.__ready.set()
@@ -300,11 +301,12 @@ class SharedInterface:
         def graceful_exit() -> None:
             raise KeyboardInterrupt
 
-        loop = asyncio.get_running_loop()
-        loop.add_signal_handler(signal.SIGHUP, graceful_exit)
-        loop.add_signal_handler(signal.SIGINT, graceful_exit)
-        loop.add_signal_handler(signal.SIGTERM, graceful_exit)
-        self.log("Added signal handler")
+        if sys.platform == "linux":
+            loop = asyncio.get_running_loop()
+            loop.add_signal_handler(signal.SIGHUP, graceful_exit)
+            loop.add_signal_handler(signal.SIGINT, graceful_exit)
+            loop.add_signal_handler(signal.SIGTERM, graceful_exit)
+            self.log("Added signal handler")
 
     async def is_in_blacklist(self, id: int) -> bool:
         async with self.pool.acquire() as connection:

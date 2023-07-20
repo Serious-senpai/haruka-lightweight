@@ -17,7 +17,7 @@ from shared import interface
     hidden=True,
 )
 @commands.is_owner()
-async def _handler(ctx: Context) -> None:
+async def handler(ctx: Context) -> None:
     task: Optional[asyncio.Task] = getattr(ctx.bot, EVAL_TASK_ATTR, None)
     if task is None:
         await ctx.send("No `eval` task is running!")

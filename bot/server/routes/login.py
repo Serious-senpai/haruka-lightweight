@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 @router.get("/login")
-async def handler(request: Request) -> web.Response:
+async def handler_a(request: Request) -> web.Response:
     user = await authenticate_request(request, interface=request.app.interface)
     if user is not None:
         return web.json_response({"success": True, "user": json_encode(user)})
@@ -21,7 +21,7 @@ async def handler(request: Request) -> web.Response:
 
 
 @router.post("/login")
-async def handler(request: Request) -> web.Response:
+async def handler_b(request: Request) -> web.Response:
     key = request.headers.get("Login-Key")
     if key is not None:
         user = otp_cache.pop_key(key)

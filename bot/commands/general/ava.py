@@ -14,7 +14,7 @@ from shared import interface
     description="View someone's avatar",
     usage="{prefix}ava <user | default: yourself>",
 )
-async def _handler(ctx: Context, user: discord.User = commands.Author) -> None:
+async def handler_a(ctx: Context, user: discord.User = commands.Author) -> None:
     embed = discord.Embed()
     embed.set_image(url=user.display_avatar.url)
     embed.set_author(
@@ -29,7 +29,7 @@ async def _handler(ctx: Context, user: discord.User = commands.Author) -> None:
     description="View someone's avatar",
 )
 @app_commands.describe(user="The user to retrieve the avatar")
-async def _handler(interaction: Interaction, user: discord.User) -> None:
+async def handler_b(interaction: Interaction, user: discord.User) -> None:
     embed = discord.Embed()
     embed.set_image(url=user.display_avatar.url)
     embed.set_author(

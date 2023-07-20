@@ -15,7 +15,7 @@ from shared import interface
     description="Get the source code of a command",
     usage="{prefix}source <command name>",
 )
-async def _handler(ctx: Context, command_name: str) -> None:
+async def handler(ctx: Context, command_name: str) -> None:
     command_name = command_name.lower()
     command = ctx.bot.get_command(command_name)
     if command is None:

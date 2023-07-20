@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import contextlib
-from typing import Any, Awaitable, ClassVar, Dict, Literal, Optional, Union, TYPE_CHECKING
+from typing import Any, ClassVar, Dict, Literal, Optional, Union, TYPE_CHECKING
 
 import discord
 from discord.utils import escape_markdown as escape
@@ -60,50 +60,47 @@ class Track:
 
         return embed
 
-    def get_audio_url(self, *, interface: SharedInterface, audio_format: Literal["64", "96", "140", "192", "256", "320", "mp3128"] = "mp3128") -> Awaitable[str]:
-        client = YouTubeClient(interface=interface)
+    @utils.retry(2)
+    async def get_audio_url(self, *, audio_format: Literal["64", "96", "140", "192", "256", "320", "mp3128"] = "mp3128") -> str:
+        client = YouTubeClient()
         payload = {
             "k_query": str(self.url),
             "k_page": "mp3",
             "hl": "en",
         }
 
-        @utils.max_retry(retry_count=5)
-        async def extract() -> str:
-            async with client.session.post(self._analyzer, data=payload) as response:
-                response.raise_for_status()
-                data = await response.json(encoding="utf-8")
+        async with client.session.post(self._analyzer, data=payload) as response:
+            response.raise_for_status()
+            data = await response.json(encoding="utf-8")
 
-            key = data["links"]["mp3"][audio_format]["k"]
+        key = data["links"]["mp3"][audio_format]["k"]
+        return await self._convert(key=key)
 
-            @utils.max_retry(retry_count=5, sleep=0.5)
-            async def convert() -> str:
-                async with client.session.post(self._converter, data={"vid": self.id, "k": key}) as response:
-                    response.raise_for_status()
-                    data = await response.json(encoding="utf-8")
+    @utils.retry(5, wait=0.75)
+    async def _convert(self, *, key: str) -> str:
+        client = YouTubeClient()
+        async with client.session.post(self._converter, data={"vid": self.id, "k": key}) as response:
+            response.raise_for_status()
+            data = await response.json(encoding="utf-8")
 
-                return data["dlink"]
-
-            return await convert()
-
-        return extract()
+        return data["dlink"]
 
     @classmethod
-    async def from_id(cls, id: str, *, interface: SharedInterface) -> Optional[Track]:
-        client = YouTubeClient(interface=interface)
+    async def from_id(cls, id: str) -> Optional[Track]:
+        client = YouTubeClient()
         async with client.get(f"/api/v1/videos/{id}") as response:
             if response.status == 200:
                 data = await response.json(encoding="utf-8")
                 return cls(data)
 
     @classmethod
-    async def from_url(cls, url: Union[str, URL], *, interface: SharedInterface) -> Optional[Track]:
+    async def from_url(cls, url: Union[str, URL]) -> Optional[Track]:
         if isinstance(url, str):
             url = URL(url)
 
         with contextlib.suppress(AssertionError, KeyError):
             assert url.host in VALID_YOUTUBE_HOST
-            return await cls.from_id(url.query["v"], interface=interface)
+            return await cls.from_id(url.query["v"])
 
     def __repr__(self) -> str:
         return f"<Track title={self.title} id={self.id} author={self.author}>"

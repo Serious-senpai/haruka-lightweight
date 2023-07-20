@@ -14,9 +14,9 @@ from yarl import URL
 
 from .tags import Tag
 from .users import User
+from shared import SharedInterface
 if TYPE_CHECKING:
     from haruka import Haruka
-    from shared import SharedInterface
 
 
 __all__ = ("Artwork",)
@@ -56,8 +56,8 @@ class Artwork:
         views_count: int
         image_url: Optional[str]
 
-    def __init__(self, data: Dict[str, Any], *, interface: SharedInterface, fallback_image_url: Optional[str] = None) -> None:
-        self.interface = interface
+    def __init__(self, data: Dict[str, Any], *, fallback_image_url: Optional[str] = None) -> None:
+        self.interface = SharedInterface()
         self.title = data["title"]
         self.description = BeautifulSoup(data["description"], "html.parser").get_text(separator="\n")
         self.id = data["id"]
@@ -142,13 +142,14 @@ class Artwork:
         return embed, None
 
     @classmethod
-    async def from_id(cls, artwork_id: int, *, interface: SharedInterface, fallback_image_url: Optional[str] = None) -> Optional[Artwork]:
+    async def from_id(cls, artwork_id: int, *, fallback_image_url: Optional[str] = None) -> Optional[Artwork]:
+        interface = SharedInterface()
         with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
             url = URL.build(scheme="https", host="www.pixiv.net", path=f"/ajax/illust/{artwork_id}")
             async with interface.session.get(url) as response:
                 response.raise_for_status()
                 data = await response.json(encoding="utf-8")
                 if data["error"]:
-                    return
+                    return None
 
-                return cls(data["body"], interface=interface, fallback_image_url=fallback_image_url)
+                return cls(data["body"], fallback_image_url=fallback_image_url)

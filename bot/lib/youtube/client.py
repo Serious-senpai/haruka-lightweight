@@ -2,14 +2,13 @@ from __future__ import annotations
 
 import asyncio
 from types import TracebackType
-from typing import Any, Awaitable, ClassVar, Dict, List, Optional, Tuple, Type, TYPE_CHECKING
+from typing import Any, ClassVar, Coroutine, Dict, List, Optional, Tuple, Type, TYPE_CHECKING
 
 import aiohttp
 from yarl import URL
 
 import utils
-if TYPE_CHECKING:
-    from shared import SharedInterface
+from shared import SharedInterface
 
 
 __all__ = (
@@ -32,10 +31,10 @@ class _ResponseContextManager:
         "response",
     )
     if TYPE_CHECKING:
-        request_coro: Awaitable[aiohttp.ClientResponse]
+        request_coro: Coroutine[Any, Any, aiohttp.ClientResponse]
         response: Optional[aiohttp.ClientResponse]
 
-    def __init__(self, request_coro: Awaitable[aiohttp.ClientResponse]) -> None:
+    def __init__(self, request_coro: Coroutine[Any, Any, aiohttp.ClientResponse]) -> None:
         self.request_coro = request_coro
         self.response = None
 
@@ -63,13 +62,13 @@ class YouTubeClient:
         instances: List[URL]
         interface: SharedInterface
 
-    def __new__(cls, *, interface: SharedInterface) -> YouTubeClient:
+    def __new__(cls) -> YouTubeClient:
         if cls.__instance__ is None:
             self = super().__new__(cls)
             self.__initialized = False
             self.__ready = asyncio.Event()
             self.instances = []
-            self.interface = interface
+            self.interface = SharedInterface()
 
             loop = asyncio.get_running_loop()
             loop.create_task(self.initialize())

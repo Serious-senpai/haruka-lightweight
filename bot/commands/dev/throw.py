@@ -17,7 +17,7 @@ from shared import interface
     hidden=True,
 )
 @commands.is_owner()
-async def _handler(ctx: Context) -> None:
+async def handler(ctx: Context) -> None:
     errors = tuple(utils.get_all_subclasses(BaseException))
     try:
         error_type = random.choice(errors)

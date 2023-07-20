@@ -5,7 +5,7 @@ from typing import List, Optional, Set, TYPE_CHECKING
 from aiohttp import web
 
 if TYPE_CHECKING:
-    from .customs import Middleware, MiddlewareFunc
+    from .customs import MiddlewareFunc
 
 
 class MiddlewareGroup:
@@ -15,22 +15,22 @@ class MiddlewareGroup:
         "_middlewares",
     )
     if TYPE_CHECKING:
-        _middlewares: Set[Middleware]
+        _middlewares: Set[MiddlewareFunc]
 
     def __new__(cls) -> MiddlewareGroup:
         if cls.__instance__ is None:
             self = super().__new__(cls)
-            self.__init__()
+            MiddlewareGroup.__init__(self)
             self._middlewares = set()
 
             cls.__instance__ = self
 
         return cls.__instance__
 
-    def to_list(self) -> List[Middleware]:
+    def to_list(self) -> List[MiddlewareFunc]:
         return list(self._middlewares)
 
-    def __call__(self, func: MiddlewareFunc, /) -> Middleware:
+    def __call__(self, func: MiddlewareFunc, /) -> MiddlewareFunc:
         middleware = web.middleware(func)
         self._middlewares.add(middleware)
         return middleware

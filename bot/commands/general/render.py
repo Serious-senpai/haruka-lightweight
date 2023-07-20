@@ -15,7 +15,7 @@ from shared import interface
     usage="{prefix}render <replay file>"
 )
 @commands.cooldown(1, 90, commands.BucketType.user)
-async def _handler(ctx: Context) -> None:
+async def handler(ctx: Context) -> None:
     try:
         attachment = ctx.message.attachments[0]
     except IndexError:

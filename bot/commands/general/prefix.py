@@ -16,7 +16,7 @@ from utils import get_custom_prefix
     usage="{prefix}prefix <new prefix>"
 )
 @commands.guild_only()
-async def _handler(ctx: Context, prefix: Optional[str]) -> None:
+async def handler(ctx: Context, prefix: Optional[str]) -> None:
     if prefix is None:
         custom_prefix = await get_custom_prefix(ctx.bot, ctx.message)
         if custom_prefix is None:

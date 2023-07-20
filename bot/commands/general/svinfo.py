@@ -14,7 +14,7 @@ from shared import interface
     description="Retrieve information about this server",
 )
 @commands.guild_only()
-async def _handler(ctx: Context) -> None:
+async def handler_a(ctx: Context) -> None:
     await ctx.send(embed=info.guild_info(ctx.guild))
 
 
@@ -23,5 +23,5 @@ async def _handler(ctx: Context) -> None:
     description="Retrieve information about this server",
 )
 @app_commands.guild_only()
-async def _handler(interaction: Interaction) -> None:
+async def handler_b(interaction: Interaction) -> None:
     await interaction.response.send_message(embed=info.guild_info(interaction.guild))

@@ -3,7 +3,8 @@ from __future__ import annotations
 import asyncio
 import datetime
 import sys
-from typing import Generic, List, Optional, TypeVar, Union, TYPE_CHECKING
+from types import TracebackType
+from typing import Any, Generic, List, Optional, Type, TypeVar, Union, TYPE_CHECKING
 
 import aioodbc
 import discord
@@ -60,8 +61,14 @@ if TYPE_CHECKING:
         def __enter__(self) -> T:
             ...
 
+        def __exit__(self, exc_type: Optional[Type[BaseException]], exc_value: Optional[BaseException], traceback: Optional[TracebackType]) -> Any:
+            ...
+
     class _AsyncContextManager(Generic[T]):
         async def __aenter__(self) -> T:
+            ...
+
+        async def __aexit__(self, exc_type: Optional[Type[BaseException]], exc_value: Optional[BaseException], traceback: Optional[TracebackType]) -> Any:
             ...
 
     # Overwrite type hint from discord.py

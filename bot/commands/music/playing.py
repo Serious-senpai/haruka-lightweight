@@ -13,7 +13,7 @@ from shared import interface
     transferable=True,
 )
 @commands.guild_only()
-async def _handler(ctx: Context) -> None:
+async def handler(ctx: Context) -> None:
     try:
         embed = await ctx.voice_client.playing.create_embed(ctx.bot)
         ctx.voice_client.append_state(embed)

@@ -18,13 +18,13 @@ ID_PATTERN = re.compile(r"^(\d+)$")
     description="Display a Pixiv artwork",
 )
 @app_commands.describe(identifier="The artwork URL or ID", display_url="The URL to the image to display if auto-fetching fails")
-async def _handler(interaction: Interaction, identifier: str, display_url: Optional[str]) -> None:
+async def handler(interaction: Interaction, identifier: str, display_url: Optional[str]) -> None:
     await interaction.response.defer()
     for pattern in (URL_PATTERN, ID_PATTERN):
         match = pattern.fullmatch(identifier)
         if match is not None:
             id = match.group(1)
-            artwork = await pixiv.Artwork.from_id(id, interface=interface, fallback_image_url=display_url)
+            artwork = await pixiv.Artwork.from_id(int(id), fallback_image_url=display_url)
             if artwork is None:
                 await interaction.followup.send(f"Cannot find any artworks from the ID `{id}`")
             else:

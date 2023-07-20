@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from copy import deepcopy
-from typing import Any, Dict, List, Literal, Optional, Set, TYPE_CHECKING
+from typing import Any, Dict, List, Literal, Optional, Set, TYPE_CHECKING, cast
 
 from .errors import InvalidMove
 from ..web_utils import Serializable, json_encode
@@ -101,7 +101,7 @@ class State(Serializable):
             raise InvalidMove
 
         player_index = self.__player_turn
-        self.__player_turn = 1 - self.__player_turn
+        self.__player_turn = cast(Literal[0, 1], 1 - self.__player_turn)
         board[row][column] = player_index
 
         self.__move_count += 1

@@ -6,10 +6,12 @@ import datetime
 import time
 import traceback
 from types import TracebackType
-from typing import Awaitable, Callable, Iterator, List, Optional, ParamSpec, Type, TypeVar, TYPE_CHECKING
+from typing import Any, Callable, Coroutine, Iterable, Iterator, List, Optional, Type, TypeVar, TYPE_CHECKING
 
 import discord
 from discord.ext import commands
+if TYPE_CHECKING:
+    from typing_extensions import ParamSpec
 
 from environment import DEFAULT_COMMAND_PREFIX, FUZZY_MATCH
 if TYPE_CHECKING:
@@ -104,17 +106,17 @@ def get_all_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
         yield from get_all_subclasses(subclass)
 
 
-def max_retry(retry_count: int, *, sleep: float = 0.0) -> Callable[[Callable[P, Awaitable[T]]], Callable[P, Awaitable[T]]]:
-    def decorator(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
+def retry(max_retry: int, *, wait: float = 0.0) -> Callable[[Callable[P, Coroutine[Any, Any, T]]], Callable[P, Coroutine[Any, Any, T]]]:
+    def decorator(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutine[Any, Any, T]]:
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-            retry = retry_count
+            retry = max_retry
             while True:
                 try:
                     return await func(*args, **kwargs)
                 except Exception:
                     retry -= 1
                     if retry > 0:
-                        await asyncio.sleep(sleep)
+                        await asyncio.sleep(wait)
                     else:
                         raise
 
@@ -232,7 +234,7 @@ async def get_reply(message: discord.Message) -> Optional[discord.Message]:
         The message that this message refers to
     """
     if not message.reference:
-        return
+        return None
 
     if message.reference.cached_message:
         return message.reference.cached_message
@@ -241,7 +243,7 @@ async def get_reply(message: discord.Message) -> Optional[discord.Message]:
         return await message.channel.fetch_message(message.reference.message_id)
 
 
-async def fuzzy_match(string: str, against: Iterator[str]) -> str:
+async def fuzzy_match(string: str, against: Iterable[str]) -> str:
     args = [FUZZY_MATCH]
     args.append(string)
     args.extend(against)

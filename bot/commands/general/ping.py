@@ -11,7 +11,7 @@ from shared import interface
     description="Measure the bot's latency",
     parallel=True,
 )
-async def _handler(ctx: Context) -> None:
+async def handler(ctx: Context) -> None:
     with utils.TimingContextManager() as measure:
         message = await ctx.send("🏓 **Ping!**")
 

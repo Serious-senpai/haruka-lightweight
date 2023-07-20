@@ -14,7 +14,7 @@ from shared import interface
 )
 @commands.guild_only()
 @commands.cooldown(1, 3, commands.BucketType.guild)
-async def _handler(ctx: Context) -> None:
+async def handler(ctx: Context) -> None:
     try:
         await ctx.voice_client.skip()
         await ctx.send("Skipped to the next track!")

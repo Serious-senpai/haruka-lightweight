@@ -29,7 +29,7 @@ async def join_voice(ctx: Context, channel: discord.VoiceChannel) -> youtube.Aud
 )
 @commands.guild_only()
 @commands.max_concurrency(1, commands.BucketType.guild, wait=True)
-async def _handler(ctx: Context, url: str) -> None:
+async def handler(ctx: Context, url: str) -> None:
     if ctx.author.voice is None:
         await ctx.send("Please join a voice channel first!")
         return
@@ -40,7 +40,7 @@ async def _handler(ctx: Context, url: str) -> None:
         return
 
     async with ctx.typing():
-        track = await youtube.Track.from_url(url, interface=interface)
+        track = await youtube.Track.from_url(url)
         if track is not None:
             client = await join_voice(ctx, channel)
             client.set_source(track)
@@ -49,7 +49,7 @@ async def _handler(ctx: Context, url: str) -> None:
 
             return
 
-        playlist = await youtube.Playlist.from_url(url, interface=interface)
+        playlist = await youtube.Playlist.from_url(url)
         if playlist is not None:
             client = await join_voice(ctx, channel)
             client.set_source(playlist)

@@ -23,7 +23,7 @@ from shared import interface
 )
 @commands.is_owner()
 @commands.max_concurrency(1)
-async def _handler(ctx: Context, *, input: str) -> None:
+async def handler(ctx: Context, *, input: str) -> None:
     try:
         async with interface.session.get(ctx.message.attachments[0].url) as request:
             code_data = await request.read()

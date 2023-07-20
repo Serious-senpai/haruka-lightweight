@@ -390,7 +390,7 @@ class SelectMenu(EmojiUI):
         try:
             payload: discord.RawReactionActionEvent = await self.bot.wait_for("raw_reaction_add", check=self.check, timeout=300.0)
         except asyncio.TimeoutError:
-            return await self.timeout()
+            await self.timeout()
         else:
             with contextlib.suppress(discord.HTTPException):
                 await self.message.delete()
@@ -415,7 +415,7 @@ class YesNoSelection(EmojiUI):
         try:
             payload: discord.RawReactionActionEvent = await self.bot.wait_for("raw_reaction_add", check=self.check, timeout=300.0)
         except asyncio.TimeoutError:
-            return await self.timeout()
+            await self.timeout()
         else:
             with contextlib.suppress(discord.HTTPException):
                 await self.message.delete()

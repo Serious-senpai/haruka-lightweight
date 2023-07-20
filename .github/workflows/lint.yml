@@ -3,7 +3,6 @@ name: autopep8 Analysis
 on: push
 
 permissions:
-  actions: read
   contents: read
 
 jobs:

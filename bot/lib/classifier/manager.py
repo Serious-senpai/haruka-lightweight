@@ -6,7 +6,7 @@ import pathlib
 import sys
 import threading
 from types import TracebackType
-from typing import Any, Awaitable, ClassVar, Dict, Final, Optional, Tuple, Type, TYPE_CHECKING
+from typing import Any, ClassVar, Coroutine, Dict, Final, Optional, Tuple, Type, TYPE_CHECKING
 
 from fastai.learner import Learner, load_learner
 
@@ -27,11 +27,11 @@ class _PosixPathMonkeyPatch(contextlib.AbstractContextManager):
 
     def __enter__(self) -> None:
         if self._patched:
-            pathlib.PosixPath = pathlib.WindowsPath
+            pathlib.PosixPath = pathlib.WindowsPath  # type: ignore
 
     def __exit__(self, exc_type: Optional[Type[BaseException]], exc_value: Optional[BaseException], traceback: Optional[TracebackType]) -> None:
         if self._patched:
-            pathlib.PosixPath = self._old_posix_path
+            pathlib.PosixPath = self._old_posix_path  # type: ignore
 
 
 class LearnerManager:
@@ -53,7 +53,7 @@ class LearnerManager:
 
         return cls.__instance__
 
-    def load_learner(self, name: str, /) -> Awaitable[None]:
+    def load_learner(self, name: str, /) -> Coroutine[Any, Any, None]:
         return asyncio.to_thread(self._load_learner, name)
 
     def _load_learner(self, name: str, /) -> None:
@@ -62,7 +62,7 @@ class LearnerManager:
                 with _PosixPathMonkeyPatch():
                     self.__mapping[name] = load_learner(self.MODEL_PATH / f"{name}.pkl", cpu=True)
 
-    def predict(self, name: str, *, item: Any, with_input: bool = False) -> Awaitable[Tuple[Any, Any, Any]]:
+    def predict(self, name: str, *, item: Any, with_input: bool = False) -> Coroutine[Any, Any, Tuple[Any, Any, Any]]:
         learner = self.__mapping[name]
         return asyncio.to_thread(self.silent_predict, learner, item=item, with_input=with_input)
 

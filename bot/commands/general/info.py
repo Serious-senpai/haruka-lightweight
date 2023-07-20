@@ -15,7 +15,7 @@ from shared import interface
     description="View a Discord user's information",
     usage="{prefix}info <user | default: yourself>",
 )
-async def _handler(ctx: Context, user: discord.User = commands.Author) -> None:
+async def handler_a(ctx: Context, user: discord.User = commands.Author) -> None:
     await ctx.send(embed=info.user_info(user))
 
 
@@ -24,5 +24,5 @@ async def _handler(ctx: Context, user: discord.User = commands.Author) -> None:
     description="View a Discord user's information",
 )
 @app_commands.describe(user="The user to retrieve the information")
-async def _handler(interaction: Interaction, user: discord.User) -> None:
+async def handler_b(interaction: Interaction, user: discord.User) -> None:
     await interaction.response.send_message(embed=info.user_info(user))

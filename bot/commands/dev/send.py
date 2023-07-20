@@ -20,7 +20,7 @@ from shared import interface
     hidden=True,
 )
 @commands.is_owner()
-async def _handler(ctx: Context, *urls: str) -> None:
+async def handler(ctx: Context, *urls: str) -> None:
     if not urls:
         raise commands.UserInputError
 

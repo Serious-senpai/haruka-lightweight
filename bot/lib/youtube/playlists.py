@@ -73,21 +73,21 @@ class Playlist:
         return embed
 
     @classmethod
-    async def from_id(cls, id: str, *, interface: SharedInterface) -> Optional[Playlist]:
-        client = YouTubeClient(interface=interface)
+    async def from_id(cls, id: str) -> Optional[Playlist]:
+        client = YouTubeClient()
         async with client.get(f"/api/v1/playlists/{id}") as response:
             if response.status == 200:
                 data = await response.json(encoding="utf-8")
                 return cls(data)
 
     @classmethod
-    async def from_url(cls, url: Union[str, URL], *, interface: SharedInterface) -> Optional[Playlist]:
+    async def from_url(cls, url: Union[str, URL]) -> Optional[Playlist]:
         if isinstance(url, str):
             url = URL(url)
 
         with contextlib.suppress(AssertionError, KeyError):
             assert url.host in VALID_YOUTUBE_HOST
-            return await cls.from_id(url.query["list"], interface=interface)
+            return await cls.from_id(url.query["list"])
 
     def __repr__(self) -> str:
         return f"<Playlist title={self.title} id={self.id}> author={self.author}"
