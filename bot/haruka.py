@@ -73,7 +73,7 @@ class Haruka(commands.Bot):
 
                 self.__processed_message_ids.add(ctx.message.id)
 
-            return not await self.interface.is_in_blacklist(ctx.author.id)
+            return not await self.interface.blacklist_check(ctx.author.id)
 
         self.add_check(_global_check)
 
@@ -107,7 +107,7 @@ class Haruka(commands.Bot):
             else:
                 return
 
-            await ctx.send(f"⏱️ <@!{ctx.author.id}> This command is on cooldown!\nYou can use it after **{utils.format(error.retry_after)}**!")
+            await ctx.send(f"⏱️{ctx.author.mention} This command is on cooldown!\nYou can use it after **{utils.format(error.retry_after)}**!")
 
             await asyncio.sleep(error.retry_after)
             self.cooldown_notify[ctx.author.id][ctx.command.name] = False
@@ -191,10 +191,10 @@ class Haruka(commands.Bot):
         if self.owner is not None:
             self.interface.flush_logs()
             kwargs: Dict[str, Any] = {}
-            
+
             if send_state:
                 kwargs["embed"] = self.display_status
-            
+
             if send_log:
                 with open(environment.LOG_PATH, "r", encoding="utf-8") as file:
                     kwargs["file"] = discord.File(io.StringIO(file.read()), filename="log.txt")

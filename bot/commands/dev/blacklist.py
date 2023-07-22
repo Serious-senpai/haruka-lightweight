@@ -25,7 +25,7 @@ async def handler(ctx: Context) -> None:
     if count == 1:
         await ctx.send("There is 1 user in the blacklist.")
     else:
-        await ctx.send(f"There are {count} users in the blacklist.")
+        await ctx.send(f"There are `{count}` users in the blacklist.")
 
 
 @handler.command(
@@ -40,7 +40,7 @@ async def handler_add(ctx: Context, user: discord.User) -> None:
         async with connection.cursor() as cursor:
             await cursor.execute("INSERT INTO blacklist VALUES (?)", str(user.id))
 
-    await ctx.send(f"Added **{user}** to the blacklist!")
+    await ctx.send(f"Added `{user}` to the blacklist!")
 
 
 @handler.command(
@@ -55,4 +55,4 @@ async def handler_remove(ctx: Context, user: discord.User) -> None:
         async with connection.cursor() as cursor:
             await cursor.execute("DELETE FROM blacklist WHERE id = ?", str(user.id))
 
-    await ctx.send(f"Removed **{user}** from the blacklist!")
+    await ctx.send(f"Removed `{user}` from the blacklist!")

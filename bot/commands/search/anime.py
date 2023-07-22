@@ -19,7 +19,7 @@ from shared import interface
 @commands.cooldown(1, 3, commands.BucketType.user)
 async def handler(ctx: Context, *, query: str) -> None:
     if len(query) < 3:
-        await ctx.send(f"Search query must have at least 3 characters")
+        await ctx.send("Search query must have at least 3 characters")
         return
 
     results = await mal.MALSearchResult.search(query, criteria="anime", session=interface.session)

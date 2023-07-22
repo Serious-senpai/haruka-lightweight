@@ -15,7 +15,7 @@ class SlashCommandTree(app_commands.CommandTree):
         client: Haruka
 
     async def interaction_check(self, interaction: Interaction) -> bool:
-        if await self.client.interface.is_in_blacklist(interaction.user.id):
+        if await self.client.interface.blacklist_check(interaction.user.id):
             await interaction.response.send_message("You are currently in the blacklist!", ephemeral=True)
             return False
         else:
