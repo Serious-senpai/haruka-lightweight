@@ -10,6 +10,7 @@ from shared import interface
     name="sync",
     brief="dev.sync",
     description="Sync all slash commands to Discord server",
+    parallel=True,
     hidden=True,
 )
 @commands.is_owner()
