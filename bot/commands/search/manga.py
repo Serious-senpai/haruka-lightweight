@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import discord
 from discord.ext import commands
-from discord.utils import escape_markdown as escape
+from discord.utils import escape_markdown
 
 import emoji_ui
 from customs import Context
@@ -30,7 +30,7 @@ async def handler(ctx: Context, *, query: str) -> None:
         desc = "\n".join(f"{emoji_ui.CHOICES[index]} {result.title}" for index, result in enumerate(results))
         embed = discord.Embed(
             title=f"Search results for {query}",
-            description=escape(desc),
+            description=escape_markdown(desc),
         )
         message = await ctx.send(embed=embed)
 

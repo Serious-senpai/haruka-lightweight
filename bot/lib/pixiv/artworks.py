@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 import aiohttp
 import discord
 from bs4 import BeautifulSoup
-from discord.utils import escape_markdown as escape
+from discord.utils import escape_markdown
 from yarl import URL
 
 from .tags import Tag
@@ -78,8 +78,8 @@ class Artwork:
 
     async def prepare_message(self, bot: Haruka) -> Tuple[discord.Embed, Optional[discord.File]]:
         embed = discord.Embed(
-            title=escape(self.title),
-            description=escape(self.description),
+            title=escape_markdown(self.title),
+            description=escape_markdown(self.description),
             url=self.url,
             timestamp=self.created_at,
         )
@@ -99,7 +99,7 @@ class Artwork:
         )
         embed.add_field(
             name="Author",
-            value=f"[{escape(self.author.name)}]({self.author.url})",
+            value=f"[{self.author.name}]({self.author.url})",
         )
         embed.add_field(
             name="Size",

@@ -4,14 +4,13 @@ import contextlib
 from typing import Any, ClassVar, Dict, Literal, Optional, Union, TYPE_CHECKING
 
 import discord
-from discord.utils import escape_markdown as escape
+from discord.utils import escape_markdown
 from yarl import URL
 
 import utils
 from .client import YouTubeClient, VALID_YOUTUBE_HOST
 if TYPE_CHECKING:
     from haruka import Haruka
-    from shared import SharedInterface
 
 
 __all__ = (
@@ -53,7 +52,7 @@ class Track:
         return URL.build(scheme="https", host="img.youtube.com", path=f"/vi/{self.id}/mqdefault.jpg")
 
     async def create_embed(self, bot: Haruka) -> discord.Embed:
-        embed = discord.Embed(title=escape(self.title), url=self.url)
+        embed = discord.Embed(title=escape_markdown(self.title), url=self.url)
         embed.set_thumbnail(url=self.thumbnail_url)
         embed.set_author(name=self.author, url=self.author_url, icon_url=bot.user.avatar.url)
         embed.set_footer(text=f"Length: {utils.format(self.length)}")

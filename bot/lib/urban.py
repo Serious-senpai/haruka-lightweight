@@ -7,7 +7,7 @@ from typing import Optional, Type, TYPE_CHECKING
 import aiohttp
 import bs4
 import discord
-from discord.utils import escape_markdown as escape
+from discord.utils import escape_markdown
 
 import utils
 
@@ -35,9 +35,9 @@ class UrbanSearch:
         self.url = url
 
     async def create_embed(self) -> discord.Embed:
-        title = escape(self.title)
-        meaning = escape(self.meaning)
-        example = escape(self.example)
+        title = escape_markdown(self.title)
+        meaning = escape_markdown(self.meaning)
+        example = escape_markdown(self.example)
         description = f"{meaning}\n---------------\n{example}"
 
         embed = discord.Embed(

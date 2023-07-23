@@ -5,7 +5,7 @@ from typing import List, Optional, Type, TypeVar, Union, overload, TYPE_CHECKING
 
 import bs4
 import discord
-from discord.utils import escape_markdown as escape
+from discord.utils import escape_markdown
 
 import utils
 
@@ -92,9 +92,9 @@ class MALObject:
         return f"<{self.__class__.__name__} title={self.title} id={self.id} score={self.score} ranked={self.ranked} popularity={self.popularity}>"
 
     def create_embed(self) -> discord.Embed:
-        title = escape(self.title)
+        title = escape_markdown(self.title)
         if self.synopsis:
-            description = escape(self.synopsis)
+            description = escape_markdown(self.synopsis)
         else:
             description = None
 

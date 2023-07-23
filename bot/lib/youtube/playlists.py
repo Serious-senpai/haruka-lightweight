@@ -4,7 +4,7 @@ import contextlib
 from typing import Any, Dict, Optional, List, Union, TYPE_CHECKING
 
 import discord
-from discord.utils import escape_markdown as escape
+from discord.utils import escape_markdown
 from yarl import URL
 
 import utils
@@ -12,7 +12,6 @@ from .client import YouTubeClient, VALID_YOUTUBE_HOST
 from .tracks import Track
 if TYPE_CHECKING:
     from haruka import Haruka
-    from shared import SharedInterface
 
 
 __all__ = (
@@ -49,12 +48,12 @@ class Playlist:
 
     async def create_embed(self, bot: Haruka) -> discord.Embed:
         embed = discord.Embed(
-            title=escape(self.title),
-            description=utils.slice_string(escape(self.description), 100),
+            title=escape_markdown(self.title),
+            description=utils.slice_string(escape_markdown(self.description), 100),
             url=self.url,
         )
 
-        track_display = "\n".join(f"**#{index + 1}** [{escape(track.title)}]({track.url})" for index, track in enumerate(self.tracks[:7]))
+        track_display = "\n".join(f"**#{index + 1}** [{track.title}]({track.url})" for index, track in enumerate(self.tracks[:7]))
         if len(self.tracks) > 7:
             track_display += f"\n... and {len(self.tracks) - 7} more"
 

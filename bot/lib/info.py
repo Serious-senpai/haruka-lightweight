@@ -1,11 +1,11 @@
 import discord
-from discord.utils import escape_markdown as escape
+from discord.utils import escape_markdown
 
 from customs import Guild
 
 
 def user_info(user: discord.User) -> discord.Embed:
-    embed = discord.Embed(description=f"**Name** {escape(str(user))}\n**Created** {(discord.utils.utcnow() - user.created_at).days} days ago\n**ID** {user.id}")
+    embed = discord.Embed(description=f"**Name** {escape_markdown(str(user))}\n**Created** {(discord.utils.utcnow() - user.created_at).days} days ago\n**ID** {user.id}")
     embed.set_author(
         name="Information collected",
         icon_url=user._state.user.avatar.url,
@@ -17,7 +17,7 @@ def user_info(user: discord.User) -> discord.Embed:
 
 
 def guild_info(guild: Guild) -> discord.Embed:
-    embed = discord.Embed(description=f"**Server name** {escape(guild.name)}\n**Server ID** {guild.id}\n**Member count** {guild.member_count}")
+    embed = discord.Embed(description=f"**Server name** {escape_markdown(guild.name)}\n**Server ID** {guild.id}\n**Member count** {guild.member_count}")
     embed.add_field(
         name="Created",
         value=f"{(discord.utils.utcnow() - guild.created_at).days} days ago"

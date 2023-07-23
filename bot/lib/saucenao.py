@@ -6,7 +6,7 @@ from typing import List, Optional, Type, TYPE_CHECKING
 import aiohttp
 import bs4
 import discord
-from discord.utils import escape_markdown as escape
+from discord.utils import escape_markdown
 
 import utils
 
@@ -56,7 +56,7 @@ class SauceResult:
             The created embed
         """
         embed = discord.Embed(
-            title=utils.slice_string(escape(self.title), 200),
+            title=utils.slice_string(escape_markdown(self.title), 200),
             description=self.url,
             url=self.url,
         )
