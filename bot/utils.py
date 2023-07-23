@@ -106,6 +106,19 @@ def get_all_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
         yield from get_all_subclasses(subclass)
 
 
+class MaxRetryReached(Exception):
+
+    __slots__ = (
+        "max_retry",
+    )
+    if TYPE_CHECKING:
+        max_retry: int
+
+    def __init__(self, max_retry: int) -> None:
+        self.max_retry = max_retry
+        super().__init__(f"Process failed after retrying {max_retry} times")
+
+
 def retry(max_retry: int, *, wait: float = 0.0) -> Callable[[Callable[P, Coroutine[Any, Any, T]]], Callable[P, Coroutine[Any, Any, T]]]:
     def decorator(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutine[Any, Any, T]]:
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
@@ -113,12 +126,12 @@ def retry(max_retry: int, *, wait: float = 0.0) -> Callable[[Callable[P, Corouti
             while True:
                 try:
                     return await func(*args, **kwargs)
-                except Exception:
+                except Exception as exc:
                     retry -= 1
                     if retry > 0:
                         await asyncio.sleep(wait)
                     else:
-                        raise
+                        raise MaxRetryReached(max_retry) from exc
 
         return wrapper
 
