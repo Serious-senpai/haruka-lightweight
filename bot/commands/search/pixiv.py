@@ -9,7 +9,7 @@ from lib import pixiv
 from shared import interface
 
 
-URL_PATTERN = re.compile(r"^https:\/\/(?:www\.)?pixiv\.net(?:\/en)?\/artworks\/(\d+)(?:\/.*?)?$")
+URL_PATTERN = re.compile(r"^https:\/\/(?:www\.)?pixiv\.net(?:\/en)?\/artworks\/(\d+).*?$")
 ID_PATTERN = re.compile(r"^(\d+)$")
 
 
