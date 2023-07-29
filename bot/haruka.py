@@ -189,13 +189,13 @@ class Haruka(commands.Bot):
         send_log: bool = True
     ) -> Optional[discord.Message]:
         if self.owner is not None:
-            self.interface.flush_logs()
             kwargs: Dict[str, Any] = {}
 
             if send_state:
                 kwargs["embed"] = self.display_status
 
             if send_log:
+                self.interface.flush_logs()
                 with open(environment.LOG_PATH, "r", encoding="utf-8") as file:
                     kwargs["file"] = discord.File(io.StringIO(file.read()), filename="log.txt")
 
