@@ -28,5 +28,5 @@ async def handler(request: Request) -> web.Response:
                     status=response.status,
                     content_type=response.content_type,
                 )
-        except aiohttp.ClientError:
+        except aiohttp.InvalidURL:
             raise web.HTTPBadRequest
