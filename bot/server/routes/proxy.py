@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import aiohttp
 from aiohttp import web
 from yarl import URL
 
@@ -19,9 +20,13 @@ async def handler(request: Request) -> web.Response:
         raise web.HTTPBadRequest
     else:
         interface = request.app.interface
-        async with interface.session.request(request.method, url, headers=copy_proxy_headers(request.headers), data=request.content.iter_chunked(4096)) as response:
-            return web.Response(
-                body=await response.read(),
-                status=response.status,
-                content_type=response.content_type,
-            )
+
+        try:
+            async with interface.session.request(request.method, url, headers=copy_proxy_headers(request.headers), data=request.content.iter_chunked(4096)) as response:
+                return web.Response(
+                    body=await response.read(),
+                    status=response.status,
+                    content_type=response.content_type,
+                )
+        except aiohttp.ClientError:
+            raise web.HTTPBadRequest
