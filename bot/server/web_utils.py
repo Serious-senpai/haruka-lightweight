@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Mapping, Union
+from typing import Any, Dict, List, Union
 
 import discord
 from discord.ext import commands
@@ -61,21 +61,3 @@ def json_encode(obj: Any) -> Any:
         return result
 
     raise TypeError(f"Unsupported JSON encoding type {obj.__class__.__name__}")
-
-
-def copy_proxy_headers(source: Mapping[str, str]) -> Dict[str, str]:
-    headers = {}
-    for key in (
-        "Accept",
-        "Accept-Charset",
-        "Accept-Encoding",
-        "Accept-Language",
-        "Connection",
-        "Content-Type",
-        "User-Agent",
-    ):
-        value = source.get(key)
-        if value is not None:
-            headers[key] = value
-
-    return headers
