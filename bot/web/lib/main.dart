@@ -32,14 +32,15 @@ class MainApp extends StatelessWidget {
       routes: {
         "/": (context) => MainPage(session: _http),
         "/idle-game": (context) => IdleGamePage(session: _http),
-        "/tic-tac-toe": (context) => TicTacToePage(session: _http),
       },
       onGenerateRoute: (settings) {
         var name = settings.name;
         if (name != null) {
-          var pattern = RegExp(r"^\/tic-tac-toe\/room\/(.+?)\/?$");
-          var roomId = pattern.firstMatch(name)?.group(1);
-          return MaterialPageRoute(builder: (context) => TicTacToePage(roomId: roomId, session: _http));
+          if (name.startsWith("/tic-tac-toe")) {
+            var pattern = RegExp(r"^\/tic-tac-toe\/room\/(.+?)\/?$");
+            var roomId = pattern.firstMatch(name)?.group(1);
+            return MaterialPageRoute(builder: (context) => TicTacToePage(roomId: roomId, session: _http));
+          }
         }
 
         return null;

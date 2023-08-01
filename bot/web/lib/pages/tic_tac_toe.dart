@@ -65,7 +65,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
                           try {
                             var room = await Room.create(session: _http);
                             refresh();
-                            if (mounted) Navigator.pushReplacementNamed(context, "/tic-tac-toe/room/${room.id}");
+                            if (mounted) navigate(context: context, routeName: "/tic-tac-toe/room/${room.id}");
                           } on TicTacToeException catch (e) {
                             await e.showMessage();
                           }
@@ -80,9 +80,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
                 return ListTile(
                   title: Text(room.players.second == null ? "${room.players.first.user.displayName} vs --" : "${room.players.first.user.displayName} vs ${room.players.second!.user.displayName}"),
                   subtitle: Text(room.started ? "Started" : "Not started"),
-                  onTap: () {
-                    Navigator.pushReplacementNamed(context, "/tic-tac-toe/room/${room.id}");
-                  },
+                  onTap: () => navigate(context: context, routeName: "/tic-tac-toe/room/${room.id}"),
                 );
               },
             );

@@ -64,6 +64,25 @@ class Pair<T1, T2> {
   bool operator ==(covariant Pair<T1, T2> other) => other.first == first && other.second == second;
 }
 
+String join(String part1, [String? part2]) {
+  var result = part1;
+  if (!result.endsWith("/")) result += "/";
+
+  if (part2 != null && part2.startsWith("/")) {
+    result += part2.substring(1);
+  }
+
+  return result;
+}
+
+Future<void> navigate({
+  required BuildContext context,
+  required String routeName,
+}) async {
+  window.history.pushState({}, "Haruka", join("/#", routeName));
+  await Navigator.pushReplacementNamed(context, routeName);
+}
+
 /// A transparent [SizedBox] with a width and height of 10.0
 const seperator = SizedBox(width: 10.0, height: 10.0);
 
