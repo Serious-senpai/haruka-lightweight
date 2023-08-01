@@ -1,4 +1,4 @@
-name: autopep8 Analysis
+name: Lint
 
 on: push
 
@@ -6,8 +6,8 @@ permissions:
   contents: read
 
 jobs:
-  analyze:
-    name: Code format analyze
+  python:
+    name: Python lint
     runs-on: ubuntu-latest
 
     steps:
@@ -20,3 +20,24 @@ jobs:
 
     - name: Check code format
       run: autopep8 --exit-code --diff -aaar .
+
+  dart:
+    name: Flutter lint
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install autopep8
+      run: pip install autopep8
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: "3.7.0"
+
+    - name: Check code format
+      working-directory: bot/web
+      run: flutter analyze
