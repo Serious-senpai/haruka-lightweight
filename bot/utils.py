@@ -106,6 +106,10 @@ def get_all_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
         yield from get_all_subclasses(subclass)
 
 
+def format_permission_name(permission: str) -> str:
+    return permission.replace("_", " ").replace("guild", "server").title()
+
+
 class MaxRetryReached(Exception):
 
     __slots__ = (

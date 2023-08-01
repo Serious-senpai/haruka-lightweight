@@ -16,7 +16,7 @@ from shared import interface
     description="Search zerochan for images",
     usage="{prefix}zerochan <query>",
 )
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 10, commands.BucketType.user)
 async def handler(ctx: Context, *, query: str):
     async with ctx.typing():
         urls = await zerochan.search(query, session=interface.session)

@@ -18,4 +18,4 @@ from shared import interface
 @commands.is_owner()
 async def handler(ctx: Context) -> None:
     interface.flush_logs()
-    await ctx.send(embed=ctx.bot.display_status, file=discord.File(LOG_PATH))
+    await ctx.send(embed=ctx.bot.display_status(), file=discord.File(LOG_PATH))

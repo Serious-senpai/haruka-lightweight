@@ -9,6 +9,7 @@ import aiohttp
 import async_timeout
 import discord
 from discord.ext import commands, tasks
+from discord.utils import format_dt, utcnow
 
 import environment
 import utils
@@ -107,7 +108,8 @@ class Haruka(commands.Bot):
             else:
                 return
 
-            await ctx.send(f"⏱️{ctx.author.mention} This command is on cooldown!\nYou can use it after **{utils.format(error.retry_after)}**!")
+            wait_display = format_dt(utcnow() + datetime.timedelta(seconds=error.retry_after), style="R")
+            await ctx.send(f"⏱️{ctx.author.mention} This command is on cooldown! Please wait until {wait_display}!")
 
             await asyncio.sleep(error.retry_after)
             self.cooldown_notify[ctx.author.id][ctx.command.name] = False
@@ -123,10 +125,10 @@ class Haruka(commands.Bot):
             await ctx.send("This command can only be invoked in a server channel.")
 
         elif isinstance(error, commands.BotMissingPermissions):
-            await ctx.send("🚫 I do not have permission to execute this command: " + ", ".join(f"`{perm}`" for perm in error.missing_permissions))
+            await ctx.send("🚫 I do not have permission(s) to execute this command: " + ", ".join(f"`{utils.format_permission_name(perm)}`" for perm in error.missing_permissions))
 
         elif isinstance(error, commands.MissingPermissions):
-            await ctx.send("🚫 You do not have permission to invoke this command: " + ", ".join(f"`{perm}`" for perm in error.missing_permissions))
+            await ctx.send("🚫 You do not have permission(s) to invoke this command: " + ", ".join(f"`{utils.format_permission_name(perm)}`" for perm in error.missing_permissions))
 
         elif isinstance(error, commands.NSFWChannelRequired):
             await ctx.send("🔞 This command can only be invoked in a NSFW channel.")
@@ -192,7 +194,7 @@ class Haruka(commands.Bot):
             kwargs: Dict[str, Any] = {}
 
             if send_state:
-                kwargs["embed"] = self.display_status
+                kwargs["embed"] = self.display_status()
 
             if send_log:
                 self.interface.flush_logs()
@@ -201,7 +203,6 @@ class Haruka(commands.Bot):
 
             return await self.owner.send(message, **kwargs)
 
-    @property
     def display_status(self) -> discord.Embed:
         guilds = self.guilds
         users = self.users
@@ -250,7 +251,7 @@ class Haruka(commands.Bot):
         )
         embed.add_field(
             name="Uptime",
-            value=discord.utils.utcnow() - self.uptime,
+            value=utcnow() - self.uptime,
             inline=False,
         )
 

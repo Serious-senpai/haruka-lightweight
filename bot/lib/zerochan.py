@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 image_url_matcher = re.compile(r"^https://s3\.zerochan\.net/.*?\.(?:jpg|png)$")
 
 
-async def search(query: str, *, max_results: int = 200, session: aiohttp.ClientSession) -> List[str]:
+async def search(query: str, *, max_results: int = 50, session: aiohttp.ClientSession) -> List[str]:
     """This function is a coroutine
 
     Search zerochan.net for a list of image URLs.
