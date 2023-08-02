@@ -39,6 +39,7 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) => TemplateScaffold(
+        displayRoute: "/",
         session: widget._http,
         title: "Haruka",
         child: FutureBuilder(

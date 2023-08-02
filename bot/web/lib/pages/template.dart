@@ -9,6 +9,7 @@ import "../src/utils.dart";
 
 class TemplateScaffold extends StatefulWidget {
   final Color backgroundColor;
+  final String displayRoute;
   final Widget child;
   final String title;
   final ClientSession _http;
@@ -18,6 +19,7 @@ class TemplateScaffold extends StatefulWidget {
     this.backgroundColor = Colors.black,
     this.title = "Haruka",
     required this.child,
+    required this.displayRoute,
     required ClientSession session,
   })  : _http = session,
         super(key: key);
@@ -35,6 +37,8 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
   @override
   Widget build(BuildContext context) {
     var screenSize = MediaQuery.of(context).size;
+    window.history.pushState({}, "Haruka", join("/#", widget.displayRoute));
+
     return Title(
       title: widget.title,
       color: Colors.black,
@@ -159,7 +163,7 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                     ),
                     seperator,
                     TextButton(
-                      onPressed: () => navigate(context: context, routeName: "/"),
+                      onPressed: () => Navigator.pushNamed(context, "/"),
                       child: const Text(
                         "Main Page",
                         style: TextStyle(fontSize: 20, color: Colors.black),
@@ -167,7 +171,7 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                     ),
                     seperator,
                     TextButton(
-                      onPressed: () => navigate(context: context, routeName: "/tic-tac-toe"),
+                      onPressed: () => Navigator.pushNamed(context, "/tic-tac-toe"),
                       child: const Text(
                         "Tic-tac-toe",
                         style: TextStyle(fontSize: 20, color: Colors.black),
@@ -175,7 +179,7 @@ class _TemplateScaffoldState extends State<TemplateScaffold> {
                     ),
                     seperator,
                     TextButton(
-                      onPressed: () => navigate(context: context, routeName: "/idle-game"),
+                      onPressed: () => Navigator.pushNamed(context, "/idle-game"),
                       child: const Text(
                         "Idle Game",
                         style: TextStyle(fontSize: 20, color: Colors.black),

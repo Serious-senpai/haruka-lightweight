@@ -36,6 +36,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
     if (roomId == null) {
       _http.roomsLoader.request();
       return TemplateScaffold(
+        displayRoute: "/tic-tac-toe",
         session: _http,
         title: "Tic-Tac-Toe game",
         child: StreamBuilder(
@@ -66,7 +67,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
                           try {
                             var room = await Room.create(session: _http);
                             refresh();
-                            if (mounted) navigate(context: context, routeName: "/tic-tac-toe/room/${room.id}");
+                            if (mounted) Navigator.pushNamed(context, "/tic-tac-toe/room/${room.id}");
                           } on TicTacToeException catch (e) {
                             await e.showMessage();
                           }
@@ -81,7 +82,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
                 return ListTile(
                   title: Text(room.players.second == null ? "${room.players.first.user.displayName} vs --" : "${room.players.first.user.displayName} vs ${room.players.second!.user.displayName}"),
                   subtitle: Text(room.started ? "Started" : "Not started"),
-                  onTap: () => navigate(context: context, routeName: "/tic-tac-toe/room/${room.id}"),
+                  onTap: () => Navigator.pushNamed(context, "/tic-tac-toe/room/${room.id}"),
                 );
               },
             );
@@ -91,6 +92,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
     }
 
     return TemplateScaffold(
+      displayRoute: "/tic-tac-toe/room/$roomId",
       session: _http,
       title: "Tic-Tac-Toe room $roomId",
       child: FutureBuilder(

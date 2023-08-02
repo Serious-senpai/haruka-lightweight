@@ -64,23 +64,59 @@ class Pair<T1, T2> {
   bool operator ==(covariant Pair<T1, T2> other) => other.first == first && other.second == second;
 }
 
-String join(String part1, [String? part2]) {
+String join(
+  String part1, [
+  String? part2,
+  String? part3,
+  String? part4,
+  String? part5,
+  String? part6,
+  String? part7,
+  String? part8,
+  String? part9,
+  String? part10,
+  String? part11,
+  String? part12,
+  String? part13,
+  String? part14,
+  String? part15,
+  String? part16,
+  String? part17,
+  String? part18,
+  String? part19,
+]) {
   var result = part1;
   if (!result.endsWith("/")) result += "/";
 
-  if (part2 != null && part2.startsWith("/")) {
-    result += part2.substring(1);
+  var parts = [
+    part2,
+    part3,
+    part4,
+    part5,
+    part6,
+    part7,
+    part8,
+    part9,
+    part10,
+    part11,
+    part12,
+    part13,
+    part14,
+    part15,
+    part16,
+    part17,
+    part18,
+    part19,
+  ];
+  for (var part in parts) {
+    if (part == null) break;
+    if (part.startsWith("/")) part = part.substring(1);
+
+    result += part;
+    if (!result.endsWith("/")) result += "/";
   }
 
   return result;
-}
-
-Future<void> navigate({
-  required BuildContext context,
-  required String routeName,
-}) async {
-  window.history.pushState({}, "Haruka", join("/#", routeName));
-  await Navigator.pushReplacementNamed(context, routeName);
 }
 
 /// A transparent [SizedBox] with a width and height of 10.0
