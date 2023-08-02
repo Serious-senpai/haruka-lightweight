@@ -7,6 +7,7 @@ import "pages/main.dart";
 import "pages/tic_tac_toe.dart";
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations(
     [
       DeviceOrientation.landscapeLeft,

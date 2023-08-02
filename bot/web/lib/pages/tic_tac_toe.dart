@@ -66,7 +66,6 @@ class _TicTacToePageState extends State<TicTacToePage> {
                         onPressed: () async {
                           try {
                             var room = await Room.create(session: _http);
-                            refresh();
                             if (mounted) Navigator.pushNamed(context, "/tic-tac-toe/room/${room.id}");
                           } on TicTacToeException catch (e) {
                             await e.showMessage();
