@@ -37,6 +37,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
       _http.roomsLoader.request();
       return TemplateScaffold(
         session: _http,
+        title: "Tic-Tac-Toe game",
         child: StreamBuilder(
           stream: _http.roomsLoader.roomsFetcher,
           builder: (context, snapshot) {
@@ -91,6 +92,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
 
     return TemplateScaffold(
       session: _http,
+      title: "Tic-Tac-Toe room $roomId",
       child: FutureBuilder(
         future: Room.fromId(id: widget.roomId!, session: _http),
         builder: (context, snapshot) {

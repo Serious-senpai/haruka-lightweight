@@ -36,6 +36,7 @@ class _IdleGamePageState extends State<IdleGamePage> {
   @override
   Widget build(BuildContext context) => TemplateScaffold(
         session: widget._http,
+        title: "Idle mining game",
         child: StreamBuilder(
           initialData: state,
           stream: state.stream,

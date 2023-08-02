@@ -40,6 +40,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) => TemplateScaffold(
         session: widget._http,
+        title: "Haruka",
         child: FutureBuilder(
           future: commandsLoader.fetcher,
           builder: (context, snapshot) {
