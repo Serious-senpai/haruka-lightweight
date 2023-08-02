@@ -1,0 +1,27 @@
+name: Test C++ source files
+
+on: push
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    name: Compile and test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Compile files
+      working-directory: bot/c++
+      run: |
+        g++ -std=c++2a -Wall fuzzy.cpp -o fuzzy.out
+        g++ -std=c++2a -Wall concat.cpp -o concat.out
+
+    - name: Test fuzzy.out
+      run: bot/c++/fuzzy.out word w0rd wwwww totally different
+
+    - name: Test concat.out
+      run: bot/c++/concat.out bot/models/miku-or-fubuki.pkl bot/models/miku-or-fubuki-0.pkl bot/models/miku-or-fubuki-1.pkl bot/models/miku-or-fubuki-2.pkl

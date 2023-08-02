@@ -1,4 +1,4 @@
-name: Dependencies analysis
+name: Analyze packages
 
 on: push
 
@@ -7,7 +7,7 @@ permissions:
 
 jobs:
   pip-analyze:
-    name: Check Python packages compatibility
+    name: Check Python packages
     runs-on: ubuntu-latest
 
     steps:
@@ -32,7 +32,7 @@ jobs:
       run: pip check
 
   pub-analyze:
-    name: Check Dart packages compatibility
+    name: Check Dart packages
     runs-on: ubuntu-latest
 
     steps:
