@@ -18,7 +18,7 @@ async def process_url(url: str, /) -> Tuple[str, float, bytes]:
         response.raise_for_status()
         data = await response.read()
 
-    result, index, prob = await LearnerManager.load_and_predict("ayame-fubuki-miku", item=data)
+    result, index, prob = await LearnerManager.load_and_predict("anime-girl", item=data)
     confidence = prob[index]
 
     return result, confidence, data
@@ -28,7 +28,7 @@ async def process_url(url: str, /) -> Tuple[str, float, bytes]:
     name="whoisthis",
     aliases=["who"],
     brief="general.whoisthis",
-    description="Classify an image of Nakiri Ayame, Hatsune Miku or Shirakami Fubuki",
+    description="Classify an image of Nakiri Ayame, Hatsune Miku, Shirakami Fubuki or Yukihana Lamy",
     usage="{prefix}whoisthis <url or image>",
 )
 @commands.cooldown(1, 5, commands.BucketType.user)
@@ -57,11 +57,11 @@ async def handler_a(ctx: Context, *, url: Optional[str] = None) -> None:
 
 @interface.slash(
     name="whoisthis",
-    description="Classify an image of Nakiri Ayame, Hatsune Miku or Shirakami Fubuki",
+    description="Classify an image of Nakiri Ayame, Hatsune Miku, Shirakami Fubuki or Yukihana Lamy",
 )
 @app_commands.describe(
-    image="An image of Nakiri Ayame, Hatsune Miku or Shirakami Fubuki",
-    url="The URL to an image of Nakiri Ayame, Hatsune Miku or Shirakami Fubuki",
+    image="An image of Nakiri Ayame, Hatsune Miku, Shirakami Fubuki or Yukihana Lamy",
+    url="The URL to an image of Nakiri Ayame, Hatsune Miku, Shirakami Fubuki or Yukihana Lamy",
 )
 async def handler_b(interaction: Interaction, image: Optional[discord.Attachment] = None, url: Optional[str] = None) -> None:
     await interaction.response.defer()

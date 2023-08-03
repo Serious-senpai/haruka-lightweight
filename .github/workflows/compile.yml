@@ -24,4 +24,4 @@ jobs:
       run: bot/c++/fuzzy.out word w0rd wwwww totally different
 
     - name: Test concat.out
-      run: bot/c++/concat.out bot/models/ayame-fubuki-miku.pkl bot/models/ayame-fubuki-miku-0.pkl bot/models/ayame-fubuki-miku-1.pkl bot/models/ayame-fubuki-miku-2.pkl
+      run: bot/c++/concat.out bot/models/anime-girl.pkl bot/models/anime-girl-0.pkl bot/models/anime-girl-1.pkl bot/models/anime-girl-2.pkl
