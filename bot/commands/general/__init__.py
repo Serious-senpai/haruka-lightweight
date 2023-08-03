@@ -1,7 +1,6 @@
 from .ava import *
 from .help import *
 from .info import *
-from .miku_or_fubuki import *
 from .otp import *
 from .ping import *
 from .prefix import *
@@ -10,3 +9,4 @@ from .say import *
 from .source import *
 from .speak import *
 from .svinfo import *
+from .whoisthis import *
