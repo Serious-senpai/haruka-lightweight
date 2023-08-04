@@ -53,6 +53,9 @@ class LearnerManager:
 
         return cls.__instance__
 
+    def get_learner(self, name: str, /) -> Learner:
+        return self.__mapping[name]
+
     def load_learner(self, name: str, /) -> Coroutine[Any, Any, None]:
         return asyncio.to_thread(self._load_learner, name)
 
