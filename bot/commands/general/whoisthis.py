@@ -28,7 +28,7 @@ async def process_url(url: str, /) -> Tuple[str, float, bytes]:
     name="whoisthis",
     aliases=["who"],
     brief="general.whoisthis",
-    description="Classify an image of Nakiri Ayame, Hatsune Miku, Shirakami Fubuki or Yukihana Lamy",
+    description="Classify an image of an anime girl. Only few characters are supported.",
     usage="{prefix}whoisthis <url or image>",
 )
 @commands.cooldown(1, 5, commands.BucketType.user)
@@ -57,11 +57,11 @@ async def handler_a(ctx: Context, *, url: Optional[str] = None) -> None:
 
 @interface.slash(
     name="whoisthis",
-    description="Classify an image of Nakiri Ayame, Hatsune Miku, Shirakami Fubuki or Yukihana Lamy",
+    description="Classify an image of an anime girl. Only few characters are supported",
 )
 @app_commands.describe(
-    image="An image of Nakiri Ayame, Hatsune Miku, Shirakami Fubuki or Yukihana Lamy",
-    url="The URL to an image of Nakiri Ayame, Hatsune Miku, Shirakami Fubuki or Yukihana Lamy",
+    image="The image as an attachment",
+    url="The URL to an image",
 )
 async def handler_b(interaction: Interaction, image: Optional[discord.Attachment] = None, url: Optional[str] = None) -> None:
     await interaction.response.defer()
