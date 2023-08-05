@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import os
+import ntpath
+from pathlib import Path
 from typing import Set, TYPE_CHECKING
 
 from aiohttp import web
@@ -12,11 +13,8 @@ if TYPE_CHECKING:
     from ..customs import Request
 
 
-UPLOAD_DIR = "uploaded"
-if not os.path.isdir(UPLOAD_DIR):
-    os.mkdir(UPLOAD_DIR)
-
-
+UPLOAD_DIR = Path("uploaded")
+UPLOAD_DIR.mkdir(exist_ok=True)
 router.static("/uploaded", UPLOAD_DIR, show_index=True)
 allowed_uploads: Set[int] = set([OWNER_ID])
 
@@ -26,7 +24,7 @@ async def handler(request: Request) -> web.Response:
     user = await authenticate_request(request, interface=request.app.interface)
     if user is not None and user.id in allowed_uploads:
         try:
-            name = request.query["name"]
+            name = ntpath.basename(request.query["name"])
             assert name
         except (AssertionError, KeyError):
             return web.Response(
@@ -42,8 +40,11 @@ async def handler(request: Request) -> web.Response:
                     content_type="text/plain",
                 )
 
-            path = os.path.join(UPLOAD_DIR, name)
-            with open(path, "wb") as file:
+            path = UPLOAD_DIR / str(user.id)
+            path.mkdir(parents=True, exist_ok=True)
+
+            path /= name
+            with path.open("wb") as file:
                 reader = request.content
                 while data := await reader.read(1024):
                     file.write(data)

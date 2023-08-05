@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib
-import os
+from pathlib import Path
 from typing import Any, Callable, Tuple
 
 
@@ -10,9 +10,8 @@ __all__ = ("render",)
 
 
 install_lock = asyncio.Lock()
-WOWS_DIR = "wows-replay"
-if not os.path.isdir(WOWS_DIR):
-    os.mkdir(WOWS_DIR)
+WOWS_DIR = Path("wows-replay")
+WOWS_DIR.mkdir(exist_ok=True)
 
 
 async def install_minimap_renderer() -> None:
@@ -34,8 +33,8 @@ async def render(data: bytes, *, id: int, log_func: Callable[[str], Any]) -> Tup
             log_func("minimap_renderer installed!")
 
     name = f"replay-{id}"
-    input_path = os.path.join(WOWS_DIR, f"{name}.wowsreplay")
-    output_path = os.path.join(WOWS_DIR, f"{name}.mp4")
+    input_path = WOWS_DIR / f"{name}.wowsreplay"
+    output_path = WOWS_DIR / f"{name}.mp4"
     with open(input_path, "wb") as f:
         f.write(data)
 
