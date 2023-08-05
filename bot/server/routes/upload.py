@@ -27,13 +27,21 @@ async def handler(request: Request) -> web.Response:
     if user is not None and user.id in allowed_uploads:
         try:
             name = request.query["name"]
-        except KeyError:
+            assert name
+        except (AssertionError, KeyError):
             return web.Response(
                 text="Missing \"name\" query parameter",
                 status=400,
                 content_type="text/plain",
             )
         else:
+            if not request.body_exists:
+                return web.Response(
+                    text="No HTTP BODY",
+                    status=400,
+                    content_type="text/plain",
+                )
+
             path = os.path.join(UPLOAD_DIR, name)
             with open(path, "wb") as file:
                 reader = request.content
