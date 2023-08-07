@@ -95,7 +95,7 @@ class ImageSource:
         if cache.empty():
             asyncio.create_task(self.populate_cache(category, sfw=sfw))
 
-        return await cache.get()
+        return cache.get_nowait()
 
     async def populate_cache(self, category: str, *, sfw: bool = True) -> None:
         raise NotImplementedError
