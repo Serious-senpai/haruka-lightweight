@@ -9,6 +9,9 @@ from .sources import ImageSource
 from shared import SharedInterface
 
 
+__all__ = ("WaifuImSource",)
+
+
 class WaifuImSource(ImageSource):
 
     cache_lock: ClassVar[asyncio.Lock] = asyncio.Lock()
