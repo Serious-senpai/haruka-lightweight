@@ -6,7 +6,7 @@ import datetime
 import io
 import signal
 import sys
-from typing import Any, Callable, ClassVar, Coroutine, Dict, List, Optional, Set, Union, TYPE_CHECKING
+from typing import Any, Callable, ClassVar, Coroutine, Dict, List, Optional, Set, TypeVar, Union, TYPE_CHECKING
 
 import aiohttp
 import aioodbc
@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
 
 if TYPE_CHECKING:
+    T = TypeVar("T")
     P = ParamSpec("P")
     CommandCallback = Callable[Concatenate[commands.Context[Haruka], P], Coroutine]
     GroupCallback = Callable[Concatenate[commands.Context[Haruka], P], Coroutine]
@@ -200,6 +201,9 @@ class SharedInterface:
             elif transferable:
                 self.__transferable_commands.add(command)
 
+            if appender := getattr(func, "__appender__", None):
+                command.extras["appender"] = appender
+
             return command
 
         return decorator
@@ -232,6 +236,9 @@ class SharedInterface:
             elif transferable:
                 self.__transferable_commands.add(group)
 
+            if appender := getattr(func, "__appender__", None):
+                group.extras["appender"] = appender
+
             return group
 
         return decorator
@@ -252,6 +259,17 @@ class SharedInterface:
             )
             self.slash_commands.add(command)
             return command
+
+        return decorator
+
+    def append_description(self, appender: Callable[[], Coroutine[Any, Any, str]]) -> Callable[[T], T]:
+        def decorator(func: T) -> T:
+            if isinstance(func, commands.Command):
+                func.extras["appender"] = appender
+            else:
+                func.__appender__ = appender
+
+            return func
 
         return decorator
 
@@ -288,6 +306,11 @@ class SharedInterface:
             self.log(f"Started serving on port {PORT}")
 
             self.setup_signal_handler()
+
+        for command in self.commands:
+            if appender := command.extras.get("appender"):
+                description = command.description + "\n" + await appender()
+                command.description = command.__original_kwargs__["description"] = description  # Unstable!
 
         self.__ready.set()
 
