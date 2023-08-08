@@ -14,29 +14,26 @@ __all__ = ("WaifuImSource",)
 
 class WaifuImSource(ImageSource):
 
-    cache_lock: ClassVar[asyncio.Lock] = asyncio.Lock()
-    BASE_URL = URL.build(scheme="https", host="api.waifu.im")
+    __slots__ = ()
+    BASE_URL: ClassVar[URL] = URL.build(scheme="https", host="api.waifu.im")
 
-    async def populate_cache(self, category: str, *, sfw: bool = True) -> None:
-        cache = await self.obtain_cache(category, sfw=sfw)
-        async with self.cache_lock:
-            if cache.empty():
-                interface = SharedInterface()
+    async def populate_cache(self, cache: asyncio.Queue[str], *, category: str, sfw: bool = True) -> None:
+        interface = SharedInterface()
 
-                url = self.BASE_URL
-                url = url.with_path("/search")
-                url = url.with_query(
-                    {
-                        "included_tags": category,
-                        "is_nsfw": str(not sfw),
-                        "many": "true",
-                    },
-                )
+        url = self.BASE_URL
+        url = url.with_path("/search")
+        url = url.with_query(
+            {
+                "included_tags": category,
+                "is_nsfw": str(not sfw),
+                "many": "true",
+            },
+        )
 
-                async with interface.session.get(url) as response:
-                    data = await response.json(encoding="utf-8")
-                    for image in data["images"]:
-                        await cache.put(image["url"])
+        async with interface.session.get(url) as response:
+            data = await response.json(encoding="utf-8")
+            for image in data["images"]:
+                await cache.put(image["url"])
 
     async def populate_tags(self) -> None:
         interface = SharedInterface()

@@ -20,6 +20,7 @@ __all__ = (
 class ImageSource:
 
     __slots__ = (
+        "_cache_lock",
         "_ready",
         "_urls_queue",
         "nsfw",
@@ -27,6 +28,7 @@ class ImageSource:
     )
     __instance__: Optional[ImageSource] = None
     if TYPE_CHECKING:
+        _cache_lock: asyncio.Lock
         _ready: asyncio.Event
         _urls_queue: Dict[str, Tuple[asyncio.Queue[str], asyncio.Queue[str]]]
         nsfw: Tuple[str, ...]
@@ -35,6 +37,7 @@ class ImageSource:
     def __new__(cls) -> ImageSource:
         if cls.__instance__ is None:
             self = super().__new__(cls)
+            self._cache_lock = asyncio.Lock()
             self._ready = asyncio.Event()
             self._urls_queue = {}
             self.nsfw = ()
@@ -82,7 +85,7 @@ class ImageSource:
         if search[low] != category:
             raise CategoryNotFound(category, sfw=sfw)
 
-    async def obtain_cache(self, category: str, *, sfw: bool = True) -> asyncio.Queue[str]:
+    async def _obtain_cache(self, category: str, *, sfw: bool = True) -> asyncio.Queue[str]:
         await self.check_category(category, sfw=sfw)
         try:
             return self._urls_queue[category][sfw]
@@ -91,13 +94,18 @@ class ImageSource:
             return self._urls_queue[category][sfw]
 
     async def get_image(self, category: str, *, sfw: bool = True) -> str:
-        cache = await self.obtain_cache(category, sfw=sfw)
+        cache = await self._obtain_cache(category, sfw=sfw)
+
+        # Non-blocking when cache is not empty
         if cache.empty():
-            await self.populate_cache(category, sfw=sfw)
+            async with self._cache_lock:
+                # Check if cache is really empty at this time
+                if cache.empty():
+                    await self.populate_cache(cache, category=category, sfw=sfw)
 
         return await cache.get()
 
-    async def populate_cache(self, category: str, *, sfw: bool = True) -> None:
+    async def populate_cache(self, cache: asyncio.Queue[str], *, category: str, sfw: bool = True) -> None:
         raise NotImplementedError
 
     async def populate_tags(self) -> None:
