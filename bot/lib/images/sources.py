@@ -13,7 +13,7 @@ from utils import fuzzy_match
 __all__ = (
     "get_image",
     "list_categories",
-    "fuzzy_search",
+    "unknown_category_message",
 )
 
 
@@ -133,5 +133,10 @@ async def list_categories(*, sfw: bool) -> List[str]:
     return sorted(set(results))
 
 
-async def fuzzy_search(category: str, *, sfw: bool) -> str:
-    return await fuzzy_match(category, await list_categories(sfw=sfw))
+async def unknown_category_message(category: str, *, sfw: bool) -> str:
+    message = f"Unsupported category `{category}`. "
+    if len(category) < 300:
+        guess = await fuzzy_match(category, await list_categories(sfw=sfw))
+        message += f"Did you mean `{guess}`?"
+
+    return message
