@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from .errors import CategoryNotFound
 from shared import SharedInterface
-from utils import fuzzy_match
+from utils import fuzzy_match, slice_string
 
 
 __all__ = (
@@ -134,7 +134,7 @@ async def list_categories(*, sfw: bool) -> List[str]:
 
 
 async def unknown_category_message(category: str, *, sfw: bool) -> str:
-    message = f"Unsupported category `{category}`. "
+    message = f"Unsupported category `{slice_string(category, 800)}`. "
     if len(category) < 300:
         guess = await fuzzy_match(category, await list_categories(sfw=sfw))
         message += f"Did you mean `{guess}`?"

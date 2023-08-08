@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import datetime
 import time
 import traceback
 from types import TracebackType
@@ -83,8 +82,28 @@ async def get_custom_prefix(bot: Haruka, message: discord.Message) -> Optional[s
                 row = await cursor.fetchone()
                 return DEFAULT_COMMAND_PREFIX if row is None else row[0]
 
+    return None
+
 
 async def get_prefixes(bot: Haruka, message: discord.Message) -> List[str]:
+    """This function is a coroutine
+
+    Get all acceptable prefixes of the current invocation
+    context.
+
+    Parameters
+    -----
+    bot: ``Haruka``
+        The bot to handle the command
+    message: ``discord.Message``
+        The message to check for command prefix
+
+    Returns
+    -----
+    Optional[``str``]
+        The custom prefix of the current invocation context, will
+        be None if the database pool hasn't been initialized yet
+    """
     prefixes = []
     custom_prefix = await get_custom_prefix(bot, message)
     if custom_prefix is not None:
@@ -95,6 +114,25 @@ async def get_prefixes(bot: Haruka, message: discord.Message) -> List[str]:
 
 
 async def get_prefix(bot: Haruka, message: discord.Message) -> str:
+    """This function is a coroutine
+
+    Get a prefix of the current invocation context. Prioritize
+    the custom prefix over mention-as-prefix ones.
+
+    Parameters
+    -----
+    bot: ``Haruka``
+        The bot to handle the command
+    message: ``discord.Message``
+        The message to check for command prefix
+
+    Returns
+    -----
+    Optional[``str``]
+        The custom prefix of the current invocation context, will
+        be None if the database pool hasn't been initialized yet
+    """
+
     prefixes = await get_prefixes(bot, message)
     return prefixes[-1]
 
@@ -111,19 +149,35 @@ def format_permission_name(permission: str) -> str:
 
 
 class MaxRetryReached(Exception):
+    """Exception raised when running out of retries"""
 
     __slots__ = (
         "max_retry",
+        "original",
     )
     if TYPE_CHECKING:
         max_retry: int
+        original: Exception
 
-    def __init__(self, max_retry: int) -> None:
+    def __init__(self, max_retry: int, original: Exception) -> None:
         self.max_retry = max_retry
+        self.original = original
         super().__init__(f"Process failed after retrying {max_retry} times")
 
 
 def retry(max_retry: int, *, wait: float = 0.0) -> Callable[[Callable[P, Coroutine[Any, Any, T]]], Callable[P, Coroutine[Any, Any, T]]]:
+    """Decorator for an async function that allows retrying for a given
+    number of times.
+
+    When running out of retries, throw ``MaxRetryReached``.
+
+    Parameters
+    -----
+    max_retry: ``int``
+        The maximum number of times to retry
+    wait: ``float``
+        The duration (in seconds) to wait between 2 consecutive retries
+    """
     def decorator(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutine[Any, Any, T]]:
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             retry = max_retry
@@ -135,7 +189,7 @@ def retry(max_retry: int, *, wait: float = 0.0) -> Callable[[Callable[P, Corouti
                     if retry > 0:
                         await asyncio.sleep(wait)
                     else:
-                        raise MaxRetryReached(max_retry) from exc
+                        raise MaxRetryReached(max_retry, exc) from exc
 
         return wrapper
 
@@ -150,7 +204,7 @@ def slice_string(string: str, limit: int) -> str:
     if len(string) < limit:
         return string
 
-    return string[:limit] + " [...]"
+    return string[:limit] + "[...]"
 
 
 def format(time: float) -> str:
@@ -272,10 +326,3 @@ async def fuzzy_match(string: str, against: Iterable[str]) -> str:
 
 async def coro_func(value: T) -> T:
     return value
-
-
-EPOCH = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
-
-
-def from_unix_format(seconds: int) -> datetime.datetime:
-    return EPOCH + datetime.timedelta(seconds=seconds)
