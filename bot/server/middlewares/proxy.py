@@ -39,6 +39,9 @@ def forward_server_headers(source: CIMultiDictProxy[str]) -> Dict[str, str]:
     headers = {}
     for key, value in source.items():
         if key.casefold() not in excluded_server_headers:
+            if key.casefold() == "Set-Cookie".casefold():
+                value = re.sub(r"[Dd]omain=[^;]+;?", "", value)
+
             headers[key] = value
 
     return headers
