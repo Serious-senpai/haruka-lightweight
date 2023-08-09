@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @middleware_group
-async def error_handler(request: Request, handler: Handler) -> web.Response:
+async def handler(request: Request, handler: Handler) -> web.Response:
     try:
         return await handler(request)
     except web.HTTPException:
@@ -20,5 +20,5 @@ async def error_handler(request: Request, handler: Handler) -> web.Response:
         interface = request.app.interface
         error_message = utils.format_exception(e)
         interface.log(error_message)
-        await interface.client.report(f"An error has just occured while processing a server request.```\n{error_message}```", send_state=False)
+        await interface.client.report(f"An error has just occured while processing a server request.```\n{utils.slice_string(error_message, 1500)}```", send_state=False)
         raise web.HTTPInternalServerError
