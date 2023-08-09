@@ -77,6 +77,7 @@ class SharedInterface:
             self = super().__new__(cls)
             self.__parallel_commands = set()
             self.__pool = None
+            self.__proxy_session = None
             self.__ready = asyncio.Event()
             self.__session = None
             self.__transferable_commands = set()
