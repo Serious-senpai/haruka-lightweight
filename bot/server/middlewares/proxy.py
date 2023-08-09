@@ -22,13 +22,23 @@ data_sending_methods = {
     hdrs.METH_POST,
     hdrs.METH_PUT,
 }
-excluded_headers = set(s.casefold() for s in ["host"])
+excluded_client_headers = set(s.casefold() for s in ["Host"])
+excluded_server_headers = set(s.casefold() for s in ["Content-Encoding", "Content-Length", "Date", "Server", "Transfer-Encoding"])
 
 
 def forward_client_headers(source: CIMultiDictProxy[str]) -> Dict[str, str]:
     headers = {}
     for key, value in source.items():
-        if key.casefold() not in excluded_headers:
+        if key.casefold() not in excluded_client_headers:
+            headers[key] = value
+
+    return headers
+
+
+def forward_server_headers(source: CIMultiDictProxy[str]) -> Dict[str, str]:
+    headers = {}
+    for key, value in source.items():
+        if key.casefold() not in excluded_server_headers:
             headers[key] = value
 
     return headers
@@ -45,10 +55,11 @@ async def proxy_handler(host: str, *, original: Request) -> web.Response:
         headers=forward_client_headers(original.headers),
         data=original.content.iter_chunked(4096) if original.method in data_sending_methods else None,
     ) as response:
+        headers = forward_server_headers(response.headers)
         return web.Response(
             body=await response.read(),
             status=response.status,
-            content_type=response.content_type,
+            headers=headers,
         )
 
 
