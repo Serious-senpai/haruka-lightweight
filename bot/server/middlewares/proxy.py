@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import Dict, Pattern, Tuple, TYPE_CHECKING
 
+import aiohttp
 from aiohttp import hdrs, web
 from multidict import CIMultiDictProxy
 
@@ -50,20 +51,24 @@ def forward_server_headers(source: CIMultiDictProxy[str]) -> Dict[str, str]:
 @utils.retry(3, wait=0.2)
 async def proxy_handler(host: str, *, original: Request) -> web.Response:
     interface = original.app.interface
-    interface.log(f"Received proxy request to {host} (from {original.url})")
+    interface.log(f"Received proxy request to {host} from {original.url}, headers {original.headers}")
 
-    async with interface.proxy_session.request(
-        original.method,
-        original.url.with_host(host).with_port(None),
-        headers=forward_client_headers(original.headers),
-        data=original.content.iter_chunked(4096) if original.method in data_sending_methods else None,
-    ) as response:
-        headers = forward_server_headers(response.headers)
-        return web.Response(
-            body=await response.read(),
-            status=response.status,
-            headers=headers,
-        )
+    try:
+        async with interface.proxy_session.request(
+            original.method,
+            original.url.with_host(host).with_port(None),
+            headers=forward_client_headers(original.headers),
+            data=original.content.iter_chunked(4096) if original.method in data_sending_methods else None,
+        ) as response:
+            headers = forward_server_headers(response.headers)
+            return web.Response(
+                body=await response.read(),
+                status=response.status,
+                headers=headers,
+            )
+
+    except aiohttp.ServerConnectionError:
+        raise web.HTTPInternalServerError
 
 
 @middleware_group

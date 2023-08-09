@@ -18,7 +18,7 @@ async def handler(request: Request, handler: Handler) -> web.Response:
         raise
     except Exception as e:
         interface = request.app.interface
-        error_message = utils.format_exception(e)
+        error_message = utils.slice_string(utils.format_exception(e), 1500, reverse=True)
         interface.log(error_message)
-        await interface.client.report(f"An error has just occured while processing a server request.```\n{utils.slice_string(error_message, 1500)}```", send_state=False)
+        await interface.client.report(f"An error has just occured while processing a server request.```\n{error_message}```", send_state=False)
         raise web.HTTPInternalServerError

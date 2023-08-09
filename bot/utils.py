@@ -200,11 +200,11 @@ def format_exception(error: Exception) -> str:
     return "".join(traceback.format_exception(error.__class__, error, error.__traceback__))
 
 
-def slice_string(string: str, limit: int) -> str:
+def slice_string(string: str, limit: int, *, reverse: bool = False) -> str:
     if len(string) < limit:
         return string
 
-    return string[:limit] + "[...]"
+    return "[...]" + string[-limit:] if reverse else string[:limit] + "[...]"
 
 
 def format(time: float) -> str:
