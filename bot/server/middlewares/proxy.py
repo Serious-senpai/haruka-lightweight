@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import contextlib
 import re
 from typing import Dict, Pattern, Tuple, TYPE_CHECKING
 
@@ -40,7 +39,7 @@ async def proxy_handler(host: str, *, original: Request) -> web.Response:
     interface = original.app.interface
     interface.log(f"Received proxy request to {host} (from {original.url})")
 
-    async with interface.session.request(
+    async with interface.proxy_session.request(
         original.method,
         original.url.with_host(host).with_port(None),
         headers=forward_client_headers(original.headers),
@@ -59,9 +58,6 @@ async def handler(request: Request, handler: Handler) -> web.Response:
     for pattern in host_patterns:
         if match := pattern.fullmatch(host):
             real_host = match.group(1)
-            with contextlib.suppress(utils.MaxRetryReached):
-                return await proxy_handler(real_host, original=request)
-
-            raise web.HTTPInternalServerError
+            return await proxy_handler(real_host, original=request)
 
     return await handler(request)

@@ -39,6 +39,7 @@ class SharedInterface:
     __slots__ = (
         "__parallel_commands",
         "__pool",
+        "__proxy_session",
         "__ready",
         "__session",
         "__transferable_commands",
@@ -56,6 +57,7 @@ class SharedInterface:
     if TYPE_CHECKING:
         __parallel_commands: Set[commands.Command]
         __pool: Optional[Pool]
+        __proxy_session: Optional[aiohttp.ClientSession]
         __ready: asyncio.Event
         __session: Optional[aiohttp.ClientSession]
         __transferable_commands: Set[commands.Command]
@@ -109,6 +111,13 @@ class SharedInterface:
             )
 
         return self.__session
+
+    @property
+    def proxy_session(self) -> aiohttp.ClientSession:
+        if self.__proxy_session is None:
+            self.__proxy_session = aiohttp.ClientSession(cookie_jar=aiohttp.DummyCookieJar())
+
+        return self.__proxy_session
 
     @property
     def client(self) -> Optional[Haruka]:
@@ -345,6 +354,10 @@ class SharedInterface:
             if self.__session is not None:
                 await self.__session.close()
                 self.log("Closed HTTP session")
+
+            if self.__proxy_session is not None:
+                await self.__proxy_session.close()
+                self.log("Closed HTTP proxy session")
 
             if self.__pool is not None:
                 self.__pool.close()
