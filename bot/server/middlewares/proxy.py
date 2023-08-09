@@ -32,10 +32,12 @@ def forward_client_headers(source: CIMultiDictProxy[str]) -> Mapping[str, str]:
 
 @utils.retry(3, wait=0.2)
 async def proxy_handler(host: str, *, original: Request) -> web.Response:
-    session = original.app.interface.session
-    async with session.request(
+    interface = original.app.interface
+    interface.log(f"Responding to proxy request to {host} (from {original.url})")
+
+    async with interface.session.request(
         original.method,
-        original.url.with_host(host).with_port(None),
+        original.url.with_host(host),
         headers=forward_client_headers(original.headers),
         data=original.content.iter_chunked(4096),
     ) as response:
