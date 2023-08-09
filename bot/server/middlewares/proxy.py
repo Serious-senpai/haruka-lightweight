@@ -7,7 +7,6 @@ import aiohttp
 from aiohttp import hdrs, web
 from multidict import CIMultiDictProxy
 
-import utils
 from ..middleware_group import middleware_group
 if TYPE_CHECKING:
     from ..customs import Handler, Request
@@ -48,18 +47,17 @@ def forward_server_headers(source: CIMultiDictProxy[str]) -> Dict[str, str]:
     return headers
 
 
-@utils.retry(3, wait=0.2)
 async def proxy_handler(host: str, *, original: Request) -> web.Response:
+    method = original.method
+    url = original.url.with_host(host).with_port(None)
+    headers = forward_client_headers(original.headers)
+    data = original.content.iter_chunked(4096) if original.method in data_sending_methods else None  # Use once, no retrying
+
     interface = original.app.interface
-    interface.log(f"Received proxy request to {host} from {original.url}, headers {original.headers}")
+    interface.log(f"Received proxy request: {method} {url} from \"{original.url}\", headers {headers}")
 
     try:
-        async with interface.proxy_session.request(
-            original.method,
-            original.url.with_host(host).with_port(None),
-            headers=forward_client_headers(original.headers),
-            data=original.content.iter_chunked(4096) if original.method in data_sending_methods else None,
-        ) as response:
+        async with interface.proxy_session.request(method, url, headers=headers, data=data) as response:
             headers = forward_server_headers(response.headers)
             return web.Response(
                 body=await response.read(),
