@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "startup.sh started"
-python3 -m http.server $PORT &
+python3 -m http.server --directory startup_web $PORT &
 pid=$!
 echo "Started dummy HTTP server with process $pid"
 
