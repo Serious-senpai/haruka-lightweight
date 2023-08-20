@@ -52,5 +52,5 @@ jobs:
     - name: Upload compiled Javascript file
       uses: actions/upload-artifact@v3
       with:
-        name: haruka-build
+        name: typescript-built
         path: bot/web/scripts/script.js
