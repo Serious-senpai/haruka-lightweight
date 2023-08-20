@@ -44,3 +44,13 @@ jobs:
     - name: Check packages compatibility
       working-directory: bot/web
       run: npm install
+
+    - name: Compile Typescript
+      working-directory: bot/web/scripts
+      run: tsc
+
+    - name: Upload compiled Javascript file
+      uses: actions/upload-artifact@v3
+      with:
+        name: haruka-build
+        path: bot/web/scripts/script.js
