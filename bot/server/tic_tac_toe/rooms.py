@@ -2,257 +2,268 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import secrets
-from typing import Any, Coroutine, Dict, List, Literal, Optional, Set, Tuple, TYPE_CHECKING, cast
+from typing import Any, Dict, List, Literal, Optional, Set, TYPE_CHECKING
 
 from aiohttp import web
 
-from .errors import AlreadyEnded, AlreadyStarted, InvalidTurn, NotEnoughPlayer, NotStarted
+from .errors import (
+    AlreadyEnded,
+    AlreadyStarted,
+    InvalidMove,
+    InvalidTurn,
+    MissingPermission,
+    NotEnoughPlayer,
+    NotStarted,
+)
 from .players import Player
-from .state import CoordinateT, State
-from ..web_utils import Serializable, json_encode
+from .utils import data_message
+from ..web_utils import json_encode
 
 
-class RoomsManager:
-
-    __slots__ = (
-        "__listeners",
-        "__notify_lock",
-        "__notify_semaphore",
-        "__rooms",
-    )
-    if TYPE_CHECKING:
-        __listeners: Set[web.WebSocketResponse]
-        __notify_lock: asyncio.Lock
-        __notify_semaphore: asyncio.Semaphore
-        __rooms: Dict[str, Room]
-
-    def __init__(self) -> None:
-        self.__listeners = set()
-        self.__notify_lock = asyncio.Lock()
-        self.__notify_semaphore = asyncio.Semaphore(2)
-        self.__rooms = {}
-
-    def add(self, room: Room, /) -> Coroutine[Any, Any, None]:
-        self.__rooms[room.id] = room
-        return self.notify_all()
-
-    def remove(self, room: Room, /) -> Coroutine[Any, Any, None]:
-        assert room == self.__rooms.pop(room.id)
-        return self.notify_all()
-
-    def get(self, room_id: str, /) -> Optional[Room]:
-        return self.__rooms.get(room_id)
-
-    def add_listener(self, websocket: web.WebSocketResponse, /) -> None:
-        self.__listeners.add(websocket)
-
-    def remove_listener(self, websocket: web.WebSocketResponse, /) -> None:
-        self.__listeners.remove(websocket)
-
-    async def notify_all(self) -> None:
-        if self.__notify_semaphore.locked():
-            return
-
-        async with self.__notify_semaphore:
-            async with self.__notify_lock:
-                await asyncio.gather(*[self.notify(websocket) for websocket in self.__listeners])
-
-            await asyncio.sleep(2)
-
-    async def notify(self, websocket: web.WebSocketResponse, /) -> None:
-        with contextlib.suppress(ConnectionError):
-            await websocket.send_json([json_encode(room) for room in self.__rooms.values()])
-
-    def __contains__(self, room_id: str, /) -> bool:
-        return self.__rooms.__contains__(room_id)
+__all__ = (
+    "Room",
+)
 
 
-class Room(Serializable):
+BOARD_SIZE = 15
+
+
+class Room:
+    """Represents a tic-tac-toe room"""
 
     __slots__ = (
-        "__id",
-        "__listeners",
-        "__logs",
-        "__players",
-        "__removed",
-        "__state",
+        "_host",
+        "_id",
+        "_logs",
+        "_other",
+        "_spectators",
+
+        # Game state controllers
+        "_board",
+        "_end",
+        "_is_host_turn",
+        "_started",
     )
-    rooms: RoomsManager = RoomsManager()
     if TYPE_CHECKING:
-        __id: str
-        __listeners: Set[web.WebSocketResponse]
-        __logs: List[str]
-        __players: Tuple[Player, Optional[Player]]
-        __removed: bool
-        __state: Optional[State]
+        _host: Player
+        _id: str
+        _logs: List[str]
+        _other: Optional[Player]
+        _spectators: Set[Player]
 
-    def __init__(self, *, host: Player) -> None:
-        self.__id = secrets.token_urlsafe(8)
-        while self.__id in self.rooms:
-            self.__id = secrets.token_urlsafe(8)
+        # Game state controllers
+        _board: List[List[Optional[int]]]
+        _end: asyncio.Event
+        _is_host_turn: bool
+        _started: bool
 
-        asyncio.create_task(self.rooms.add(self))
+    def __init__(self, *, id: str, host: Player) -> None:
+        assert host.user is not None
 
-        self.__listeners = {host.websocket}
-        self.__logs = [f"Room hosted by {host.user}"]
-        self.__players = (host, None)
-        self.__removed = False
-        self.__state = None
+        self._host = host
+        self._id = id
+        self._logs = [f"{host.user} hosted room {id}"]
+        self._other = None
+        self._spectators = set()
 
-    @property
-    def id(self) -> str:
-        return self.__id
+        self._board = [[None] * BOARD_SIZE for _ in range(BOARD_SIZE)]
+        self._end = asyncio.Event()
+        self._is_host_turn = True
+        self._started = False
 
-    @property
-    def host(self) -> Player:
-        return self.__players[0]
-
-    @property
-    def players(self) -> Tuple[Player, Optional[Player]]:
-        return self.__players
-
-    @property
-    def winner(self) -> Optional[Literal[0, 1]]:
-        if self.__state is not None:
-            return self.__state.winner
-
-    def chat(self, player: Optional[Player], content: str, /) -> Coroutine[Any, Any, None]:
-        user_display = str(player.user) if player is not None else "Anonymous"
-        return self.log(f"[{user_display}]: {content}")
-
-    async def log(self, content: str, /) -> None:
-        self.__logs.append(content)
-        await self.__notify_all()
+    # State broadcasting control
 
     def to_json(self) -> Dict[str, Any]:
         return {
-            "id": self.id,
-            "logs": self.__logs,
-            "players": json_encode(self.players),
-            "state": json_encode(self.__state),
+            "id": self._id,
+            "logs": self._logs,
+            "players": json_encode([self._host, self._other]),
+            "board": json_encode(self._board),
+            "turn": 1 - self._is_host_turn,
+            "started": self._started,
         }
 
-    def add_listener(self, websocket: web.WebSocketResponse) -> None:
-        self.__listeners.add(websocket)
+    async def wait_until_ended(self) -> None:
+        await self._end.wait()
 
-    def remove_listener(self, websocket: web.WebSocketResponse) -> None:
-        self.__listeners.remove(websocket)
+    async def notify_all(self) -> None:
+        data = self.to_json()
+        futures = [self.notify(player.websocket, data=data) for player in self._spectators]
+        futures.append(self.notify(self._host.websocket, data=data))
+        if self._other is not None:
+            futures.append(self.notify(self._other.websocket, data=data))
 
-    def is_full(self) -> bool:
-        return self.__players[1] is not None
+        await asyncio.wait(futures)
 
-    def index(self, player: Optional[Player], /) -> Optional[Literal[0, 1]]:
-        if player is None:
-            return None
+    async def notify(self, websocket: web.WebSocketResponse, *, data: Any = None) -> None:
+        if data is None:
+            data = self.to_json()
 
-        for index in range(2):
-            if player == self.__players[index]:
-                return cast(Literal[0, 1], index)
+        with contextlib.suppress(ConnectionError):
+            await websocket.send_json(data_message(data))
 
-    async def try_join(self, player: Player) -> None:
-        if self.is_full():
-            return
-
-        self.__players = (self.host, player)
-        self.add_listener(player.websocket)
-        await self.log(f"{player.user} joined the game")
-
-    async def leave(self, player: Optional[Player], /) -> None:
-        player_index = self.index(player)
-        if player_index is None or self.__players[player_index] is None:
-            return
-
-        assert isinstance(player, Player)
-        await self.log(f"{player.user} left the game")
-        if self.__state is not None:
-            assert (self.__state.started)
-            self.__state.end(cast(Literal[0, 1], 1 - player_index))
-
-        elif player_index == 0:
-            self.__players = (self.__players[1], None)
-
-        elif player_index == 1:
-            self.__players = (self.__players[0], None)
+    async def try_join(self, player: Player, /) -> bool:
+        if self._other is None and player.user is not None:
+            self._logs.append(f"{player.user} joined the game")
+            self._other = player
+            await self.notify_all()
+            return True
 
         else:
-            raise ValueError(f"Invalid player index {player_index}")
+            self._spectators.add(player)
+            await self.notify(player.websocket)
+            return False
 
-        if self.__players[0] is None:
-            # Mustn't send state to avoid client-side errors
-            await self.remove()
-        else:
-            await self.__notify_all()
+    async def leave(self, player: Player, /) -> None:
+        if player == self._host:
+            self._logs.append(f"{player.user} left the game")
+            if self._started:
+                await self.end(host_win=False, reason=f"{player.user} left the game")
+            elif self._other is None:
+                self._end.set()
+            else:
+                self._host, self._other = self._other, None
+                await self.notify_all()
 
-    async def remove(self) -> None:
-        if not self.__removed:
-            self.__removed = True
-            await self.rooms.remove(self)
-            self.__listeners.clear()
+        elif player == self._other:
+            self._logs.append(f"{player.user} left the game")
+            if self._started:
+                await self.end(host_win=True, reason=f"{player.user} left the game")
+            else:
+                self._other = None
+                await self.notify_all()
 
-    async def start(self) -> None:
-        if self.__state is not None:
-            assert (self.__state.started)
+    async def chat(self, player: Player, content: str) -> None:
+        prefix = f"[{player.user}]"
+        if player not in (self._host, self._other):
+            # is spectator
+            prefix += " (spectator)"
+
+        self._logs.append(f"{prefix}: {content}")
+        await self.notify_all()
+
+    async def start(self, *, player: Player) -> None:
+        if self._started:
             raise AlreadyStarted
 
-        if not self.is_full():
+        if player != self._host:
+            raise MissingPermission
+
+        if self._other is None:
             raise NotEnoughPlayer
 
-        state = self.__state = State(room=self)
-        await state.start()
+        self._started = True
+        await self.notify_all()
 
-        async def wait_until_ended() -> None:
-            await state.wait_until_ended()
-            await self.remove()
+    async def end(self, *, host_win: bool, reason: str) -> None:
+        if host_win:
+            self._logs.append(f"{self._host.user} won: {reason}")
+        else:
+            self._logs.append(f"{self._other.user} won: {reason}")
 
-        asyncio.create_task(wait_until_ended())
-        await self.__notify_all()
+        self._end.set()
+        await self.notify_all()
 
-    async def move(
-        self,
-        player: Literal[0, 1],
-        row: CoordinateT,
-        column: CoordinateT,
-    ) -> None:
-        if self.__state is None:
+    # Game state control
+
+    @property
+    def ended(self) -> bool:
+        return self._end.is_set()
+
+    def _check_vertical(self, *, column: int, expect: Literal[0, 1]) -> bool:
+        consecutive = 0
+        board = self._board
+        for row in range(BOARD_SIZE):
+            if board[row][column] == expect:
+                consecutive += 1
+                if consecutive == 5:
+                    return True
+
+            else:
+                consecutive = 0
+
+        return False
+
+    def _check_horizontal(self, *, row: int, expect: Literal[0, 1]) -> bool:
+        consecutive = 0
+        r = self._board[row]
+        for column in range(BOARD_SIZE):
+            if r[column] == expect:
+                consecutive += 1
+                if consecutive == 5:
+                    return True
+
+            else:
+                consecutive = 0
+
+        return False
+
+    def _check_diagonal(self, *, row: int, column: int, expect: Literal[0, 1]) -> bool:
+        shift = min(row, column)
+        row -= shift
+        column -= shift
+
+        consecutive = 0
+        board = self._board
+        while row < BOARD_SIZE and column < BOARD_SIZE:
+            if board[row][column] == expect:
+                consecutive += 1
+                if consecutive == 5:
+                    return True
+
+            else:
+                consecutive = 0
+
+            row += 1
+            column += 1
+
+        return False
+
+    def _check_antidiagonal(self, *, row: int, column: int, expect: Literal[0, 1]) -> bool:
+        sum = row + column
+
+        consecutive = 0
+        board = self._board
+
+        for row in range(max(0, sum - BOARD_SIZE + 1), min(sum + 1, BOARD_SIZE)):
+            column = sum - row
+            if board[row][column] == expect:
+                consecutive += 1
+                if consecutive == 5:
+                    return True
+
+            else:
+                consecutive = 0
+
+        return False
+
+    async def move(self, row: int, column: int, *, player: Player) -> None:
+        if not self._started:
             raise NotStarted
 
-        if self.__state.ended:
+        if self.ended:
             raise AlreadyEnded
 
-        if player == self.__state.player_turn:
-            ended = self.__state.move(row, column)
-            await self.__notify_all()
+        valid = 0
+        for value in range(BOARD_SIZE):
+            valid += (value == row) + (value == column)
 
-            if ended:
-                winner = self.__state.winner
-                if winner is None:
-                    await self.log("Game draw!")
-                else:
-                    await self.log(f"{self.players[winner].user} won!")
+        if valid < 2:
+            raise InvalidMove
 
-                await self.remove()
-                for websocket in self.__listeners:
-                    with contextlib.suppress(ConnectionError):
-                        await websocket.close()
+        if (player == self._host and self._is_host_turn) or (player == self._other and not self._is_host_turn):
+            self._board[row][column] = index = 1 - self._is_host_turn
+            if any(
+                [
+                    self._check_vertical(column=column, expect=index),
+                    self._check_horizontal(row=row, expect=index),
+                    self._check_diagonal(row=row, column=column, expect=index),
+                    self._check_antidiagonal(row=row, column=column, expect=index),
+                ],
+            ):
+                await self.end(host_win=self._is_host_turn, reason="Got 5 marks in a row")
+
+            self._is_host_turn = not self._is_host_turn
+
         else:
-            raise InvalidTurn
-
-    async def __notify_all(self) -> None:
-        if not self.__removed:
-            futures = [self.notify(websocket) for websocket in self.__listeners]
-            futures.append(self.rooms.notify_all())
-            await asyncio.gather(*futures)
-
-    async def notify(self, websocket: web.WebSocketResponse) -> None:
-        with contextlib.suppress(ConnectionError):
-            await websocket.send_json(
-                {
-                    "error": False,
-                    "data": json_encode(self),
-                }
-            )
-
-    @classmethod
-    def from_id(cls, id: str) -> Optional[Room]:
-        return cls.rooms.get(id)
+            raise InvalidTurn(is_spectator=player not in (self._host, self._other))

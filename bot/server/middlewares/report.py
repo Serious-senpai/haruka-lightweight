@@ -5,12 +5,12 @@ from typing import TYPE_CHECKING
 from aiohttp import web
 
 import utils
-from ..middleware_group import middleware_group
+from ..middleware_group import MiddlewareGroup
 if TYPE_CHECKING:
     from ..customs import Handler, Request
 
 
-@middleware_group
+@MiddlewareGroup.middleware
 async def handler(request: Request, handler: Handler) -> web.Response:
     try:
         return await handler(request)

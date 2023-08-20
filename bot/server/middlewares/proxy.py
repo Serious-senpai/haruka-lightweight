@@ -7,7 +7,7 @@ import aiohttp
 from aiohttp import hdrs, web
 from multidict import CIMultiDictProxy
 
-from ..middleware_group import middleware_group
+from ..middleware_group import MiddlewareGroup
 if TYPE_CHECKING:
     from ..customs import Handler, Request
 
@@ -69,7 +69,7 @@ async def proxy_handler(host: str, *, original: Request) -> web.Response:
         raise web.HTTPInternalServerError
 
 
-@middleware_group
+@MiddlewareGroup.middleware
 async def handler(request: Request, handler: Handler) -> web.Response:
     host = request.host.split(":")[0]
     for pattern in host_patterns:

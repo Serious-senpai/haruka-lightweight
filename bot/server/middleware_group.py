@@ -35,5 +35,6 @@ class MiddlewareGroup:
         self._middlewares.add(middleware)
         return middleware
 
-
-middleware_group = MiddlewareGroup()
+    @classmethod
+    def middleware(cls, func: MiddlewareFunc, /) -> MiddlewareFunc:
+        return cls()(func)

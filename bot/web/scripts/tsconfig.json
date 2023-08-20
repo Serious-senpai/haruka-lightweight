@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "outFile": "script.js",
+        "sourceMap": true,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": true,
+        "target": "es6"
+    }
+}

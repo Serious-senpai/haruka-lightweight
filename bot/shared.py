@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 from customs import Context, Pool
 from environment import LOG_PATH, ODBC_CONNECTION_STRING, PORT
-from server import WebApp
+from server import MainApp
 if TYPE_CHECKING:
     from haruka import Haruka
 
@@ -61,7 +61,7 @@ class SharedInterface:
         __ready: asyncio.Event
         __session: Optional[aiohttp.ClientSession]
         __transferable_commands: Set[commands.Command]
-        __webapp: Optional[WebApp]
+        __webapp: Optional[MainApp]
         _closed: bool
         _started: bool
         _transfer_exclusion: Dict[int, Set[Haruka]]
@@ -307,7 +307,7 @@ class SharedInterface:
             self.log("Initialized database")
 
         if self.__webapp is None:
-            self.__webapp = webapp = WebApp(interface=self)
+            self.__webapp = webapp = MainApp(interface=self)
             runner = web.AppRunner(webapp)
             await runner.setup()
             site = web.TCPSite(runner, port=PORT)
