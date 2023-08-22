@@ -22,7 +22,7 @@ data_sending_methods = {
     hdrs.METH_POST,
     hdrs.METH_PUT,
 }
-excluded_client_headers = set(s.casefold() for s in ["Host"])
+excluded_client_headers = set(s.casefold() for s in ["Host", "Origin", "Referer"])
 excluded_server_headers = set(s.casefold() for s in ["Content-Encoding", "Content-Length", "Date", "Server", "Transfer-Encoding"])
 
 

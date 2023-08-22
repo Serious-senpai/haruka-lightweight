@@ -58,6 +58,22 @@ div#page-view div#main-content div#commands {
     width: 100%;
 }
 
+div#page-view div#main-content input#proxy-url-input {
+    height: 16px;
+    width: 50%;
+}
+
+div#page-view div#main-content div#preview-container {
+    height: 50%;
+    margin: 10px;
+    width: 50%;
+}
+
+div#page-view div#main-content div#preview-container iframe {
+    height: 100%;
+    width: 100%;
+}
+
 h1#header {
     box-sizing: border-box;
     color: aqua;

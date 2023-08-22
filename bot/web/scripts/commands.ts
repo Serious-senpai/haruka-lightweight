@@ -151,4 +151,4 @@ function updateCommands(): void {
 
 client.authorization.onLogin(() => updateCommands());
 Router.navigator.onNavigate(() => updateCommands());
-updateCommands();
+$(() => updateCommands());
