@@ -39,7 +39,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: latest
+        node-version: "20.5.1"
 
     - name: Check packages compatibility
       working-directory: bot/web

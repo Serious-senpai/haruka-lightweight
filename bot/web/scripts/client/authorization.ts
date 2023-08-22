@@ -1,5 +1,5 @@
-/// <reference path="../router.ts" />
 /// <reference path="../discord/users.ts" />
+/// <reference path="../synchronized/events.ts" />
 
 
 namespace client {
@@ -15,8 +15,21 @@ namespace client {
         private $_loginModal: JQuery<HTMLElement> | null = null;
         private $_loginKeyInput: JQuery<HTMLElement> | null = null;
 
+        private readonly navigatorBarLoaded: synchronized.Event = new synchronized.Event();
+
         public constructor() {
-            Router.navigator.waitForNavigatorBar().then(
+            $(
+                () => {
+                    $.get("/commons.html")
+                        .done(
+                            (e) => {
+                                $("body").prepend(e);
+                                this.navigatorBarLoaded.set();
+                            }
+                        );
+                },
+            );
+            this.waitForNavigatorBar().then(
                 () => {
                     /* Login using token from localStorage */
                     const token = window.localStorage[Authorization.LOCAL_STORAGE_TOKEN_KEY];
@@ -48,8 +61,13 @@ namespace client {
                         }
                     });
 
+                    this.$loginModal.find(".close-button").on("click", () => this.$loginModal.show());
                 }
             );
+        }
+
+        public waitForNavigatorBar(): Promise<void> {
+            return this.navigatorBarLoaded.wait();
         }
 
         private get $accountZone(): JQuery<HTMLElement> {
@@ -93,15 +111,7 @@ namespace client {
             this._callbacks.add(callback);
         }
 
-        public $hideModal(): JQuery<HTMLElement> {
-            return this.$loginModal.hide();
-        }
-
-        public $showModal(): JQuery<HTMLElement> {
-            return this.$loginModal.show();
-        }
-
-        public update(user: discord.User | null, token: string | null): void {
+        private update(user: discord.User | null, token: string | null): void {
             this._user = user;
             this._token = window.localStorage[Authorization.LOCAL_STORAGE_TOKEN_KEY] = token;
 
@@ -127,10 +137,11 @@ namespace client {
             }
 
             this._callbacks.forEach((func) => func(user));
+            console.log(`User updated to ${user}`);
         }
 
         private login(): void {
-            this.$showModal();
+            this.$loginModal.show();
         }
 
         private logout(): void {
@@ -140,7 +151,7 @@ namespace client {
         public submitKey(): void {
             const key = this.$loginKeyInput.val() as string;
             this.$loginKeyInput.val("");
-            this.$hideModal();
+            this.$loginModal.hide();
 
             this.$accountZone.empty();
             this.$accountZone.append(

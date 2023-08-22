@@ -1,0 +1,66 @@
+/* https://www.w3schools.com/howto/howto_css_loader.asp */
+div.circular-progress-indicator {
+    animation: spin 1s linear infinite;
+    border-color: yellow;
+    border-top-color: red;
+    border-radius: 50%;
+    border-style: solid;
+    height: 16px;
+    width: 16px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+div.modal {
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    height: 100vh;
+    position: fixed;
+    width: 100vw;
+    z-index: 200;
+}
+
+div.modal div.container {
+    background-color: black;
+    border: 1px;
+    border-radius: 15px;
+    border-style: solid;
+    box-sizing: border-box;
+    height: 80vh;
+    margin-bottom: 10vh;
+    margin-left: 10vw;
+    margin-right: 10vw;
+    margin-top: 10vh;
+    overflow: auto;
+    padding: 50px;
+    padding-top: 0;
+    position: relative;
+    width: 80vw;
+}
+
+div.modal .constrained {
+    max-width: 100%;
+}
+
+div.modal .close-button {
+    color: red;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}
+
+div.cosplay-a {
+    cursor: default;
+}
+
+div.cosplay-a:hover {
+    cursor: pointer;
+}

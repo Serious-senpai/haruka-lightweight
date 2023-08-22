@@ -1,0 +1,80 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    color: yellow;
+    text-decoration: none;
+}
+
+img.centered {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+div#page-view {
+    height: 100vh;
+    position: fixed;
+    width: 100vw;
+}
+
+div#page-view div#main-content {
+    height: 100%;
+    left: 70px;
+    position: fixed;
+    width: calc(100% - 70px);
+}
+
+div#page-view div#main-content div#features {
+    display: block;
+    height: 90%;
+    overflow-y: scroll;
+    position: relative;
+    width: 100%;
+}
+
+div#page-view div#main-content div#features .feature-display {
+    border-radius: 5px;
+    border-style: solid;
+    box-sizing: border-box;
+    float: left;
+    height: 200px;
+    margin: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    position: relative;
+    width: 30%;
+}
+
+div#page-view div#main-content div#commands {
+    display: block;
+    height: 90%;
+    overflow-y: scroll;
+    position: relative;
+    width: 100%;
+}
+
+h1#header {
+    box-sizing: border-box;
+    color: aqua;
+    height: 10%;
+    margin: 0;
+    padding-left: 10px;
+    padding-top: 10px;
+    width: 100%;
+}
+
+/* https://www.w3schools.com/howto/howto_css_login_form.asp */
+div#login-modal .container {
+    color: yellow;
+}
+
+div#login-modal .container #login-key-zone * {
+    float: left;
+    margin-left: 2px;
+    margin-right: 2px;
+}

@@ -4,15 +4,15 @@
 
 
 function updateCommands(): void {
-    const $container = $("div #commands");
-    const $hiddenModals = $("div#hidden-modals");
+    const $container = $("div#commands");
     if ($container.length > 0) {
+        const $hiddenModals = $("div#hidden-modals");
         discord.Command.updateCommands(
             (commands) => {
                 if ($container.length > 0) {
                     const categoryToCommands: Map<string, Array<discord.Command>> = new Map<string, Array<discord.Command>>();
                     for (var command of commands) {
-                        let array = categoryToCommands.get(command.category);
+                        var array = categoryToCommands.get(command.category);
                         if (array === undefined) {
                             array = new Array<discord.Command>();
                             categoryToCommands.set(command.category, array);
@@ -22,7 +22,6 @@ function updateCommands(): void {
                     }
 
                     $container.empty();
-
                     $hiddenModals.empty();
                     categoryToCommands.forEach(
                         (commands, category) => {
@@ -92,8 +91,7 @@ function updateCommands(): void {
                                 $(
                                     "<div>",
                                     {
-                                        "class": "cosplay-a",
-                                        "id": "close-button",
+                                        "class": "close-button cosplay-a",
                                     },
                                 ).append(
                                     $("<span>", { "class": "material-icons" }).text("close"),
@@ -140,6 +138,7 @@ function updateCommands(): void {
                                     () => $modal.show(),
                                 ),
                             );
+
                             $hiddenModals.append($modal);
                         },
                     );
@@ -150,6 +149,6 @@ function updateCommands(): void {
 }
 
 
-client.authorization.onLogin((_) => updateCommands());
+client.authorization.onLogin(() => updateCommands());
 Router.navigator.onNavigate(() => updateCommands());
 updateCommands();

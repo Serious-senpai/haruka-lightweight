@@ -19,6 +19,11 @@ async def handler(request: Request) -> web.Response:
     raise web.HTTPFound("/commands/index.html")
 
 
+@router.get("/proxy")
+async def handler(request: Request) -> web.Response:
+    raise web.HTTPFound("/proxy/index.html")
+
+
 @router.get("/favicon.ico")
 @router.get("/favicon.png")
 async def handler(request: Request) -> web.Response:

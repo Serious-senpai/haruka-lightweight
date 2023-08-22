@@ -1,27 +1,15 @@
-/// <reference path="synchronized/events.ts" />
+/// <reference path="client/http.ts" />
 
 
 namespace Router {
     class Navigator {
         private readonly navigateCallbacks: Set<() => void> = new Set<() => void>();
-        private readonly navigatorBarLoaded: synchronized.Event = new synchronized.Event();
         private readonly trailingSlash: RegExp = new RegExp(/^\/*/);
 
         private currentPath: string = location.pathname;
 
         public constructor() {
-            $(
-                () => {
-                    this.initializePage();
-                    $.get("/commons.html")
-                        .done(
-                            (e) => {
-                                $("body").prepend(e);
-                                this.navigatorBarLoaded.set();
-                            }
-                        );
-                },
-            );
+            $(() => this.initializePage());
 
             this.onNavigate(() => this.initializePage());
             addEventListener("popstate", () => this.navigate(location.pathname, false));
@@ -33,11 +21,8 @@ namespace Router {
                 document.title = header.text();
             }
 
-            $(".navigate-commands").on("click", () => this.navigate("commands", true));
-        }
-
-        public waitForNavigatorBar(): Promise<void> {
-            return this.navigatorBarLoaded.wait();
+            $(".navigate-commands").off().on("click", () => this.navigate("commands", true));
+            $(".navigate-proxy").off().on("click", () => this.navigate("proxy", true));
         }
 
         public onNavigate(callback: () => void): void {
@@ -50,9 +35,9 @@ namespace Router {
             console.log(`Navigating from ${this.currentPath} to /${target}`);
             if (this.currentPath != target) {
                 this.currentPath = "/" + target;
-                const main = $("#main-content");
-                main.empty();
-                main.append(
+                const $page = $("#page-view");
+                $page.empty();
+                $page.append(
                     $(
                         "<div>",
                         {
@@ -61,16 +46,19 @@ namespace Router {
                         },
                     ),
                 );
-                main.load(
-                    `/${target} #main-content`,
-                    () => {
-                        console.log(`Pushing /${target}`);
+
+                client.http.get(`/${target}`).done(
+                    (html: string) => {
+                        const $dummy = $("<div>");
+                        $dummy.html(html);
+                        $page.html($dummy.find("div#page-view").html());
+
                         if (pushState) {
                             window.history.pushState(null, "", `/${target}`);
                         }
 
                         this.navigateCallbacks.forEach((func) => func());
-                    },
+                    }
                 );
             }
         }
@@ -78,5 +66,3 @@ namespace Router {
 
     export const navigator: Navigator = new Navigator();
 }
-
-

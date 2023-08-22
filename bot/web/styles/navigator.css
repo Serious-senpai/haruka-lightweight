@@ -1,5 +1,4 @@
 /* Known issues at https://github.com/microsoft/vscode/issues/170589 */
-
 div#navigator-bar {
     background-color: black;
     border-bottom-right-radius: 16px;
@@ -11,60 +10,58 @@ div#navigator-bar {
     height: 95%;
     padding: 5px;
     position: fixed;
+    width: 50px;
     text-decoration: none;
     top: 0;
     transition-duration: 500ms;
     z-index: 100;
+}
 
-    #account-zone {
-        bottom: 0;
-        position: absolute;
+div#navigator-bar #account-zone {
+    bottom: 0;
+    position: absolute;
+}
 
-        #account-display {
-            align-items: center;
-            display: inline-flex;
+div#navigator-bar #account-zone #account-display {
+    align-items: center;
+    display: inline-flex;
+}
 
-            #account-avatar {
-                height: 24px;
-                width: 24px;
-            }
-        }
-    }
+div#navigator-bar #account-zone #account-display #account-avatar {
+    height: 24px;
+    width: 24px;
+}
 
-    .change-bg-on-hover:hover {
-        background-color: gray;
-    }
+div#navigator-bar .change-bg-on-hover:hover {
+    background-color: gray;
+}
 
-    .inline-icon {
-        border-radius: 50%;
-        display: inline-block;
-        font-size: 16px;
-        height: 16px;
-        margin-right: 3px;
-        width: 16px;
-    }
+div#navigator-bar .inline-icon {
+    border-radius: 50%;
+    display: inline-block;
+    font-size: 16px;
+    height: 16px;
+    margin-right: 3px;
+    width: 16px;
+}
 
-    /* Transitions */
-    width: 50px;
-
-    .navigator-item {
-        display: block;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        margin-top: 10px;
-        padding: 5px;
-        width: 30px;
-        transition-duration: 500ms;
-    }
+div#navigator-bar .navigator-item {
+    display: block;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    padding: 5px;
+    width: 30px;
+    transition-duration: 500ms;
 }
 
 div#navigator-bar:hover {
     width: 200px;
+}
 
-    .navigator-item {
-        width: 170px;
-        transition-duration: 500ms;
-    }
+div#navigator-bar:hover .navigator-item {
+    width: 170px;
+    transition-duration: 500ms;
 }
 
 div#navigator-bar .hide-when-collapsed {
