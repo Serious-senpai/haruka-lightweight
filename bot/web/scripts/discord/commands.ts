@@ -3,7 +3,6 @@
 
 namespace discord {
     export class Command {
-        public static readonly commands: Array<Command> = [];
         private static readonly categoryParser: RegExp = new RegExp(/(.+?)\.\w+/);
 
         public readonly name: string;
@@ -28,9 +27,9 @@ namespace discord {
             client.http.get("/api/commands")
                 .done(
                     (data: Array<object>) => {
-                        this.commands.length = 0;
-                        data.forEach((e) => this.commands.push(this.fromObject(e)));
-                        callback(this.commands);
+                        const commands: Array<Command> = new Array<Command>();
+                        data.forEach((e) => commands.push(this.fromObject(e)));
+                        callback(commands);
                     }
                 );
         }

@@ -31,6 +31,12 @@ class Player:
             "user": json_encode(self.user),
         }
 
+    def __str__(self) -> str:
+        if self.user is not None:
+            return str(self.user)
+
+        return "Guest"
+
     def __repr__(self) -> str:
         return f"<Player user={self.user}>"
 
@@ -56,4 +62,4 @@ class Player:
         await websocket.prepare(request)
         user = await authenticate_websocket(websocket, interface=request.app.interface)
 
-        return Player(user=user, websocket=websocket)
+        return cls(user=user, websocket=websocket)

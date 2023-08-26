@@ -22,10 +22,10 @@ async def handler(request: Request) -> web.Response:
         return websocket
 
     player = await Player.from_request(request)
-    await room.try_join(player)
+    await room.add(player)
 
+    websocket = player.websocket
     try:
-        websocket = player.websocket
         async for message in websocket:
             await handle_ws_message(player=player, message=message, room=room)
 

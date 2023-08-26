@@ -16,13 +16,13 @@ async def handler(request: Request) -> web.Response:
     manager = Manager()
     await manager.add_listener(player)
 
+    websocket = player.websocket
     try:
-        websocket = player.websocket
         async for message in websocket:
             if message.data == "REQUEST":
                 await manager.notify(websocket)
 
     finally:
-        manager.remove_listener(websocket)
+        manager.remove_listener(player)
 
     return websocket

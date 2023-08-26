@@ -102,6 +102,10 @@ namespace client {
             return this._user;
         }
 
+        public get token(): string | null {
+            return this._token;
+        }
+
         public get header(): JQuery.PlainObject<string | null | undefined> {
             if (this._token == null) return {};
             return { "X-Auth-Token": this._token };

@@ -58,11 +58,9 @@ class Room:
         _started: bool
 
     def __init__(self, *, id: str, host: Player) -> None:
-        assert host.user is not None
-
         self._host = host
         self._id = id
-        self._logs = [f"{host.user} hosted room {id}"]
+        self._logs = [f"{host} hosted room {id}"]
         self._other = None
         self._spectators = set()
 
@@ -84,9 +82,11 @@ class Room:
         }
 
     async def wait_until_ended(self) -> None:
+        """Wait until the game is over"""
         await self._end.wait()
 
     async def notify_all(self) -> None:
+        """Send the state of this room to all listening websockets"""
         data = self.to_json()
         futures = [self.notify(player.websocket, data=data) for player in self._spectators]
         futures.append(self.notify(self._host.websocket, data=data))
@@ -96,15 +96,43 @@ class Room:
         await asyncio.wait(futures)
 
     async def notify(self, websocket: web.WebSocketResponse, *, data: Any = None) -> None:
+        """This function is a coroutine
+
+        Send data to a specific websocket.
+
+        Parameters
+        -----
+        websocket: ``web.WebSocketResponse``
+            The websocket to send data to.
+        data: Any
+            The data to send to the websocket. If this is None, send the room state
+            instead.
+        """
         if data is None:
             data = self.to_json()
 
         with contextlib.suppress(ConnectionError):
             await websocket.send_json(data_message(data))
 
-    async def try_join(self, player: Player, /) -> bool:
-        if self._other is None and player.user is not None:
-            self._logs.append(f"{player.user} joined the game")
+    async def add(self, player: Player, /) -> bool:
+        """This function is a coroutine
+
+        Add a player to the room. If the room is full, assign the player as a spectator
+        instead.
+
+        Parameters
+        -----
+        player: ``Player``
+            The player to join. Note that unauthorized players will always be spectators.
+
+        Returns
+        -----
+        ``bool``
+            If True, the player joined the game, otherwise the player is treated as a
+            spectator.
+        """
+        if self._other is None:
+            self._logs.append(f"{player} joined the game")
             self._other = player
             await self.notify_all()
             return True
@@ -115,10 +143,20 @@ class Room:
             return False
 
     async def leave(self, player: Player, /) -> None:
+        """This function is a coroutine
+
+        Remove a player from the room. If the player is a participant, leave 1 vacant slot.
+
+        Parameters
+        -----
+        player: ``Player``
+            The player to remove from the room.
+        """
+        message = f"{player} left the game"
         if player == self._host:
-            self._logs.append(f"{player.user} left the game")
+            self._logs.append(message)
             if self._started:
-                await self.end(host_win=False, reason=f"{player.user} left the game")
+                await self.end(host_win=False, reason=message)
             elif self._other is None:
                 self._end.set()
             else:
@@ -126,15 +164,30 @@ class Room:
                 await self.notify_all()
 
         elif player == self._other:
-            self._logs.append(f"{player.user} left the game")
+            self._logs.append(message)
             if self._started:
-                await self.end(host_win=True, reason=f"{player.user} left the game")
+                await self.end(host_win=True, reason=message)
             else:
                 self._other = None
                 await self.notify_all()
 
+        else:
+            with contextlib.suppress(KeyError):
+                self._spectators.remove(player)
+
     async def chat(self, player: Player, content: str) -> None:
-        prefix = f"[{player.user}]"
+        """This function is a coroutine
+
+        Add the chat content of a player to the chat logs.
+
+        Parameters
+        -----
+        player: ``Player``
+            The player that sent the message
+        content: ``str``
+            The message content
+        """
+        prefix = f"[{player}]"
         if player not in (self._host, self._other):
             # is spectator
             prefix += " (spectator)"
@@ -157,9 +210,9 @@ class Room:
 
     async def end(self, *, host_win: bool, reason: str) -> None:
         if host_win:
-            self._logs.append(f"{self._host.user} won: {reason}")
+            self._logs.append(f"{self._host} won: {reason}")
         else:
-            self._logs.append(f"{self._other.user} won: {reason}")
+            self._logs.append(f"{self._other} won: {reason}")
 
         self._end.set()
         await self.notify_all()

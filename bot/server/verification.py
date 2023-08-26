@@ -122,6 +122,18 @@ async def authenticate_websocket(websocket: web.WebSocketResponse, *, interface:
 
     Wait for the next websocket message sent from client (timeout 60s) containing the
     user token.
+
+    Parameters
+    -----
+    websocket: ``web.WebSocketResponse``
+        The websocket that needs authentication
+    interfaces: ``SharedInterface``
+        The application shared interface
+
+    Returns
+    -----
+    Optional[``abc.User``]
+        The associated Discord account of this user
     """
     try:
         token = await websocket.receive_str(60)

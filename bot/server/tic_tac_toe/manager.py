@@ -72,6 +72,6 @@ class Manager:
         self._rooms[id] = room = Room(id=id, host=host)
         asyncio.create_task(room.wait_until_ended()).add_done_callback(lambda _: self._rooms.pop(id))
 
-        await room.notify(room.notify(host.websocket))
+        await room.notify(host.websocket)
         await self.notify_all()
         return room

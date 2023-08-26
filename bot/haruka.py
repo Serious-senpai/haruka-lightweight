@@ -33,7 +33,7 @@ class Haruka(commands.Bot):
     __processed_message_ids: Set[int] = set()
     if TYPE_CHECKING:
         __transferable_context_cache_update: asyncio.Event
-        __users_cache: Dict[int, discord.abc.User]
+        _users_cache: Dict[int, discord.abc.User]
         cooldown_notify: Dict[int, Dict[str, bool]]
         interface: SharedInterface
         loop: Loop
@@ -56,7 +56,7 @@ class Haruka(commands.Bot):
         )
 
         self.__transferable_context_cache_update = asyncio.Event()
-        self.__users_cache = {}
+        self._users_cache = {}
         self.cooldown_notify = {}
         self.interface = SharedInterface()
         self.owner = None
@@ -284,9 +284,9 @@ class Haruka(commands.Bot):
 
     async def fetch_user(self, user_id: int, /) -> discord.User:
         try:
-            return self.__users_cache[user_id]
+            return self._users_cache[user_id]
         except KeyError:
-            self.__users_cache[user_id] = user = await super().fetch_user(user_id)
+            self._users_cache[user_id] = user = await super().fetch_user(user_id)
             return user
 
     @property
