@@ -26,6 +26,10 @@ jobs:
       with:
         node-version: "20.5.1"
 
+    - name: Install packages
+      working-directory: bot/web
+      run: npm install
+
     - name: Compile Typescript
       working-directory: bot/web/scripts
       run: tsc
