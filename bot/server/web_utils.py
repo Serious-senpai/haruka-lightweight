@@ -1,17 +1,19 @@
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, List, Protocol, Tuple, TypedDict, TypeVar, overload, runtime_checkable
 
 from discord import Asset, abc
 from discord.ext import commands
 from frozenlist import FrozenList
 
-import utils
+from global_utils import fill_command_metadata
 from environment import DEFAULT_COMMAND_PREFIX
 
 
 __all__ = (
     "json_encode",
+    "html_replace",
 )
 
 
@@ -78,7 +80,7 @@ def json_encode(value, /):
         return value.to_json()
 
     if isinstance(value, commands.Command):
-        command = utils.fill_command_metadata(value, prefix=DEFAULT_COMMAND_PREFIX)
+        command = fill_command_metadata(value, prefix=DEFAULT_COMMAND_PREFIX)
         return {
             "name": command.name,
             "aliases": list(command.aliases),
@@ -117,3 +119,14 @@ def json_encode(value, /):
         return result
 
     raise TypeError(f"Unsupported JSON encoding type {value.__class__.__name__}")
+
+
+identifier_validation = re.compile(r"^[\w-]+$")
+
+
+def html_replace(html: str, identifier: str, replacement: str) -> str:
+    if identifier_validation.fullmatch(identifier) is None:
+        raise ValueError(f"Invalid identifier {identifier!r}")
+
+    pattern = re.compile(r"{{\s*" + identifier + r"\s*}}")
+    return pattern.sub(replacement, html)

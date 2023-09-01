@@ -4,22 +4,22 @@ import asyncio
 import contextlib
 import time
 import traceback
+from functools import partial
+from inspect import iscoroutinefunction
 from types import TracebackType
-from typing import Any, Callable, Coroutine, Iterable, Iterator, List, Optional, Type, TypeVar, TYPE_CHECKING
+from typing import Any, Callable, Coroutine, Generic, Iterable, Iterator, List, Optional, Set, Type, TypeVar, TYPE_CHECKING
 
 import discord
 from discord.ext import commands
-if TYPE_CHECKING:
-    from typing_extensions import ParamSpec
+from typing_extensions import ParamSpec
 
 from environment import DEFAULT_COMMAND_PREFIX, FUZZY_MATCH
 if TYPE_CHECKING:
     from haruka import Haruka
 
 
-if TYPE_CHECKING:
-    T = TypeVar("T")
-    P = ParamSpec("P")
+T = TypeVar("T")
+P = ParamSpec("P")
 
 
 def fill_command_metadata(command: commands.Command, *, prefix: str) -> commands.Command:
@@ -326,3 +326,56 @@ async def fuzzy_match(string: str, against: Iterable[str]) -> str:
 
 async def coro_func(value: T) -> T:
     return value
+
+
+INSTANCE_T = TypeVar("INSTANCE_T")
+
+
+class ExtendedCoroutineFunction(Generic[P, T]):
+
+    __slots__ = (
+        "_callbacks",
+        "_func",
+        "_injected",
+    )
+    if TYPE_CHECKING:
+        _callbacks: Set[Callable[[T], Coroutine[Any, Any, Any]]]
+        _func: Callable[P, Coroutine[Any, Any, T]]
+        _injected: Any
+
+    def __init__(self, func: Callable[P, Coroutine[Any, Any, T]]) -> None:
+        self._callbacks = set()
+        self._func = func
+        if not iscoroutinefunction(func):
+            message = f"Expected a coroutine function, not {func.__class__.__name__}"
+            raise TypeError(message)
+
+        self._injected = None
+
+    def __get__(self, instance: INSTANCE_T, _: Type[INSTANCE_T]) -> ExtendedCoroutineFunction[P, T, INSTANCE_T]:
+        if instance is None:
+            return self
+
+        copy = ExtendedCoroutineFunction(self._func)
+        copy._callbacks = self._callbacks
+        copy._injected = instance
+        return copy
+
+    def add_callback(self, callback: Callable[[T], Coroutine[Any, Any, Any]], /) -> None:
+        """Add a callback to be invoked whenever this coroutine function completes."""
+        self._callbacks.add(callback)
+
+    def remove_callback(self, callback: Callable[[T], Coroutine[Any, Any, Any]], /) -> None:
+        with contextlib.suppress(KeyError):
+            self._callbacks.remove(callback)
+
+    async def invoke(self, *args: Any, **kwargs: Any) -> T:
+        func = self._func if self._injected is None else partial(self._func, self._injected)
+        result = await func(*args, **kwargs)
+        if len(self._callbacks) > 0:
+            await asyncio.wait([callback(result) for callback in self._callbacks])
+
+        return result
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Coroutine[Any, Any, T]:
+        return self.invoke(*args, **kwargs)

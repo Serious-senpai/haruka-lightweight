@@ -22,7 +22,7 @@ async def _send_single_sauce(ctx: Context, image_url: str) -> None:
             embed = result.create_embed()
             embed.set_author(
                 name="Image search result",
-                icon_url=ctx.bot.user.avatar.url,
+                icon_url=ctx.bot.user.display_avatar.url,
             )
             embed.set_footer(text=f"Displaying result {index + 1}/{total}")
             embeds.append(embed)
@@ -62,7 +62,7 @@ async def handler(ctx: Context, *image_urls: str) -> None:
                 embed = result.create_embed()
                 embed.set_author(
                     name="Image search result",
-                    icon_url=ctx.bot.user.avatar.url,
+                    icon_url=ctx.bot.user.display_avatar.url,
                 )
                 embed.set_footer(text=f"Displaying result {result_index + 1}/{result_total} (image {index + 1}/{total})")
                 embeds.append(embed)

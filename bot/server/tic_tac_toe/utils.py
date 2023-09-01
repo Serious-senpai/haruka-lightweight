@@ -73,7 +73,7 @@ async def handle_ws_message(*, player: Player, message: web_ws.WSMessage, room: 
 
         elif data == "START":
             try:
-                await room.start()
+                await room.start(player=player)
             except AlreadyStarted:
                 await websocket.send_json(error_message("Game has already started!"))
             except MissingPermission:

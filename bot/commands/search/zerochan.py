@@ -31,7 +31,7 @@ async def handler(ctx: Context, *, query: str) -> None:
             embed = discord.Embed()
             embed.set_author(
                 name=f"Zerochan search for {query}",
-                icon_url=ctx.bot.user.avatar.url,
+                icon_url=ctx.bot.user.display_avatar.url,
             )
             embed.set_image(url=url)
             embed.set_footer(text=f"Result {index + 1}/{no_results}")

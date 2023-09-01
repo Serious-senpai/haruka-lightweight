@@ -11,7 +11,7 @@ namespace synchronized {
         }
 
         public async acquire(): Promise<void> {
-            if (!this.locked && this.resolvers.length == 0) {
+            if (!this.locked && this.resolvers.length === 0) {
                 this.locked = true;
             } else {
                 const waiter = new Promise<void>((resolve) => this.resolvers.pushRight(resolve));
@@ -21,7 +21,7 @@ namespace synchronized {
 
         public release(): void {
             if (this.locked) {
-                if (this.resolvers.length == 0) {
+                if (this.resolvers.length === 0) {
                     this.locked = false;
                 } else {
                     const resolver = this.resolvers.popLeft();
@@ -30,10 +30,10 @@ namespace synchronized {
             }
         }
 
-        public async run(func: () => void): Promise<void> {
+        public async run<T>(func: () => Promise<T>): Promise<T> {
             await this.acquire();
             try {
-                func();
+                return await func();
             } finally {
                 this.release();
             }

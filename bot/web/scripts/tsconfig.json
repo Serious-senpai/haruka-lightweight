@@ -1,5 +1,7 @@
 {
     "compilerOptions": {
+        "alwaysStrict": true,
+        "exactOptionalPropertyTypes": true,
         "outFile": "script.js",
         "sourceMap": true,
         "strictNullChecks": true,

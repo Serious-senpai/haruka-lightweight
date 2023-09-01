@@ -57,10 +57,24 @@ div.modal .close-button {
     top: 10px;
 }
 
-div.cosplay-a {
+.cosplay-a {
     cursor: default;
 }
 
-div.cosplay-a:hover {
+.cosplay-a:hover {
     cursor: pointer;
+}
+
+img.account-avatar {
+    height: 24px;
+    width: 24px;
+}
+
+.inline-icon {
+    border-radius: 50%;
+    display: inline-block;
+    font-size: 16px;
+    height: 16px;
+    margin-right: 3px;
+    width: 16px;
 }

@@ -1,7 +1,7 @@
 /// <reference path="client/http.ts" />
 
 
-namespace Router {
+namespace router {
     class Navigator {
         private readonly navigateCallbacks: Set<() => void> = new Set<() => void>();
         private readonly trailingSlash: RegExp = new RegExp(/^\/*/);
@@ -9,10 +9,9 @@ namespace Router {
         private currentPath: string = location.pathname;
 
         public constructor() {
-            $(() => this.initializePage());
-
             this.onNavigate(() => this.initializePage());
             addEventListener("popstate", () => this.navigate(location.pathname, false));
+            $(() => this.initializePage());
         }
 
         private initializePage(): void {
@@ -23,17 +22,19 @@ namespace Router {
 
             $(".navigate-commands").off().on("click", () => this.navigate("commands", true));
             $(".navigate-proxy").off().on("click", () => this.navigate("proxy", true));
+            $(".navigate-tic-tac-toe").off().on("click", () => this.navigate("tic-tac-toe", true));
         }
 
         public onNavigate(callback: () => void): void {
+            console.log("Adding a callback to navigator.onNavigate:", callback);
             this.navigateCallbacks.add(callback);
         }
 
-        public navigate(target: string, pushState: boolean): void {
+        public navigate(target: string, pushState: boolean, whenLoaded?: () => void): void {
             target = target.replace(this.trailingSlash, "");
 
             console.log(`Navigating from ${this.currentPath} to /${target}`);
-            if (this.currentPath != target) {
+            if (this.currentPath !== target) {
                 this.currentPath = "/" + target;
                 const $page = $("#page-view");
                 $page.empty();
@@ -47,17 +48,16 @@ namespace Router {
                     ),
                 );
 
-                client.http.get(`/${target}`).done(
-                    (html: string) => {
-                        const $dummy = $("<div>");
-                        $dummy.html(html);
-                        $page.html($dummy.find("div#page-view").html());
-
+                $page.load(
+                    `/${target} #page-view-ajax-load`,
+                    () => {
+                        console.log(`Finished loading HTML content from /${target}`);
                         if (pushState) {
                             window.history.pushState(null, "", `/${target}`);
                         }
 
                         this.navigateCallbacks.forEach((func) => func());
+                        if (whenLoaded !== undefined) whenLoaded();
                     }
                 );
             }

@@ -15,6 +15,7 @@ namespace client {
         private $_loginModal: JQuery<HTMLElement> | null = null;
         private $_loginKeyInput: JQuery<HTMLElement> | null = null;
 
+        private readonly initialLogin: synchronized.Event = new synchronized.Event();
         private readonly navigatorBarLoaded: synchronized.Event = new synchronized.Event();
 
         public constructor() {
@@ -32,9 +33,9 @@ namespace client {
             this.waitForNavigatorBar().then(
                 () => {
                     /* Login using token from localStorage */
-                    const token = window.localStorage[Authorization.LOCAL_STORAGE_TOKEN_KEY];
+                    const token = localStorage[Authorization.LOCAL_STORAGE_TOKEN_KEY];
                     this.update(null, null);  // trigger element creation
-                    if (token != null) {
+                    if (typeof token === "string") {
                         $.get(
                             {
                                 "url": "/api/login",
@@ -45,6 +46,8 @@ namespace client {
                                 if (data["success"]) {
                                     this.update(discord.User.fromObject(data["user"]), token);
                                 }
+
+                                this.initialLogin.set();
                             }
                         );
                     }
@@ -66,6 +69,10 @@ namespace client {
             );
         }
 
+        public waitForInitialLogin(): Promise<void> {
+            return this.initialLogin.wait();
+        }
+
         public waitForNavigatorBar(): Promise<void> {
             return this.navigatorBarLoaded.wait();
         }
@@ -84,7 +91,7 @@ namespace client {
             $modal.on(
                 "click",
                 (e) => {
-                    if (!$container.is(e.target) && $container.has(e.target).length == 0) {
+                    if (!$container.is(e.target) && $container.has(e.target).length === 0) {
                         $modal.hide();
                     }
                 }
@@ -107,41 +114,42 @@ namespace client {
         }
 
         public get header(): JQuery.PlainObject<string | null | undefined> {
-            if (this._token == null) return {};
+            if (this._token === null) return {};
             return { "X-Auth-Token": this._token };
         }
 
-        public onLogin(callback: (user: discord.User | null) => void): void {
+        public onAuthorizationUpdate(callback: (user: discord.User | null) => void): void {
+            console.log("Adding a callback to authorization.onAuthorizationUpdate:", callback);
             this._callbacks.add(callback);
         }
 
         private update(user: discord.User | null, token: string | null): void {
             this._user = user;
-            this._token = window.localStorage[Authorization.LOCAL_STORAGE_TOKEN_KEY] = token;
+            this._token = localStorage[Authorization.LOCAL_STORAGE_TOKEN_KEY] = token;
 
             this.$accountZone.empty();
-            if (user == null) {
+            if (user === null) {
                 this.$accountZone.append(
                     $("<div>", { "class": "change-bg-on-hover cosplay-a navigator-item expanded", "id": "login-button" }).append(
-                        $("<span>", { "class": "material-icons inline-icon" }).html("login"),
+                        $("<span>", { "class": "material-icons-outlined inline-icon" }).html("login"),
                         $("<span>", { "class": "hide-when-collapsed" }).html("Login"),
                     ).on("click", () => this.$accountZone.trigger(Authorization.EVENT_LOGIN)),
                 );
             } else {
                 this.$accountZone.append(
                     $("<div>", { "id": "account-display" }).append(
-                        $("<img>", { "class": "inline-icon", "id": "account-avatar", "src": user.avatar.url }),
+                        $("<img>", { "class": "account-avatar inline-icon", "src": user.avatar.url }),
                         $("<span>", { "class": "hide-when-collapsed" }).html(user.name),
                     ),
                     $("<div>", { "class": "change-bg-on-hover cosplay-a navigator-item expanded", "id": "logout-button" }).append(
-                        $("<span>", { "class": "material-icons inline-icon" }).html("logout"),
+                        $("<span>", { "class": "material-icons-outlined inline-icon" }).html("logout"),
                         $("<span>", { "class": "hide-when-collapsed" }).html("Logout"),
                     ).on("click", () => this.$accountZone.trigger(Authorization.EVENT_LOGOUT)),
                 );
             }
 
             this._callbacks.forEach((func) => func(user));
-            console.log(`User updated to ${user}`);
+            console.log("User updated to:", user);
         }
 
         private login(): void {

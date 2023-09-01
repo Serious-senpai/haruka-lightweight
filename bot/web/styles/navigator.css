@@ -27,22 +27,8 @@ div#navigator-bar #account-zone #account-display {
     display: inline-flex;
 }
 
-div#navigator-bar #account-zone #account-display #account-avatar {
-    height: 24px;
-    width: 24px;
-}
-
 div#navigator-bar .change-bg-on-hover:hover {
     background-color: gray;
-}
-
-div#navigator-bar .inline-icon {
-    border-radius: 50%;
-    display: inline-block;
-    font-size: 16px;
-    height: 16px;
-    margin-right: 3px;
-    width: 16px;
 }
 
 div#navigator-bar .navigator-item {

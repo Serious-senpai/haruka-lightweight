@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Literal, Optional, Set, TYPE_CHECKING
 
 from aiohttp import web
 
+from global_utils import ExtendedCoroutineFunction
 from .errors import (
     AlreadyEnded,
     AlreadyStarted,
@@ -43,6 +44,7 @@ class Room:
         "_end",
         "_is_host_turn",
         "_started",
+        "_winner",
     )
     if TYPE_CHECKING:
         _host: Player
@@ -56,6 +58,7 @@ class Room:
         _end: asyncio.Event
         _is_host_turn: bool
         _started: bool
+        _winner: int
 
     def __init__(self, *, id: str, host: Player) -> None:
         self._host = host
@@ -68,6 +71,11 @@ class Room:
         self._end = asyncio.Event()
         self._is_host_turn = True
         self._started = False
+        self._winner = 0
+
+    @property
+    def host(self) -> Player:
+        return self._host
 
     # State broadcasting control
 
@@ -75,16 +83,20 @@ class Room:
         return {
             "id": self._id,
             "logs": self._logs,
-            "players": json_encode([self._host, self._other]),
+            "host": json_encode(self._host),
+            "other": json_encode(self._other),
             "board": json_encode(self._board),
             "turn": 1 - self._is_host_turn,
             "started": self._started,
+            "ended": self.ended,
+            "winner": self._winner,
         }
 
     async def wait_until_ended(self) -> None:
         """Wait until the game is over"""
         await self._end.wait()
 
+    @ExtendedCoroutineFunction
     async def notify_all(self) -> None:
         """Send the state of this room to all listening websockets"""
         data = self.to_json()
@@ -131,16 +143,17 @@ class Room:
             If True, the player joined the game, otherwise the player is treated as a
             spectator.
         """
-        if self._other is None:
-            self._logs.append(f"{player} joined the game")
-            self._other = player
-            await self.notify_all()
-            return True
+        if player != self._host:
+            if self._other is None:
+                self._logs.append(f"{player} joined the game")
+                self._other = player
+                await self.notify_all()
+                return True
 
-        else:
-            self._spectators.add(player)
-            await self.notify(player.websocket)
-            return False
+            else:
+                self._spectators.add(player)
+                await self.notify(player.websocket)
+                return False
 
     async def leave(self, player: Player, /) -> None:
         """This function is a coroutine
@@ -158,7 +171,7 @@ class Room:
             if self._started:
                 await self.end(host_win=False, reason=message)
             elif self._other is None:
-                self._end.set()
+                self._end.set()  # No player in the room
             else:
                 self._host, self._other = self._other, None
                 await self.notify_all()
@@ -206,6 +219,7 @@ class Room:
             raise NotEnoughPlayer
 
         self._started = True
+        self._logs.append("Game started!")
         await self.notify_all()
 
     async def end(self, *, host_win: bool, reason: str) -> None:
@@ -214,6 +228,7 @@ class Room:
         else:
             self._logs.append(f"{self._other} won: {reason}")
 
+        self._winner = 1 - host_win
         self._end.set()
         await self.notify_all()
 
@@ -317,6 +332,7 @@ class Room:
                 await self.end(host_win=self._is_host_turn, reason="Got 5 marks in a row")
 
             self._is_host_turn = not self._is_host_turn
+            await self.notify_all()
 
         else:
             raise InvalidTurn(is_spectator=player not in (self._host, self._other))

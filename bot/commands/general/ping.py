@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import utils
+import global_utils
 from customs import Context
 from shared import interface
 
@@ -12,7 +12,7 @@ from shared import interface
     parallel=True,
 )
 async def handler(ctx: Context) -> None:
-    with utils.TimingContextManager() as measure:
+    with global_utils.TimingContextManager() as measure:
         message = await ctx.send("🏓 **Ping!**")
 
-    await message.edit(content=f"🏓 **Pong!** in {utils.format(measure.result)} (websocket average latency {utils.format(ctx.bot.latency)})")
+    await message.edit(content=f"🏓 **Pong!** in {global_utils.format(measure.result)} (websocket average latency {global_utils.format(ctx.bot.latency)})")

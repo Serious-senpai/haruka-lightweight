@@ -15,6 +15,7 @@ from ..web_utils import json_encode
 
 __all__ = (
     "Manager",
+    "manager",
 )
 
 
@@ -55,7 +56,9 @@ class Manager:
 
     async def notify_all(self) -> None:
         data = self.to_json()
-        await asyncio.wait(self.notify(player.websocket, data=data) for player in self._listeners)
+        futures = [self.notify(player.websocket, data=data) for player in self._listeners]
+        if len(futures) > 0:
+            await asyncio.wait(futures)
 
     async def notify(self, websocket: web.WebSocketResponse, *, data: Any = None) -> None:
         if data is None:
@@ -64,14 +67,29 @@ class Manager:
         with contextlib.suppress(ConnectionError):
             await websocket.send_json(data_message(data))
 
-    async def create_room(self, *, host: Player) -> Room:
+    def create_new_id(self) -> str:
         id = secrets.token_urlsafe(8)
         while id in self._rooms:
             id = secrets.token_urlsafe(8)
 
-        self._rooms[id] = room = Room(id=id, host=host)
-        asyncio.create_task(room.wait_until_ended()).add_done_callback(lambda _: self._rooms.pop(id))
+        return id
 
-        await room.notify(host.websocket)
-        await self.notify_all()
+    async def create_room(self, *, host: Player, id: Optional[str] = None) -> Room:
+        if id is None:
+            id = self.create_new_id()
+        elif id in self._rooms:
+            raise ValueError(f"Room ID {id} already exists!")
+
+        def when_ended() -> None:
+            self._rooms.pop(id)
+            asyncio.create_task(self.notify_all())
+
+        self._rooms[id] = room = Room(id=id, host=host)
+        asyncio.create_task(room.wait_until_ended()).add_done_callback(lambda _: when_ended())
+
+        room.notify_all.add_callback(lambda _: self.notify_all())
+        await room.notify_all()
         return room
+
+
+manager = Manager()

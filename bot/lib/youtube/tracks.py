@@ -7,7 +7,7 @@ import discord
 from discord.utils import escape_markdown
 from yarl import URL
 
-import utils
+from global_utils import format, retry
 from .client import YouTubeClient, VALID_YOUTUBE_HOST
 if TYPE_CHECKING:
     from haruka import Haruka
@@ -54,12 +54,12 @@ class Track:
     async def create_embed(self, bot: Haruka) -> discord.Embed:
         embed = discord.Embed(title=escape_markdown(self.title), url=self.url)
         embed.set_thumbnail(url=self.thumbnail_url)
-        embed.set_author(name=self.author, url=self.author_url, icon_url=bot.user.avatar.url)
-        embed.set_footer(text=f"Length: {utils.format(self.length)}")
+        embed.set_author(name=self.author, url=self.author_url, icon_url=bot.user.display_avatar.url)
+        embed.set_footer(text=f"Length: {format(self.length)}")
 
         return embed
 
-    @utils.retry(2)
+    @retry(2)
     async def get_audio_url(self, *, audio_format: Literal["64", "96", "140", "192", "256", "320", "mp3128"] = "mp3128") -> str:
         client = YouTubeClient()
         payload = {
@@ -75,7 +75,7 @@ class Track:
         key = data["links"]["mp3"][audio_format]["k"]
         return await self._convert(key=key)
 
-    @utils.retry(5, wait=0.75)
+    @retry(5, wait=0.75)
     async def _convert(self, *, key: str) -> str:
         client = YouTubeClient()
         async with client.session.post(self._converter, data={"vid": self.id, "k": key}) as response:

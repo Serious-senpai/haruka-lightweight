@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from typing import Optional, Type, TYPE_CHECKING
 
@@ -9,7 +8,7 @@ import bs4
 import discord
 from discord.utils import escape_markdown
 
-import utils
+from global_utils import retry, slice_string
 
 
 class UrbanSearch:
@@ -41,8 +40,8 @@ class UrbanSearch:
         description = f"{meaning}\n---------------\n{example}"
 
         embed = discord.Embed(
-            title=utils.slice_string(title, 200),
-            description=utils.slice_string(description, 4000),
+            title=slice_string(title, 200),
+            description=slice_string(description, 4000),
             url=self.url,
         )
         embed.set_footer(text="From Urban Dictionary")
@@ -53,7 +52,7 @@ class UrbanSearch:
         return f"<UrbanSearch title={self.title} meaning={self.meaning[:50]}>"
 
     @classmethod
-    @utils.retry(10, wait=0.5)
+    @retry(10, wait=0.5)
     async def search(cls: Type[UrbanSearch], word: str, *, session: aiohttp.ClientSession) -> Optional[UrbanSearch]:
         url = "https://www.urbandictionary.com/define.php"
         async with session.get(url, params={"term": word}) as response:

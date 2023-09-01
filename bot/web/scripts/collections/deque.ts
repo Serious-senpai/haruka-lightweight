@@ -29,7 +29,7 @@ namespace collections {
         }
 
         public get isEmpty(): boolean {
-            return this._length == 0;
+            return this._length === 0;
         }
 
         public pushLeft(value: T): void {
@@ -37,7 +37,7 @@ namespace collections {
                 insert = new _DequeNode<T>(value, this.head, next);
 
             this.head.next = insert;
-            if (next != null) next.previous = insert;
+            if (next !== null) next.previous = insert;
 
             this._length++;
         }
@@ -53,11 +53,11 @@ namespace collections {
 
         public popLeft(): T {
             const pop = this.head.next;
-            if (pop == null) throw RangeError("Empty deque");
+            if (pop === null) throw RangeError("Empty deque");
 
             const next = pop.next;
             this.head.next = next;
-            if (next != null) next.previous = this.head;
+            if (next !== null) next.previous = this.head;
 
             this._length--;
             return pop.value!;

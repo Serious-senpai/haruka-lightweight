@@ -24,7 +24,7 @@ namespace discord {
         }
 
         public static updateCommands(callback: (commands: Array<Command>) => void): void {
-            client.http.get("/api/commands")
+            client.http.get("/api/commands", { "dataType": "json" })
                 .done(
                     (data: Array<object>) => {
                         const commands: Array<Command> = new Array<Command>();

@@ -83,7 +83,7 @@ class Artwork:
             url=self.url,
             timestamp=self.created_at,
         )
-        embed.set_author(name="Pixiv artwork", icon_url=bot.user.avatar.url)
+        embed.set_author(name="Pixiv artwork", icon_url=bot.user.display_avatar.url)
         embed.set_footer(text="Created at")
 
         if self.tags:

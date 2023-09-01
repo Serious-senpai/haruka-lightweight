@@ -3,9 +3,11 @@
 /// <reference path="discord/commands.ts" />
 
 
-function updateCommands(): void {
+function renderCommands(): void {
+    console.log("Rendering commands list");
     const $container = $("div#commands");
     if ($container.length > 0) {
+        console.log("Found matching element:", $container);
         const $hiddenModals = $("div#hidden-modals");
         discord.Command.updateCommands(
             (commands) => {
@@ -26,6 +28,7 @@ function updateCommands(): void {
                     categoryToCommands.forEach(
                         (commands, category) => {
                             commands.sort((first, second) => first.name.localeCompare(second.name));
+                            console.log(`Commands of category ${category}:`, commands);
                             const $commands = commands.map(
                                 (command) => $(
                                     "<div>",
@@ -94,7 +97,7 @@ function updateCommands(): void {
                                         "class": "close-button cosplay-a",
                                     },
                                 ).append(
-                                    $("<span>", { "class": "material-icons" }).text("close"),
+                                    $("<span>", { "class": "material-icons-outlined" }).text("close"),
                                 ).on("click", () => $modal.hide()),
                                 $searchInput,
                                 $commands,
@@ -105,7 +108,7 @@ function updateCommands(): void {
                                 .on(
                                     "click",
                                     (e) => {
-                                        if (!$modalContainer.is(e.target) && $modalContainer.has(e.target).length == 0) {
+                                        if (!$modalContainer.is(e.target) && $modalContainer.has(e.target).length === 0) {
                                             $modal.hide();
                                         }
                                     },
@@ -149,6 +152,6 @@ function updateCommands(): void {
 }
 
 
-client.authorization.onLogin(() => updateCommands());
-Router.navigator.onNavigate(() => updateCommands());
-$(() => updateCommands());
+client.authorization.onAuthorizationUpdate(() => renderCommands());
+router.navigator.onNavigate(() => renderCommands());
+$(() => renderCommands());

@@ -6,7 +6,7 @@ import discord
 import pyodbc
 from discord.ext import commands
 
-import utils
+import global_utils
 from customs import Context
 from shared import interface
 
@@ -26,7 +26,7 @@ async def handler(ctx: Context, *, cmd: str) -> None:
             output = io.StringIO()
             send_output = True
             try:
-                with utils.TimingContextManager() as measure:
+                with global_utils.TimingContextManager() as measure:
                     await cursor.execute(cmd)
 
                 columns = cursor.description
@@ -59,9 +59,9 @@ async def handler(ctx: Context, *, cmd: str) -> None:
                         output.write("\n")
 
             except pyodbc.ProgrammingError as e:
-                output.write(utils.format_exception(e))
+                output.write(global_utils.format_exception(e))
 
             finally:
-                content = f"Process completed after {utils.format(measure.result)}\n{content}"
+                content = f"Process completed after {global_utils.format(measure.result)}\n{content}"
                 output.seek(0)
                 await ctx.send(content, file=discord.File(output, filename="sql.txt") if send_output else None)

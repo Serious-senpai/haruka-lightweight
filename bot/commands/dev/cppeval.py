@@ -7,7 +7,7 @@ import os
 import discord
 from discord.ext import commands
 
-import utils
+import global_utils
 from customs import Context
 from environment import C_EVAL_PATH, C_EVAL_BINARY_PATH
 from shared import interface
@@ -46,12 +46,12 @@ async def handler(ctx: Context, *, input: str) -> None:
                 stdout=writer,
                 stderr=writer,
             )
-            with utils.TimingContextManager() as measure:
+            with global_utils.TimingContextManager() as measure:
                 await process.communicate(code_data)
 
         if process.returncode != 0:
             await ctx.send(
-                f"Compiler failed with exit code {process.returncode} after {utils.format(measure.result)}",
+                f"Compiler failed with exit code {process.returncode} after {global_utils.format(measure.result)}",
                 file=discord.File(C_EVAL_PATH),
             )
         else:
@@ -62,10 +62,10 @@ async def handler(ctx: Context, *, input: str) -> None:
                     stdout=writer,
                     stderr=writer,
                 )
-                with utils.TimingContextManager() as measure:
+                with global_utils.TimingContextManager() as measure:
                     await process.communicate(input.encode("utf-8"))
 
             await ctx.send(
-                f"Program completed with exit code {process.returncode} after {utils.format(measure.result)}",
+                f"Program completed with exit code {process.returncode} after {global_utils.format(measure.result)}",
                 file=discord.File(C_EVAL_PATH),
             )

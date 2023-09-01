@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from aiohttp import web
 
-import utils
+from global_utils import format_exception
 from ..middleware_group import MiddlewareGroup
 if TYPE_CHECKING:
     from ..customs import Handler, Request
@@ -18,7 +18,7 @@ async def handler(request: Request, handler: Handler) -> web.Response:
         raise
     except Exception as e:
         interface = request.app.interface
-        interface.log(utils.format_exception(e))
+        interface.log(format_exception(e))
 
         headers_info = "\n".join(f"{key}: {value}" for key, value in request.headers.items())
         request_info = f"Method: {request.method}\nURL: {request.url}\nHeaders\n-----\n{headers_info}\n-----\n{e}"

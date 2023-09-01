@@ -8,7 +8,7 @@ def user_info(user: discord.User) -> discord.Embed:
     embed = discord.Embed(description=f"**Name** {escape_markdown(str(user))}\n**Created** {(discord.utils.utcnow() - user.created_at).days} days ago\n**ID** {user.id}")
     embed.set_author(
         name="Information collected",
-        icon_url=user._state.user.avatar.url,
+        icon_url=user._state.user.display_avatar.url,
     )
     embed.set_thumbnail(url=user.display_avatar.url)
     embed.set_image(url=user.banner.url if user.banner else None)

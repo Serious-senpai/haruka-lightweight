@@ -1,7 +1,10 @@
 /// <reference path="router.ts" />
 
 
-function proxyPreview(): void {
+const urlPattern = new RegExp(/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/);
+
+
+function proxyView(): void {
     const $input = $("input#proxy-url-input");
     if ($input.length > 0) {
         $input.off().on("keydown", (e) => {
@@ -9,12 +12,11 @@ function proxyPreview(): void {
                 const url = $input.val();
                 if (typeof url === "string") {
                     url.trim();
-                    if (url.startsWith("http")) {
+                    if (url.match(urlPattern)) {
                         const proxyUrl = new URL(url);
                         proxyUrl.protocol = location.protocol;
                         proxyUrl.hostname += "." + location.hostname;
                         proxyUrl.port = location.port;
-                        console.log(proxyUrl.toString());
                         open(proxyUrl);
 
                     } else {
@@ -27,5 +29,5 @@ function proxyPreview(): void {
 }
 
 
-Router.navigator.onNavigate(() => proxyPreview());
-$(() => proxyPreview());
+router.navigator.onNavigate(() => proxyView());
+$(() => proxyView());

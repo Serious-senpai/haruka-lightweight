@@ -11,6 +11,9 @@ if TYPE_CHECKING:
     from ..customs import Request
 
 
+__all__ = ("Player",)
+
+
 class Player:
     """Represents a tic-tac-toe player websocket session"""
 
