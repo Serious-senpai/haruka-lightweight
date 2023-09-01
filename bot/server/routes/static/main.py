@@ -19,22 +19,22 @@ async def handler(request: Request) -> web.Response:
     raise web.HTTPFound("/index.html")
 
 
-@router.get("/commands{none:\/?}")
+@router.get(r"/commands{none:\/?}")
 async def handler(request: Request) -> web.Response:
     raise web.HTTPFound("/commands/index.html")
 
 
-@router.get("/proxy{none:\/?}")
+@router.get(r"/proxy{none:\/?}")
 async def handler(request: Request) -> web.Response:
     raise web.HTTPFound("/proxy/index.html")
 
 
-@router.get("/tic-tac-toe{none:\/?}")
+@router.get(r"/tic-tac-toe{none:\/?}")
 async def handler(request: Request) -> web.Response:
     raise web.HTTPFound("/tic-tac-toe/index.html")
 
 
-@router.get("/tic-tac-toe/room/{room_id}{none:\/?}")
+@router.get(r"/tic-tac-toe/room/{room_id}{none:\/?}")
 async def handler(request: Request) -> web.Response:
     with open("bot/web/tic-tac-toe/room.html", "r") as file:
         html = file.read()
