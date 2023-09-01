@@ -6,7 +6,7 @@ from discord.ext import commands
 
 from customs import Context
 from shared import interface
-from utils import get_custom_prefix
+from global_utils import get_custom_prefix
 
 
 @interface.command(

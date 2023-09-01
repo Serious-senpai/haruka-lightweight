@@ -9,7 +9,7 @@ from os import path
 import discord
 from discord.ext import commands
 
-import utils
+import global_utils
 from customs import Context
 from environment import EVAL_PATH, EVAL_TASK_ATTR
 from shared import interface
@@ -52,7 +52,7 @@ async def handler(ctx: Context, *, code: str) -> None:
 
     with open(EVAL_PATH, "w", encoding="utf-8") as writer:
         with contextlib.redirect_stdout(writer):
-            with utils.TimingContextManager() as measure:
+            with global_utils.TimingContextManager() as measure:
                 task = asyncio.create_task(env["func"]())
                 setattr(ctx.bot, EVAL_TASK_ATTR, task)
 
@@ -64,6 +64,6 @@ async def handler(ctx: Context, *, code: str) -> None:
                     setattr(ctx.bot, EVAL_TASK_ATTR, None)
 
     await ctx.send(
-        f"Process completed after {utils.format(measure.result)}.",
+        f"Process completed after {global_utils.format(measure.result)}.",
         file=discord.File(EVAL_PATH) if path.getsize(EVAL_PATH) > 0 else None,
     )

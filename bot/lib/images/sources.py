@@ -6,8 +6,8 @@ import random
 from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from .errors import CategoryNotFound
+from global_utils import fuzzy_match, slice_string
 from shared import SharedInterface
-from utils import fuzzy_match, slice_string
 
 
 __all__ = (

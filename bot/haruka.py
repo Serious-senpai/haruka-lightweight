@@ -12,7 +12,7 @@ from discord.ext import commands, tasks
 from discord.utils import format_dt, utcnow
 
 import environment
-import utils
+import global_utils
 from customs import Context, Loop, Pool
 from shared import SharedInterface
 from trees import SlashCommandTree
@@ -33,7 +33,7 @@ class Haruka(commands.Bot):
     __processed_message_ids: Set[int] = set()
     if TYPE_CHECKING:
         __transferable_context_cache_update: asyncio.Event
-        __users_cache: Dict[int, discord.abc.User]
+        _users_cache: Dict[int, discord.abc.User]
         cooldown_notify: Dict[int, Dict[str, bool]]
         interface: SharedInterface
         loop: Loop
@@ -48,7 +48,7 @@ class Haruka(commands.Bot):
 
         super().__init__(
             activity=discord.Game("with my senpai!"),
-            command_prefix=utils.get_prefixes,
+            command_prefix=global_utils.get_prefixes,
             help_command=HelpCommand(),
             tree_cls=SlashCommandTree,
             intents=environment.INTENTS,
@@ -56,7 +56,7 @@ class Haruka(commands.Bot):
         )
 
         self.__transferable_context_cache_update = asyncio.Event()
-        self.__users_cache = {}
+        self._users_cache = {}
         self.cooldown_notify = {}
         self.interface = SharedInterface()
         self.owner = None
@@ -125,10 +125,10 @@ class Haruka(commands.Bot):
             await ctx.send("This command can only be invoked in a server channel.")
 
         elif isinstance(error, commands.BotMissingPermissions):
-            await ctx.send("🚫 I do not have permission(s) to execute this command: " + ", ".join(f"`{utils.format_permission_name(perm)}`" for perm in error.missing_permissions))
+            await ctx.send("🚫 I do not have permission(s) to execute this command: " + ", ".join(f"`{global_utils.format_permission_name(perm)}`" for perm in error.missing_permissions))
 
         elif isinstance(error, commands.MissingPermissions):
-            await ctx.send("🚫 You do not have permission(s) to invoke this command: " + ", ".join(f"`{utils.format_permission_name(perm)}`" for perm in error.missing_permissions))
+            await ctx.send("🚫 You do not have permission(s) to invoke this command: " + ", ".join(f"`{global_utils.format_permission_name(perm)}`" for perm in error.missing_permissions))
 
         elif isinstance(error, commands.NSFWChannelRequired):
             await ctx.send("🔞 This command can only be invoked in a NSFW channel.")
@@ -151,7 +151,7 @@ class Haruka(commands.Bot):
 
         else:
             self.log(f"'{ctx.message.content}' in {ctx.message.id}/{ctx.channel.id} from {ctx.author} ({ctx.author.id}):")
-            self.log(utils.format_exception(error))
+            self.log(global_utils.format_exception(error))
             await self.report("An error has just occured and was handled by `Haruka.on_command_error`", send_state=False)
 
     async def on_error(self, event_method: str, /, *args, **kwargs) -> None:
@@ -213,10 +213,10 @@ class Haruka(commands.Bot):
         messages = self._connection._messages
 
         embed = discord.Embed()
-        embed.set_thumbnail(url=self.user.avatar.url)
+        embed.set_thumbnail(url=self.user.display_avatar.url)
         embed.set_author(
             name="Internal status",
-            icon_url=self.user.avatar.url,
+            icon_url=self.user.display_avatar.url,
         )
 
         embed.add_field(
@@ -284,9 +284,9 @@ class Haruka(commands.Bot):
 
     async def fetch_user(self, user_id: int, /) -> discord.User:
         try:
-            return self.__users_cache[user_id]
+            return self._users_cache[user_id]
         except KeyError:
-            self.__users_cache[user_id] = user = await super().fetch_user(user_id)
+            self._users_cache[user_id] = user = await super().fetch_user(user_id)
             return user
 
     @property

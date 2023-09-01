@@ -10,16 +10,16 @@ updates:
     schedule:
       interval: "daily"
     commit-message:
-      prefix: "[Python] "
+      prefix: "[pip] "
     reviewers:
       - "Serious-senpai"
 
-  - package-ecosystem: "pub"
+  - package-ecosystem: "npm"
     directory: "/bot/web"
     schedule:
       interval: "daily"
     commit-message:
-      prefix: "[Dart] "
+      prefix: "[npm] "
     reviewers:
       - "Serious-senpai"
 

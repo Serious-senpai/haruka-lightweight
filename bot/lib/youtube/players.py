@@ -8,7 +8,7 @@ from typing import Any, Optional, Union, TYPE_CHECKING
 
 import discord
 
-import utils
+from global_utils import format_exception
 from .playlists import Playlist
 from .tracks import Track
 if TYPE_CHECKING:
@@ -165,7 +165,7 @@ class AudioPlayer(discord.VoiceClient):
         try:
             audio_url = await track.get_audio_url()
         except Exception as exc:
-            self.client.log(f"Unable to get audio URL for {track}\n" + utils.format_exception(exc))
+            self.client.log(f"Unable to get audio URL for {track}\n" + format_exception(exc))
 
             await self.client.report(f"Unable to get audio URL for track ID `{track.id}`", send_state=False)
             await self.notify("Unable to play this track, skipping.", embed=embed)
@@ -173,7 +173,7 @@ class AudioPlayer(discord.VoiceClient):
             def after(error: Optional[Exception]) -> None:
                 self.__waiter.set()
                 if error is not None:
-                    self.client.log(utils.format_exception(error))
+                    self.client.log(format_exception(error))
 
             before_options = (
                 "-start_at_zero",

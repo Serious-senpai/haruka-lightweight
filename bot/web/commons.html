@@ -1,0 +1,39 @@
+<div id="navigator-bar">
+    <div style="height: 170px;"> <!-- Placeholder -->
+        <img alt="" class="centered navigator-item" src="/favicon.ico">
+    </div>
+
+    <a class="change-bg-on-hover navigator-item" href="https://github.com/Serious-senpai/haruka-lightweight">
+        <img alt="" class="inline-icon" src="/assets/github-mark-white.png">
+        <span class="hide-when-collapsed">Source code</span>
+    </a>
+
+    <a class="change-bg-on-hover navigator-item" href="/api/invite">
+        <img alt="" class="inline-icon" src="/favicon.ico">
+        <span class="hide-when-collapsed">Invite bot</span>
+    </a>
+
+    <div id="account-zone" class="navigator-item">
+    </div>
+</div>
+
+<div class="modal" id="login-modal">
+    <div class="container">
+        <div class="close-button cosplay-a">
+            <span class="material-icons-outlined">close</span>
+        </div>
+        <h2>LOGIN INSTRUCTION</h2>
+
+        <h3>Step 1. Add Haruka to your server.</h3>
+        <img alt="" class="constrained" src="/assets/bot-invite.png">
+
+        <h3>Step 2. Use the /otp slash command (any bot is ok!)</h3>
+        <img alt="" class="constrained" src="/assets/otp-slash-command.png">
+
+        <h3>Step 3. Copy & paste the OTP here:</h3>
+        <div id="login-key-zone">
+            <input autocomplete="off" autofocus="true" id="login-key" placeholder="Enter OTP here" type="text">
+            <div class="cosplay-a" onclick="client.authorization.submitKey()">Login</div>
+        </div>
+    </div>
+</div>

@@ -50,7 +50,7 @@ async def handler_a(ctx: Context, *, url: Optional[str] = None) -> None:
             await ctx.send("Error! Couldn't download the image!")
         else:
             embed = discord.Embed(description=f"Result: `{result}` (confidence {100 * confidence:.2f}%)")
-            embed.set_author(name="Prediction of the provided image", icon_url=ctx.bot.user.avatar.url)
+            embed.set_author(name="Prediction of the provided image", icon_url=ctx.bot.user.display_avatar.url)
             embed.set_image(url="attachment://image.png")
             await ctx.send(embed=embed, file=discord.File(io.BytesIO(image_data), filename="image.png"))
 
@@ -79,6 +79,6 @@ async def handler_b(interaction: Interaction, image: Optional[discord.Attachment
         await interaction.followup.send("Error! Couldn't download the image!")
     else:
         embed = discord.Embed(description=f"Result: `{result}` (confidence {100 * confidence:.2f}%)")
-        embed.set_author(name="Prediction of the provided image", icon_url=interaction.client.user.avatar.url)
+        embed.set_author(name="Prediction of the provided image", icon_url=interaction.client.user.display_avatar.url)
         embed.set_image(url="attachment://image.png")
         await interaction.followup.send(embed=embed, file=discord.File(io.BytesIO(image_data), filename="image.png"))

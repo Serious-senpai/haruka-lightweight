@@ -7,7 +7,8 @@ import bs4
 import discord
 from discord.utils import escape_markdown
 
-import utils
+from global_utils import slice_string
+
 
 __all__ = ("MALObject",)
 T = TypeVar("T")
@@ -99,8 +100,8 @@ class MALObject:
             description = None
 
         embed = discord.Embed(
-            title=utils.slice_string(title, 200),
-            description=utils.slice_string(description, 4000),
+            title=slice_string(title, 200),
+            description=slice_string(description, 4000),
             url=self.url,
         )
         return embed

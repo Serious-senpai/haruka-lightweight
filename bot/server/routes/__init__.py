@@ -1,8 +1,8 @@
-from .commands import *
-from .invite import *
-from .login import *
-from .main import *
-from .static import *
-from .throw import *
-from .tic_tac_toe import *
-from .upload import *
+from .api import router as api_router
+from .static import router as static_router
+
+
+__all__ = (
+    "api_router",
+    "static_router",
+)

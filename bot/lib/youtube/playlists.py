@@ -7,7 +7,7 @@ import discord
 from discord.utils import escape_markdown
 from yarl import URL
 
-import utils
+from global_utils import slice_string
 from .client import YouTubeClient, VALID_YOUTUBE_HOST
 from .tracks import Track
 if TYPE_CHECKING:
@@ -49,7 +49,7 @@ class Playlist:
     async def create_embed(self, bot: Haruka) -> discord.Embed:
         embed = discord.Embed(
             title=escape_markdown(self.title),
-            description=utils.slice_string(escape_markdown(self.description), 100),
+            description=slice_string(escape_markdown(self.description), 100),
             url=self.url,
         )
 
@@ -62,10 +62,10 @@ class Playlist:
             value=track_display,
             inline=False,
         )
-        embed.set_author(name=self.author, icon_url=bot.user.avatar.url)
+        embed.set_author(name=self.author, icon_url=bot.user.display_avatar.url)
 
         if not self.tracks:
-            embed.set_thumbnail(url=bot.user.avatar.url)
+            embed.set_thumbnail(url=bot.user.display_avatar.url)
         else:
             embed.set_thumbnail(url=self.tracks[0].thumbnail_url)
 

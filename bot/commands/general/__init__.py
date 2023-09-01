@@ -4,7 +4,6 @@ from .info import *
 from .otp import *
 from .ping import *
 from .prefix import *
-from .render import *
 from .say import *
 from .source import *
 from .speak import *

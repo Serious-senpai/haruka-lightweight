@@ -4,7 +4,7 @@ import random
 
 from discord.ext import commands
 
-import utils
+import global_utils
 from customs import Context
 from shared import interface
 
@@ -18,7 +18,7 @@ from shared import interface
 )
 @commands.is_owner()
 async def handler(ctx: Context) -> None:
-    errors = tuple(utils.get_all_subclasses(BaseException))
+    errors = tuple(global_utils.get_all_subclasses(BaseException))
     try:
         error_type = random.choice(errors)
         error = error_type()

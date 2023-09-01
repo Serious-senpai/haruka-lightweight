@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.core import Group
 
-import utils
+import global_utils
 if TYPE_CHECKING:
     from haruka import Haruka
 
@@ -47,7 +47,7 @@ class HelpCommand(commands.HelpCommand):
         return self.context.bot
 
     async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]], /) -> None:
-        prefix = await utils.get_prefix(self.bot, self.context.message)
+        prefix = await global_utils.get_prefix(self.bot, self.context.message)
         show_hidden = await self.bot.is_owner(self.context.author)
 
         category_mapping: Dict[str, List[str]] = {}
@@ -69,7 +69,7 @@ class HelpCommand(commands.HelpCommand):
         )
         embed.set_author(
             name=f"{self.bot.user} command list",
-            icon_url=self.bot.user.avatar.url,
+            icon_url=self.bot.user.display_avatar.url,
         )
         embed.set_thumbnail(url=self.context.author.display_avatar.url)
 
@@ -85,15 +85,15 @@ class HelpCommand(commands.HelpCommand):
         await self.context.send(embed=embed)
 
     async def send_command_help(self, command: commands.Command) -> None:
-        prefix = await utils.get_prefix(self.bot, self.context.message)
+        prefix = await global_utils.get_prefix(self.bot, self.context.message)
 
-        command = utils.fill_command_metadata(command, prefix=prefix)
+        command = global_utils.fill_command_metadata(command, prefix=prefix)
 
         cooldown = command._buckets
         cooldown_notify = "**Cooldown**\nNo cooldown"
         if cooldown._cooldown:
             _cd_time = cooldown._cooldown.per
-            cooldown_notify = f"**Cooldown**\n{utils.format(_cd_time)} per {cooldown._type.name}"
+            cooldown_notify = f"**Cooldown**\n{global_utils.format(_cd_time)} per {cooldown._type.name}"
 
         embed = discord.Embed(
             title=command.qualified_name,
@@ -106,8 +106,8 @@ class HelpCommand(commands.HelpCommand):
         await self.context.send(embed=embed)
 
     async def send_group_help(self, group: Group) -> None:
-        prefix = await utils.get_prefix(self.bot, self.context.message)
-        group = utils.fill_group_metadata(group)
+        prefix = await global_utils.get_prefix(self.bot, self.context.message)
+        group = global_utils.fill_group_metadata(group)
 
         embed = discord.Embed(
             title=group.qualified_name,
@@ -128,7 +128,7 @@ class HelpCommand(commands.HelpCommand):
         # Also include aliases (don't use walk_commands)
         command_names = [command.name for command in self.bot.all_commands.values() if show_hidden or not command.hidden]
 
-        word = await utils.fuzzy_match(string, command_names)
+        word = await global_utils.fuzzy_match(string, command_names)
         return f"No command called `{string}` was found. Did you mean `{word}`?"
 
     def subcommand_not_found(self, command: commands.Command, string: str) -> str:

@@ -2,27 +2,30 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
-import discord
 from aiohttp import web
 from discord import abc
 
-from ..verification import authenticate_request
-from ..web_utils import Serializable, json_encode
+from ..verification import authenticate_websocket
+from ..web_utils import json_encode
 if TYPE_CHECKING:
     from ..customs import Request
 
 
-class Player(Serializable):
+__all__ = ("Player",)
+
+
+class Player:
+    """Represents a tic-tac-toe player websocket session"""
 
     __slots__ = (
         "user",
         "websocket",
     )
     if TYPE_CHECKING:
-        user: abc.User
+        user: Optional[abc.User]
         websocket: web.WebSocketResponse
 
-    def __init__(self, *, user: abc.User, websocket: web.WebSocketResponse) -> None:
+    def __init__(self, *, user: Optional[abc.User], websocket: web.WebSocketResponse) -> None:
         self.user = user
         self.websocket = websocket
 
@@ -31,23 +34,35 @@ class Player(Serializable):
             "user": json_encode(self.user),
         }
 
+    def __str__(self) -> str:
+        if self.user is not None:
+            return str(self.user)
+
+        return "Guest"
+
     def __repr__(self) -> str:
         return f"<Player user={self.user}>"
 
     @classmethod
-    async def from_request(cls, request: Request) -> Optional[Player]:
-        user = await authenticate_request(request, interface=request.app.interface)
-        if user is None:
-            try:
-                id = int(request.query["id"])
-            except (KeyError, ValueError):
-                return None
-            else:
-                try:
-                    user = await request.app.interface.client.fetch_user(id)
-                except discord.NotFound:
-                    raise web.HTTPNotFound
+    async def from_request(cls, request: Request, /) -> Player:
+        """This function is a coroutine
 
+        Upgrade the HTTP request to a websocket connection and perform authorization. The first
+        message sent from the client (within 60s) must contain the user token.
+
+        Parameters
+        -----
+        request: ``Request``
+            The initial HTTP request
+
+        Returns
+        -----
+        ``Player``
+            The player session created after authenticated using the first websocket message received
+            within 60s. If authentication fails, ``player.user`` will be None
+        """
         websocket = web.WebSocketResponse()
         await websocket.prepare(request)
-        return Player(user=user, websocket=websocket)
+        user = await authenticate_websocket(websocket, interface=request.app.interface)
+
+        return cls(user=user, websocket=websocket)

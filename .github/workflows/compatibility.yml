@@ -7,7 +7,7 @@ permissions:
 
 jobs:
   pip-analyze:
-    name: Check Python packages
+    name: Check pip packages
     runs-on: ubuntu-latest
 
     steps:
@@ -22,32 +22,35 @@ jobs:
     - name: Upgrade pip
       run: pip install --upgrade pip
 
-    - name: Install WoWs minimap renderer
-      run: pip install -U git+https://github.com/WoWs-Builder-Team/minimap_renderer
-
     - name: Install dependencies
       run: pip install -Ur requirements.txt
 
     - name: Check dependencies compatibility
       run: pip check
 
-  pub-analyze:
-    name: Check Dart packages
+  npm-analyze:
+    name: Check npm packages
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
       with:
-        flutter-version: "3.7.0"
+        node-version: "20.5.1"
 
-    - name: View Flutter status
-      run: |
-        flutter --version
-        flutter doctor -v
+    - name: Check packages compatibility
+      working-directory: bot/web
+      run: npm install
 
-    - name: Check dependencies compatibility
-      run: flutter create --platforms web --project-name haruka bot/web
+    - name: Compile Typescript
+      working-directory: bot/web/scripts
+      run: tsc
+
+    - name: Upload compiled Javascript file
+      uses: actions/upload-artifact@v3
+      with:
+        name: typescript-built
+        path: bot/web/scripts/script.js

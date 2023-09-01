@@ -1,63 +1,132 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Union
+import re
+from typing import Any, Dict, List, Protocol, Tuple, TypedDict, TypeVar, overload, runtime_checkable
 
-import discord
+from discord import Asset, abc
 from discord.ext import commands
 from frozenlist import FrozenList
 
-import utils
+from global_utils import fill_command_metadata
+from environment import DEFAULT_COMMAND_PREFIX
 
 
-class Serializable:
-    def to_json(self) -> Union[List[Any], Dict[str, Any]]:
+__all__ = (
+    "json_encode",
+    "html_replace",
+)
+
+
+JsonT = TypeVar("JsonT", List[Any], Dict[str, Any])
+T = TypeVar("T")
+
+
+class _CommandData(TypedDict):
+    name: str
+    aliases: List[str]
+    brief: str
+    description: str
+    usage: str
+
+
+class _UserData(TypedDict):
+    id: str
+    name: str
+    avatar: _AssetData
+
+
+class _AssetData(TypedDict):
+    key: str
+    url: str
+
+
+@runtime_checkable
+class _Serializable(Protocol[JsonT]):
+    def to_json(self) -> JsonT:
         raise NotImplementedError
 
 
-def json_encode(obj: Any) -> Any:
-    if obj is None:
+@overload
+def json_encode(value: None, /) -> None: ...
+@overload
+def json_encode(value: _Serializable[JsonT], /) -> JsonT: ...
+@overload
+def json_encode(value: commands.Command, /) -> _CommandData: ...
+@overload
+def json_encode(value: abc.User, /) -> _UserData: ...
+@overload
+def json_encode(value: Asset, /) -> _AssetData: ...
+@overload
+def json_encode(value: float, /) -> float: ...
+@overload
+def json_encode(value: int, /) -> int: ...
+@overload
+def json_encode(value: str, /) -> str: ...
+@overload
+def json_encode(value: List[Any], /) -> List[Any]: ...
+@overload
+def json_encode(value: Tuple[Any], /) -> List[Any]: ...
+@overload
+def json_encode(value: FrozenList[Any], /) -> List[Any]: ...
+@overload
+def json_encode(value: Dict[str, Any], /) -> Dict[str, Any]: ...
+
+
+def json_encode(value, /):
+    if value is None:
         return None
 
-    if isinstance(obj, Serializable):
-        return obj.to_json()
+    if isinstance(value, _Serializable):
+        return value.to_json()
 
-    if isinstance(obj, commands.Command):
-        command = utils.fill_command_metadata(obj, prefix="$")
+    if isinstance(value, commands.Command):
+        command = fill_command_metadata(value, prefix=DEFAULT_COMMAND_PREFIX)
         return {
             "name": command.name,
-            "aliases": command.aliases,
+            "aliases": list(command.aliases),
             "brief": command.brief,
             "description": command.description,
             "usage": command.usage,
         }
 
-    if isinstance(obj, discord.abc.User):
+    if isinstance(value, abc.User):
         return {
-            "id": str(obj.id),
-            "name": obj.display_name,
-            "avatar": json_encode(obj.display_avatar),
+            "id": str(value.id),
+            "name": value.display_name,
+            "avatar": json_encode(value.display_avatar),
         }
 
-    if isinstance(obj, discord.Asset):
+    if isinstance(value, Asset):
         return {
-            "key": obj.key,
-            "url": obj.url,
+            "key": value.key,
+            "url": value.url,
         }
 
-    if isinstance(obj, (int, str)):
-        return obj
+    if isinstance(value, (int, str)):
+        return value
 
-    if isinstance(obj, (list, tuple, FrozenList)):
-        return [json_encode(o) for o in obj]
+    if isinstance(value, (list, tuple, FrozenList)):
+        return [json_encode(o) for o in value]
 
-    if isinstance(obj, dict):
+    if isinstance(value, dict):
         result = {}
-        for key, value in obj.items():
+        for key, value in value.items():
             if isinstance(key, str):
                 result[key] = json_encode(value)
             else:
-                raise TypeError(f"Error encoding {obj}: Invalid key {key}")
+                raise TypeError(f"Error encoding {value!r}: Invalid key {key!r}")
 
         return result
 
-    raise TypeError(f"Unsupported JSON encoding type {obj.__class__.__name__}")
+    raise TypeError(f"Unsupported JSON encoding type {value.__class__.__name__}")
+
+
+identifier_validation = re.compile(r"^[\w-]+$")
+
+
+def html_replace(html: str, identifier: str, replacement: str) -> str:
+    if identifier_validation.fullmatch(identifier) is None:
+        raise ValueError(f"Invalid identifier {identifier!r}")
+
+    pattern = re.compile(r"{{\s*" + identifier + r"\s*}}")
+    return pattern.sub(replacement, html)

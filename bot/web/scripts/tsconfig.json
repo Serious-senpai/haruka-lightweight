@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "alwaysStrict": true,
+        "exactOptionalPropertyTypes": true,
+        "outFile": "script.js",
+        "sourceMap": true,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": true,
+        "target": "es6"
+    }
+}

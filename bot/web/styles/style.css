@@ -1,0 +1,153 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    color: yellow;
+    text-decoration: none;
+}
+
+.centered {
+    display: block;
+    margin: auto;
+}
+
+div#page-view,
+div#page-view-ajax-load {
+    height: 100vh;
+    position: fixed;
+    width: 100vw;
+}
+
+div#page-view div#main-content {
+    height: 100%;
+    left: 70px;
+    position: fixed;
+    width: calc(100% - 70px);
+}
+
+div#page-view div#main-content div#features {
+    display: block;
+    height: 90%;
+    overflow-y: scroll;
+    position: relative;
+    width: 100%;
+}
+
+div#page-view div#main-content div#features .feature-display {
+    border-radius: 5px;
+    border-style: solid;
+    box-sizing: border-box;
+    float: left;
+    height: 200px;
+    margin: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    position: relative;
+    width: 30%;
+}
+
+div#page-view div#main-content div#commands {
+    display: block;
+    height: 90%;
+    overflow-y: scroll;
+    position: relative;
+    width: 100%;
+}
+
+div#page-view div#main-content div#host-game-button {
+    color: yellow;
+    margin: 20px;
+}
+
+div#page-view div#main-content input#proxy-url-input {
+    height: 16px;
+    width: 50%;
+}
+
+div#page-view div#main-content table#tic-tac-toe-rooms,
+div#page-view div#main-content table#tic-tac-toe-rooms td,
+div#page-view div#main-content table#tic-tac-toe-rooms th {
+    border: 1px solid white;
+    border-collapse: collapse;
+}
+
+div#page-view div#main-content div#tic-tac-toe-info-column {
+    box-sizing: border-box;
+    height: 100%;
+    left: 0;
+    padding: 10px;
+    position: absolute;
+    width: 30%;
+}
+
+div#page-view div#main-content div#tic-tac-toe-info-column div#tic-tac-toe-info-column-logs {
+    box-sizing: border-box;
+    border: 1px solid white;
+    bottom: 40px;
+    height: 50%;
+    overflow: auto;
+    padding: 10px;
+    position: absolute;
+    width: calc(100% - 20px);
+}
+
+div#page-view div#main-content div#tic-tac-toe-info-column input#tic-tac-toe-info-column-chat {
+    bottom: 0;
+    box-sizing: border-box;
+    border: 1px solid white;
+    display: block;
+    height: 20px;
+    margin-bottom: 20px;
+    padding-left: 1px;
+    position: absolute;
+    overflow: auto;
+    width: calc(100% - 20px);
+}
+
+div#page-view div#main-content div#tic-tac-toe-board {
+    box-sizing: border-box;
+    height: 100%;
+    padding: 10px;
+    position: absolute;
+    right: 0;
+    width: 70%;
+}
+
+/* https://stackoverflow.com/a/26432909 */
+div#page-view div#main-content div#tic-tac-toe-board table#tic-tac-toe-board-impl {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+div#page-view div#main-content div#tic-tac-toe-board table#tic-tac-toe-board-impl td {
+    border: 1px solid;
+    height: 2em;
+    line-height: 0;
+    width: 2em;
+    text-align: center;
+}
+
+h1#header {
+    box-sizing: border-box;
+    color: aqua;
+    height: 10%;
+    margin: 0;
+    padding-left: 10px;
+    padding-top: 10px;
+    width: 100%;
+}
+
+/* https://www.w3schools.com/howto/howto_css_login_form.asp */
+div#login-modal .container {
+    color: yellow;
+}
+
+div#login-modal .container #login-key-zone * {
+    float: left;
+    margin-left: 2px;
+    margin-right: 2px;
+}

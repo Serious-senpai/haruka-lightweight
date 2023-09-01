@@ -7,7 +7,7 @@ from typing import Any, ClassVar, Coroutine, Dict, List, Optional, Tuple, Type, 
 import aiohttp
 from yarl import URL
 
-import utils
+from global_utils import TimingContextManager
 from shared import SharedInterface
 
 
@@ -112,7 +112,7 @@ class YouTubeClient:
     async def sort_instances(self) -> None:
         ping: Dict[URL, float] = {}
         for instance in self.instances:
-            with utils.TimingContextManager() as measure:
+            with TimingContextManager() as measure:
                 try:
                     async with self.session.get(instance) as response:
                         response.raise_for_status()

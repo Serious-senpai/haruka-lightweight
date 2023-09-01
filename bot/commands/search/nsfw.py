@@ -30,7 +30,7 @@ async def handler(ctx: Context, *, category: str) -> None:
         embed = discord.Embed()
         embed.set_author(
             name=f"{ctx.author.name}, this is an image of {category}!",
-            icon_url=ctx.bot.user.avatar.url,
+            icon_url=ctx.bot.user.display_avatar.url,
         )
         embed.set_image(url=url)
 

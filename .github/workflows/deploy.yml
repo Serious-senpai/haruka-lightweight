@@ -18,31 +18,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.7.0"
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: "20.5.1"
 
-      - name: View Flutter status
-        run: |
-          flutter --version
-          flutter doctor -v
+    - name: Compile Typescript
+      working-directory: bot/web/scripts
+      run: tsc
 
-      - name: Initialize web project
-        run: flutter create --platforms web --project-name haruka bot/web
-
-      - name: Build front-end server
-        working-directory: bot/web
-        run: flutter build web --output ../server/build
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: haruka-build
-          path: .
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: haruka-build
+        path: .
 
   deploy:
     name: Deploy to Azure
@@ -53,14 +45,14 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: haruka-build
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: haruka-build
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
-        id: deploy-to-webapp
-        with:
-          app-name: haruka39
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      id: deploy-to-webapp
+      with:
+        app-name: haruka39
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
