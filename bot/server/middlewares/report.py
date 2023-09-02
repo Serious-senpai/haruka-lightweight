@@ -18,10 +18,10 @@ async def handler(request: Request, handler: Handler) -> web.Response:
         raise
     except Exception as e:
         interface = request.app.interface
-        interface.log(format_exception(e))
 
         headers_info = "\n".join(f"{key}: {value}" for key, value in request.headers.items())
         request_info = f"Method: {request.method}\nURL: {request.url}\nHeaders\n-----\n{headers_info}\n-----\n{e}"
+        interface.log(f"Error serving request:\n{request_info}\n{format_exception(e)}")
 
-        await interface.client.report(f"An error has just occured while processing a server request.```\n{request_info}```", send_state=False)
+        await interface.client.report("An error has just occured while processing a server request.", send_state=False)
         raise web.HTTPInternalServerError

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, Pattern, Tuple, TYPE_CHECKING
+from typing import Dict, Optional, Pattern, Tuple, TYPE_CHECKING
 
 import aiohttp
 from aiohttp import hdrs, web
@@ -12,58 +12,92 @@ if TYPE_CHECKING:
     from ..customs import Handler, Request
 
 
-host_patterns: Tuple[Pattern[str], Pattern[str], Pattern[str]] = (
-    re.compile(r"(.+?)\.haruka39\.me"),
-    re.compile(r"(.+?)\.haruka39\.azurewebsites\.net"),
-    re.compile(r"(.+?)\.localhost"),
-)
+__all__ = ()
+
+
 data_sending_methods = {
     hdrs.METH_PATCH,
     hdrs.METH_POST,
     hdrs.METH_PUT,
 }
-excluded_client_headers = set(s.casefold() for s in ["Host", "Origin", "Referer"])
-excluded_server_headers = set(s.casefold() for s in ["Content-Encoding", "Content-Length", "Date", "Server", "Transfer-Encoding"])
 
 
-def forward_client_headers(source: CIMultiDictProxy[str]) -> Dict[str, str]:
-    headers = {}
-    for key, value in source.items():
-        if key.casefold() not in excluded_client_headers:
-            headers[key] = value
+class ContentTransformer:
 
-    return headers
+    __slots__ = (
+        "_bob_host",
+        "_proxy_host",
+    )
+    # excluded_client_headers = set(s.casefold() for s in ["Host", "Origin", "Referer"])
+    excluded_server_headers = set(s.casefold() for s in ["Content-Encoding", "Content-Length", "Date", "Server", "Transfer-Encoding"])
+    bob_host_finder_from_proxy_url = re.compile(r"(?<=\/\/)[-\w@:%.\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}(?:(?=\.haruka39\.me)|(?=\.haruka39\.azurewebsites\.net)|(?=\.localhost))")
+    proxy_host_finder_from_proxy_url = re.compile(r"haruka39\.me|haruka39\.azurewebsites\.net|localhost(?::\d*)?")
+
+    if TYPE_CHECKING:
+        _bob_host: str
+        _proxy_host: str
+
+    def __init__(self, *, proxy_url: str) -> None:
+        self._bob_host = self.bob_host_finder_from_proxy_url.search(proxy_url).group(0)
+        self._proxy_host = self.proxy_host_finder_from_proxy_url.search(proxy_url).group(0)
+
+    @property
+    def bob_host(self) -> str:
+        return self._bob_host
+
+    def forward_client_headers(self, source: CIMultiDictProxy[str]) -> Dict[str, str]:
+        headers = {}
+        for key, value in source.items():
+            # if key.casefold() not in self.excluded_client_headers:
+            headers[key] = self.ensure_bob_url(value)
+
+        return headers
+
+    def forward_server_headers(self, source: CIMultiDictProxy[str]) -> Dict[str, str]:
+        headers = {}
+        for key, value in source.items():
+            if key.casefold() not in self.excluded_server_headers:
+                headers[key] = self.ensure_proxy_url(value)
+
+        return headers
+
+    def _append_proxy_host(self, match: re.Match[str]) -> str:
+        return match.group(0) + "." + self._proxy_host
+
+    def ensure_proxy_url(self, source: str) -> str:
+        pattern = re.escape(self._bob_host)
+        return re.sub(pattern, self._append_proxy_host, source, flags=re.IGNORECASE)
+
+    def ensure_bob_url(self, source: str) -> str:
+        pattern = re.escape("." + self._proxy_host)
+        return re.sub(pattern, "", source, flags=re.IGNORECASE)
 
 
-def forward_server_headers(source: CIMultiDictProxy[str]) -> Dict[str, str]:
-    headers = {}
-    for key, value in source.items():
-        if key.casefold() not in excluded_server_headers:
-            if key.casefold() == "Set-Cookie".casefold():
-                value = re.sub(r"[Dd]omain=[^;]+;?", "", value)
+async def proxy_handler(original: Request, /) -> web.StreamResponse:
+    transformer = ContentTransformer(proxy_url=str(original.url))
 
-            headers[key] = value
-
-    return headers
-
-
-async def proxy_handler(host: str, *, original: Request) -> web.Response:
     method = original.method
-    url = original.url.with_host(host).with_port(None)
-    headers = forward_client_headers(original.headers)
+    url = original.url.with_host(transformer.bob_host).with_port(None)
+    headers = transformer.forward_client_headers(original.headers)
     data = original.content.iter_chunked(4096) if original.method in data_sending_methods else None  # Use once, no retrying
 
     interface = original.app.interface
-    interface.log(f"Received proxy request: {method} {url} from \"{original.url}\", headers {headers}")
-
     try:
         async with interface.proxy_session.request(method, url, headers=headers, data=data) as response:
-            headers = forward_server_headers(response.headers)
-            return web.Response(
-                body=await response.read(),
-                status=response.status,
-                headers=headers,
-            )
+            headers = transformer.forward_server_headers(response.headers)
+            if response.content_type in ("text/html", "text/javascript", "text/css"):
+                body = await response.text(encoding="utf-8")
+                body = transformer.ensure_proxy_url(body)
+
+                return web.Response(body=body, status=response.status, headers=headers)
+
+            else:
+                r = web.StreamResponse(status=response.status, headers=headers)
+                await r.prepare(original)
+                async for data in response.content.iter_chunked(2048):
+                    await r.write(data)
+
+                return r
 
     except aiohttp.ServerConnectionError:
         raise web.HTTPInternalServerError
@@ -71,10 +105,8 @@ async def proxy_handler(host: str, *, original: Request) -> web.Response:
 
 @MiddlewareGroup.middleware
 async def handler(request: Request, handler: Handler) -> web.Response:
-    host = request.host.split(":")[0]
-    for pattern in host_patterns:
-        if match := pattern.fullmatch(host):
-            real_host = match.group(1)
-            return await proxy_handler(real_host, original=request)
+    bob_host = ContentTransformer.bob_host_finder_from_proxy_url.search(str(request.url))
+    if bob_host is not None:
+        return await proxy_handler(request)
 
     return await handler(request)
