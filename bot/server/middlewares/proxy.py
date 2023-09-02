@@ -86,8 +86,11 @@ async def proxy_handler(original: Request, /) -> web.StreamResponse:
         async with interface.proxy_session.request(method, url, headers=headers, data=data) as response:
             headers = transformer.forward_server_headers(response.headers)
             if response.content_type in ("text/html", "text/javascript", "text/css"):
-                body = await response.text(encoding="utf-8")
-                body = transformer.ensure_proxy_url(body)
+                data = await response.read()
+                try:
+                    body = transformer.ensure_proxy_url(data.decode("utf-8"))
+                except UnicodeDecodeError:
+                    body = data
 
                 return web.Response(body=body, status=response.status, headers=headers)
 
