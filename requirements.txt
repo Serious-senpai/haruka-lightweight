@@ -58,7 +58,7 @@ pathy==0.10.2
 Pillow==9.2.0
 preshed==3.0.8
 pycparser==2.21
-pycryptodomex==3.15.0
+pycryptodomex==3.18.0
 pydantic==1.10.11
 PyNaCl==1.5.0
 pyodbc==4.0.39
