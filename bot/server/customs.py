@@ -13,4 +13,3 @@ if TYPE_CHECKING:
         app: WebApp
 
     Handler = Callable[[Request], Coroutine[Any, Any, Union[web.Response, web.WebSocketResponse]]]
-    MiddlewareFunc = Callable[[Request, Handler], Coroutine[Any, Any, Union[web.Response, web.WebSocketResponse]]]

@@ -5,8 +5,7 @@ from typing import TYPE_CHECKING
 from aiohttp import web
 
 from .routes import api_router, static_router
-from .middleware_group import MiddlewareGroup
-from .middlewares import *
+from .middlewares import proxy, report
 from .verification import otp_cache
 if TYPE_CHECKING:
     from shared import SharedInterface
@@ -30,7 +29,7 @@ class MainApp(WebApp):
     def __init__(self, *, interface: SharedInterface) -> None:
         super().__init__(
             interface=interface,
-            middlewares=MiddlewareGroup().to_list(),
+            middlewares=[report, proxy],  # Order matters!
         )
 
         api = WebApp(interface=interface)
