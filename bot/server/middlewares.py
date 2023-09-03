@@ -108,7 +108,7 @@ class HTTPContentTransformer:
 
 def is_ws_request(headers: Mapping[str, str], /) -> bool:
     upgrade = str(headers.get(hdrs.UPGRADE)).lower()
-    connection = str(headers.get(hdrs.CONNECTION).lower())
+    connection = str(headers.get(hdrs.CONNECTION)).lower()
     return upgrade == "websocket" and connection == "upgrade"
 
 
