@@ -11,6 +11,7 @@ updates:
       interval: "daily"
     commit-message:
       prefix: "[pip] "
+    target-branch: "upgrade-packages"
     reviewers:
       - "Serious-senpai"
 
@@ -20,6 +21,7 @@ updates:
       interval: "daily"
     commit-message:
       prefix: "[npm] "
+    target-branch: "upgrade-packages"
     reviewers:
       - "Serious-senpai"
 
@@ -31,5 +33,6 @@ updates:
       interval: "daily"
     commit-message:
       prefix: "[Actions] "
+    target-branch: "upgrade-packages"
     reviewers:
       - "Serious-senpai"
