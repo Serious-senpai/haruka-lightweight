@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import re
-from typing import Dict, TYPE_CHECKING
+from typing import Dict, Mapping, Union, TYPE_CHECKING
 
 import aiohttp
 from aiohttp import hdrs, web
@@ -43,7 +44,7 @@ data_sending_methods = {
 }
 
 
-class ContentTransformer:
+class HTTPContentTransformer:
 
     __slots__ = (
         "_bob_host",
@@ -52,7 +53,7 @@ class ContentTransformer:
     )
     excluded_server_headers = set(s.casefold() for s in ["Content-Encoding", "Content-Length", "Date", "Server", "Transfer-Encoding"])
     bob_host_finder_from_proxy_url = re.compile(r"(?<=\/\/)[-\w@:%.\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}(?:(?=\.haruka39\.me)|(?=\.haruka39\.azurewebsites\.net)|(?=\.localhost))")
-    proxy_host_finder_from_proxy_url = re.compile(r"haruka39\.me|haruka39\.azurewebsites\.net|localhost(?::\d*)?")
+    proxy_host_finder_from_proxy_url = re.compile(r"(?<=\.)(?:haruka39\.me|haruka39\.azurewebsites\.net|localhost(?::\d*)?)")
     scheme_finder_from_proxy_url = re.compile(r"(https?)(:\/\/[-\w@:%.\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}\.(?:haruka39\.me|haruka39\.azurewebsites\.net|localhost(?::\d*)?))")
 
     if TYPE_CHECKING:
@@ -101,43 +102,76 @@ class ContentTransformer:
         pattern = re.escape("." + self._proxy_host)
         return re.sub(pattern, "", source, flags=re.IGNORECASE)
 
+    def __repr__(self) -> str:
+        return f"<HTTPContentTransformer bob={self._bob_host!r} proxy={self._proxy_host!r} support_https={self._support_https!r}>"
 
-async def proxy_handler(original: Request, /) -> web.StreamResponse:
-    transformer = ContentTransformer(proxy_url=str(original.url))
+
+def is_ws_request(headers: Mapping[str, str], /) -> bool:
+    upgrade = str(headers.get(hdrs.UPGRADE)).lower()
+    connection = str(headers.get(hdrs.CONNECTION).lower())
+    return upgrade == "websocket" and connection == "upgrade"
+
+
+async def forward_ws_message(sender: Union[web.WebSocketResponse, aiohttp.ClientWebSocketResponse], receiver: Union[web.WebSocketResponse, aiohttp.ClientWebSocketResponse], /) -> None:
+    async for message in sender:
+        if message.type == aiohttp.WSMsgType.TEXT:
+            await receiver.send_str(message.data)
+        elif message.type == aiohttp.WSMsgType.BINARY:
+            await receiver.send_bytes(message.data)
+
+    await receiver.close(code=aiohttp.WSCloseCode.OK if sender.close_code is None else sender.close_code)
+
+
+async def proxy_handler(original: Request, /) -> Union[web.WebSocketResponse, web.StreamResponse]:
+    transformer = HTTPContentTransformer(proxy_url=str(original.url))
 
     method = original.method
     url = original.url.with_host(transformer.bob_host).with_port(None).with_scheme("https")
     headers = transformer.forward_client_headers(original.headers)
-    data = original.content.iter_chunked(4096) if original.method in data_sending_methods else None  # Use once, no retrying
 
     interface = original.app.interface
-    try:
-        async with interface.proxy_session.request(method, url, headers=headers, data=data, allow_redirects=False) as response:
-            headers = transformer.forward_server_headers(response.headers)
-            if response.content_type in ("text/html", "text/javascript", "text/css"):
-                data = await response.read()
-                try:
-                    body = transformer.ensure_proxy_url(data.decode("utf-8"))
-                except UnicodeDecodeError:
-                    body = data
+    if is_ws_request(headers):
+        alice_ws = web.WebSocketResponse()
+        await alice_ws.prepare(original)
+        try:
+            async with interface.proxy_session.ws_connect(url, method=method, headers=headers) as bob_ws:
+                await asyncio.gather(
+                    forward_ws_message(alice_ws, bob_ws),
+                    forward_ws_message(bob_ws, alice_ws),
+                )
 
-                return web.Response(body=body, status=response.status, headers=headers)
+        finally:
+            return alice_ws
 
-            else:
-                r = web.StreamResponse(status=response.status, headers=headers)
-                await r.prepare(original)
-                async for data in response.content.iter_chunked(2048):
-                    await r.write(data)
+    else:
+        try:
+            data = original.content.iter_chunked(4096) if original.method in data_sending_methods else None  # Use once, no retrying
+            async with interface.proxy_session.request(method, url, headers=headers, data=data, allow_redirects=False) as response:
+                headers = transformer.forward_server_headers(response.headers)
+                if response.content_type in ("text/html", "text/javascript", "text/css"):
+                    data = await response.read()
+                    try:
+                        body = transformer.ensure_proxy_url(data.decode("utf-8"))
+                    except UnicodeDecodeError:
+                        body = data
 
-                return r
+                    return web.Response(body=body, status=response.status, headers=headers)
 
-    except aiohttp.ServerConnectionError:
-        raise web.HTTPInternalServerError
+                else:
+                    r = web.StreamResponse(status=response.status, headers=headers)
+                    await r.prepare(original)
+                    async for data in response.content.iter_chunked(2048):
+                        await r.write(data)
+
+                    return r
+
+        except aiohttp.ServerConnectionError:
+            raise web.HTTPInternalServerError
 
 
 @web.middleware
 async def proxy(request: Request, handler: Handler) -> web.Response:
-    bob_host = ContentTransformer.bob_host_finder_from_proxy_url.search(str(request.url))
+    bob_host = HTTPContentTransformer.bob_host_finder_from_proxy_url.search(str(request.url))
     if bob_host is not None:
         return await proxy_handler(request)
 
