@@ -11,6 +11,7 @@ Invite Haruka [here](https://discord.com/api/oauth2/authorize?client_id=84817817
   - [Shirakami Fubuki](https://virtualyoutuber.fandom.com/wiki/Shirakami_Fubuki)
   - [Watson Amelia](https://virtualyoutuber.fandom.com/wiki/Watson_Amelia)
   - [Yukihana Lamy](https://virtualyoutuber.fandom.com/wiki/Yukihana_Lamy)
+
 The image classification model achieved 0.2375% error rate with only 1 incorrect prediction in the validation set.
 ![confusion-matrix](/readme-assets/model-confusion-matrix.png)
 - Stream audio from a YouTube playlist/video directly to a voice channel
