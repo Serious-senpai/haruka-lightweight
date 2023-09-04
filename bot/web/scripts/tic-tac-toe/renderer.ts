@@ -132,7 +132,7 @@ namespace tic_tac_toe {
                         if (block !== null) {
                             $block.append(
                                 $("<span>", { "class": "material-icons-outlined" })
-                                    .text(block === 1 ? "close" : "circle"),
+                                    .text(block === 0 ? "close" : "circle"),
                             );
                         }
 

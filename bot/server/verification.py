@@ -136,7 +136,7 @@ async def authenticate_websocket(websocket: web.WebSocketResponse, *, interface:
         The associated Discord account of this user
     """
     try:
-        token = await websocket.receive_str(60)
+        token = await websocket.receive_str(timeout=60)
     except Exception:
         return None
     else:

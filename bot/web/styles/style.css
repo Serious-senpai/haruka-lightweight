@@ -84,6 +84,12 @@ div#page-view div#main-content div#tic-tac-toe-info-column {
     width: 30%;
 }
 
+div#page-view div#main-content div#tic-tac-toe-info-column div#tic-tac-toe-info-column-host,
+div#page-view div#main-content div#tic-tac-toe-info-column div#tic-tac-toe-info-column-other {
+    align-items: center;
+    display: inline-flex;
+}
+
 div#page-view div#main-content div#tic-tac-toe-info-column div#tic-tac-toe-info-column-logs {
     box-sizing: border-box;
     border: 1px solid white;

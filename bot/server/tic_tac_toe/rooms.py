@@ -63,7 +63,7 @@ class Room:
     def __init__(self, *, id: str, host: Player) -> None:
         self._host = host
         self._id = id
-        self._logs = [f"{host} hosted room {id}"]
+        self._logs = [f"{host} hosted room {id}. Type \"/start\" to start the game."]
         self._other = None
         self._spectators = set()
 

@@ -7,7 +7,13 @@ function setUpRoomsView(): void {
     const $hostButton = $("#host-game-button");
     if ($hostButton.length > 0) {
         tic_tac_toe.renderRooms();
-        $hostButton.off().on("click", () => tic_tac_toe.Room.create().then((room) => tic_tac_toe.renderer.navigate(room)));
+        $hostButton.off().on(
+            "click",
+            () => {
+                $hostButton.empty().append($("<div>", { "class": "circular-progress-indicator" }));
+                tic_tac_toe.Room.create().then((room) => tic_tac_toe.renderer.navigate(room));
+            },
+        );
     }
 }
 
