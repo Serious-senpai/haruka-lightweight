@@ -40,10 +40,6 @@ async def handler(request: Request) -> web.Response:
         html = file.read()
 
     room_id = request.match_info["room_id"]
-    room = manager.from_id(room_id)
-    if room is None:
-        raise web.HTTPNotFound
-
     html = html_replace(html, "game-id", room_id)
     return web.Response(body=html, content_type="text/html")
 

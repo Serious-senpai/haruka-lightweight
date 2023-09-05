@@ -36,7 +36,7 @@ class Player:
 
     def __str__(self) -> str:
         if self.user is not None:
-            return self.user.name
+            return self.user.display_name
 
         return "Guest"
 

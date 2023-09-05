@@ -50,6 +50,8 @@ namespace client {
                                 this.initialLogin.set();
                             }
                         );
+                    } else {
+                        this.initialLogin.set();
                     }
 
                     /* Add listeners for login/logout events.

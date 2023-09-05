@@ -1,6 +1,7 @@
 /// <reference path="rooms.ts" />
 /// <reference path="../router.ts" />
 /// <reference path="../utils.ts" />
+/// <reference path="../client/authorization.ts" />
 
 
 namespace tic_tac_toe {
@@ -9,6 +10,11 @@ namespace tic_tac_toe {
         private readonly roomUrlPattern = new RegExp(/^\/tic-tac-toe\/room\/([\w\-\.~]+)\/?$/);
 
         public constructor() {
+            client.authorization.waitForInitialLogin().then(() => this.preprocess());
+            router.navigator.onNavigate(() => this.preprocess());
+        }
+
+        private preprocess(): void {
             console.log("Matching URL against room pattern", this.roomUrlPattern);
             const match = location.pathname.match(this.roomUrlPattern);
             if (match !== null) {
@@ -16,14 +22,6 @@ namespace tic_tac_toe {
                 console.log(`URL matched with room ID ${id}`);
                 Room.join(id).then((room) => this.room = room);
             }
-
-            router.navigator.onNavigate(
-                () => {
-                    if (this._room !== null) {
-                        Renderer.renderCallback(this._room);
-                    }
-                },
-            );
         }
 
         /**
@@ -32,14 +30,7 @@ namespace tic_tac_toe {
          */
         public navigate(room: Room): void {
             console.log(`Navigating to room ${room.id}`);
-            router.navigator.navigate(
-                `/tic-tac-toe/room/${room.id}`,
-                true,
-                () => {
-                    Renderer.renderCallback(room);
-                    this.room = room;
-                },
-            );
+            router.navigator.navigate(`/tic-tac-toe/room/${room.id}`, true);
         }
 
         public get room(): Room | null {
@@ -59,13 +50,14 @@ namespace tic_tac_toe {
                 }
 
                 room.addCallback(Renderer.renderCallback);
+                Renderer.renderCallback(room);
             }
 
             this._room = room;
         }
 
         private static renderCallback(room: Room): void {
-            console.log(`Rendering room ${room.id}`);
+            console.log(`Rendering room ${room.id} using static data:`, room);
             const $infoColumn = $("div#tic-tac-toe-info-column");
             if ($infoColumn.length > 0) {
                 console.log("Found matching element: ", $infoColumn);
