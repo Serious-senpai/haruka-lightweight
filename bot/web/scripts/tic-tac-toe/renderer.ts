@@ -98,17 +98,20 @@ namespace tic_tac_toe {
                     $other.append($("<span>").text("Waiting for player..."));
                 }
 
-                $infoColumn.children("div#tic-tac-toe-info-column-logs").empty().html(room.logs.map(escapeHtml).join("<br>"));
+                $infoColumn.children("div#tic-tac-toe-info-column-logs")
+                    .empty()
+                    .html(room.logs.map(escapeHtml).join("<br>"))
+                    .scrollTop($infoColumn.prop("scrollHeight"));
 
                 const $chat = $infoColumn.children("input#tic-tac-toe-info-column-chat").off();
                 $chat.on("keydown", (e) => {
                     if (e.key === "Enter") {
-                        const message = $chat.val() as string;
+                        const message = ($chat.val() as string).trim();
                         $chat.val("");
 
                         if (message === "/start") {
                             room.start();
-                        } else {
+                        } else if (message.length > 0) {
                             room.chat(message);
                         }
                     }
