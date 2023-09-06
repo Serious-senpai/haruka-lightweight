@@ -24,6 +24,20 @@ function captialize(value: string): string {
 }
 
 
+function construct2DArray<T>(row: number, column: number, value: T): Array<Array<T>> {
+    const result: Array<Array<T>> = new Array<Array<T>>();
+    for (var r = 0; r < row; r++) {
+        const arr = new Array<T>();
+        arr.length = column;
+        arr.fill(value, 0, column);
+
+        result.push(arr);
+    }
+
+    return result;
+}
+
+
 // https://stackoverflow.com/a/12034334
 var entityMap = {
     "&": "&amp;",

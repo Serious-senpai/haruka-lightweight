@@ -126,7 +126,17 @@ namespace tic_tac_toe {
                         const $block = $("<td>").on("click", () => room.move(r, c));
                         if (block !== null) {
                             $block.append(
-                                $("<span>", { "class": "material-icons-outlined" })
+                                $(
+                                    "<span>",
+                                    {
+                                        "class": "material-icons-outlined",
+                                        "style": concatCSSStyles(
+                                            {
+                                                "color": room.blockUpdated[row][column] ? "red" : "white",
+                                            },
+                                        ),
+                                    },
+                                )
                                     .text(block === 0 ? "close" : "circle"),
                             );
                         }

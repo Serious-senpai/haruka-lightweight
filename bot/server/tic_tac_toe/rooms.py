@@ -223,14 +223,15 @@ class Room:
         await self.notify_all()
 
     async def end(self, *, host_win: bool, reason: str) -> None:
-        if host_win:
-            self._logs.append(f"{self._host} won: {reason}")
-        else:
-            self._logs.append(f"{self._other} won: {reason}")
+        if not self.ended:
+            if host_win:
+                self._logs.append(f"{self._host} won: {reason}")
+            else:
+                self._logs.append(f"{self._other} won: {reason}")
 
-        self._winner = 1 - host_win
-        self._end.set()
-        await self.notify_all()
+            self._winner = 1 - host_win
+            self._end.set()
+            await self.notify_all()
 
     # Game state control
 

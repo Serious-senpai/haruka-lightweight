@@ -1,7 +1,9 @@
 /// <reference path="players.ts" />
 /// <reference path="websocket.ts" />
 /// <reference path="../router.ts" />
+/// <reference path="../utils.ts" />
 /// <reference path="../client/http.ts" />
+/// <reference path="../collections/pair.ts" />
 
 
 namespace tic_tac_toe {
@@ -176,6 +178,18 @@ namespace tic_tac_toe {
             this._updateCallbacks.delete(callback);
         }
 
+        public readonly blockUpdated: Array<Array<boolean>> = construct2DArray(BOARD_SIZE, BOARD_SIZE, false);
+
+        private hasUpdate(newBoard: Array<Array<number | null>>): boolean {
+            for (var i = 0; i < BOARD_SIZE; i++) {
+                for (var j = 0; j < BOARD_SIZE; j++) {
+                    if (this.board[i][j] !== newBoard[i][j]) return true;
+                }
+            }
+
+            return false;
+        }
+
         private update(data: object): void {
             console.log(`Updating state for room ${this.id}:`, data);
             if (data["id"] === this.id) {
@@ -185,6 +199,14 @@ namespace tic_tac_toe {
 
                 this._host = Player.fromObject(data["host"]);
                 this._other = data["other"] !== null ? Player.fromObject(data["other"]) : null;
+
+                if (this.hasUpdate(data["board"])) {
+                    for (var i = 0; i < BOARD_SIZE; i++) {
+                        for (var j = 0; j < BOARD_SIZE; j++) {
+                            this.blockUpdated[i][j] = (this.board[i][j] !== data["board"][i][j]);
+                        }
+                    }
+                }
 
                 for (var i = 0; i < BOARD_SIZE; i++) {
                     for (var j = 0; j < BOARD_SIZE; j++) {
