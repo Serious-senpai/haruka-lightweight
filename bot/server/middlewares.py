@@ -30,7 +30,7 @@ async def report(request: Request, handler: Handler) -> web.Response:
         interface = request.app.interface
 
         headers_info = "\n".join(f"{key}: {value}" for key, value in request.headers.items())
-        request_info = f"Method: {request.method}\nURL: {request.url}\nHeaders\n-----\n{headers_info}\n-----\n{e}"
+        request_info = f"Method: {request.method}\nURL: {request.url}\nHeaders:\n-----\n{headers_info}\n-----\n{e}"
         interface.log(f"Error serving request:\n{request_info}\n{format_exception(e)}")
 
         await interface.client.report("An error has just occured while processing a server request.", send_state=False)
@@ -54,7 +54,7 @@ class HTTPContentTransformer:
     excluded_server_headers = set(s.casefold() for s in ["Content-Encoding", "Content-Length", "Date", "Server", "Transfer-Encoding"])
     bob_host_finder_from_proxy_url = re.compile(r"(?<=\/\/)[-\w@:%.\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}(?:(?=\.haruka39\.me)|(?=\.haruka39\.azurewebsites\.net)|(?=\.localhost))")
     proxy_host_finder_from_proxy_url = re.compile(r"(?<=\.)(?:haruka39\.me|haruka39\.azurewebsites\.net|localhost(?::\d*)?)")
-    scheme_finder_from_proxy_url = re.compile(r"(https?)(?::\/\/[-\w@:%.\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}\.(?:haruka39\.me|haruka39\.azurewebsites\.net|localhost(?::\d*)?))")
+    scheme_finder_from_proxy_url = re.compile(r"(https?)(:\/\/[-\w@:%.\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}\.(?:haruka39\.me|haruka39\.azurewebsites\.net|localhost(?::\d*)?))")
 
     if TYPE_CHECKING:
         _bob_host: str
