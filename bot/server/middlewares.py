@@ -54,7 +54,7 @@ class HTTPContentTransformer:
     excluded_server_headers = set(s.casefold() for s in ["Content-Encoding", "Content-Length", "Date", "Server", "Transfer-Encoding"])
     bob_host_finder_from_proxy_url = re.compile(r"(?<=\/\/)[-\w@:%.\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}(?:(?=\.haruka39\.me)|(?=\.haruka39\.azurewebsites\.net)|(?=\.localhost))")
     proxy_host_finder_from_proxy_url = re.compile(r"(?<=\.)(?:haruka39\.me|haruka39\.azurewebsites\.net|localhost(?::\d*)?)")
-    scheme_finder_from_proxy_url = re.compile(r"(https?)(:\/\/[-\w@:%.\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}\.(?:haruka39\.me|haruka39\.azurewebsites\.net|localhost(?::\d*)?))")
+    scheme_finder_from_proxy_url = re.compile(r"(https?)(?::\/\/[-\w@:%.\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}\.(?:haruka39\.me|haruka39\.azurewebsites\.net|localhost(?::\d*)?))")
 
     if TYPE_CHECKING:
         _bob_host: str
@@ -64,7 +64,9 @@ class HTTPContentTransformer:
     def __init__(self, *, proxy_url: str) -> None:
         self._bob_host = self.bob_host_finder_from_proxy_url.search(proxy_url).group(0)
         self._proxy_host = self.proxy_host_finder_from_proxy_url.search(proxy_url).group(0)
-        self._support_https = (self.scheme_finder_from_proxy_url.search(proxy_url).group(1) == "https")
+
+        scheme = self.scheme_finder_from_proxy_url.search(proxy_url).group(1)
+        self._support_https = (scheme == "https")
 
     @property
     def bob_host(self) -> str:
@@ -130,6 +132,7 @@ async def proxy_handler(original: Request, /) -> Union[web.WebSocketResponse, we
     headers = transformer.forward_client_headers(original.headers)
 
     interface = original.app.interface
+    interface.log(f"Proxy {method} {original.url} -> {url} with transformer {transformer}")
     if is_ws_request(headers):
         alice_ws = web.WebSocketResponse()
         await alice_ws.prepare(original)

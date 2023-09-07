@@ -21,4 +21,5 @@ The image classification model achieved 0.2375% error rate with only 1 incorrect
 - Share search results from [Urban dictionary](https://www.urbandictionary.com/)
 ### Other features
 - [Proxy server](https://en.wikipedia.org/wiki/Proxy_server) to connect to websites that are inaccessible in your region.
+  - If you want to add a new host to be proxied, please open a new issue.
 - Play tic-tac-toe on the web!
