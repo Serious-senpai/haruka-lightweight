@@ -47,8 +47,8 @@ data_sending_methods = {
 
 localhost_port = 8888
 possible_proxies = (
-    "haruka39.me",
-    "haruka39.azurewebsites.net",
+    "haruka39.me:443",
+    "haruka39.azurewebsites.net:443",
     f"localhost:{localhost_port}",
 )
 
