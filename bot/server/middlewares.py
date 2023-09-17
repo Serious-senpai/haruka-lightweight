@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import re
-from typing import Dict, Mapping, Union, TYPE_CHECKING
+from typing import Dict, Mapping, Optional, Union, TYPE_CHECKING
 
 import aiohttp
 from aiohttp import hdrs, web
 from multidict import CIMultiDictProxy
+from yarl import URL
 
 from global_utils import format_exception
 
@@ -44,6 +45,14 @@ data_sending_methods = {
 }
 
 
+localhost_port = 8888
+possible_proxies = (
+    "haruka39.me",
+    "haruka39.azurewebsites.net",
+    f"localhost:{localhost_port}",
+)
+
+
 class HTTPContentTransformer:
 
     __slots__ = (
@@ -52,21 +61,31 @@ class HTTPContentTransformer:
         "_support_https",
     )
     excluded_server_headers = set(s.casefold() for s in ["Content-Encoding", "Content-Length", "Date", "Server", "Transfer-Encoding"])
-    bob_host_finder_from_proxy_url = re.compile(r"(?<=\/\/)[-\w@:%.\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}(?:(?=\.haruka39\.me)|(?=\.haruka39\.azurewebsites\.net)|(?=\.localhost))")
-    proxy_host_finder_from_proxy_url = re.compile(r"(?<=\.)(?:haruka39\.me|haruka39\.azurewebsites\.net|localhost(?::\d*)?)")
-    scheme_finder_from_proxy_url = re.compile(r"(https?)(:\/\/[-\w@:%.\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}\.(?:haruka39\.me|haruka39\.azurewebsites\.net|localhost(?::\d*)?))")
 
     if TYPE_CHECKING:
         _bob_host: str
         _proxy_host: str
         _support_https: bool
 
-    def __init__(self, *, proxy_url: str) -> None:
-        self._bob_host = self.bob_host_finder_from_proxy_url.search(proxy_url).group(0)
-        self._proxy_host = self.proxy_host_finder_from_proxy_url.search(proxy_url).group(0)
+    def __init__(self, *, proxy_url: URL) -> None:
+        authority = proxy_url.authority
+        self._proxy_host = self.get_proxy_host(authority)
+        assert self._proxy_host is not None
 
-        scheme = self.scheme_finder_from_proxy_url.search(proxy_url).group(1)
-        self._support_https = (scheme == "https")
+        self._bob_host = authority.removesuffix("." + self._proxy_host)
+        self._support_https = (self._proxy_host != f"localhost:{localhost_port}")
+
+    @staticmethod
+    def get_proxy_host(full_proxy_host: str) -> Optional[str]:
+        for proxy_host in possible_proxies:
+            if full_proxy_host.endswith(proxy_host):
+                return proxy_host
+
+        return None
+
+    @property
+    def _full_proxy_host(self) -> str:
+        return self._bob_host + "." + self._proxy_host
 
     @property
     def bob_host(self) -> str:
@@ -94,9 +113,13 @@ class HTTPContentTransformer:
         return "http" + match.group(2)
 
     def ensure_proxy_url(self, source: str) -> str:
-        result = re.sub(re.escape(self._bob_host), self._append_proxy_host, source, flags=re.IGNORECASE)
+        # Lowercase all bob's hosts
+        result = re.sub(re.escape(self._bob_host), self._bob_host, source, flags=re.IGNORECASE)
+
+        # Replace with full proxy hosts
+        result = result.replace(self._bob_host, self._full_proxy_host)
         if not self._support_https:
-            result = re.sub(self.scheme_finder_from_proxy_url, self._ensure_http, result)
+            result = result.replace("https", "http")
 
         return result
 
@@ -125,10 +148,10 @@ async def forward_ws_message(sender: Union[web.WebSocketResponse, aiohttp.Client
 
 
 async def proxy_handler(original: Request, /) -> Union[web.WebSocketResponse, web.StreamResponse]:
-    transformer = HTTPContentTransformer(proxy_url=str(original.url))
+    transformer = HTTPContentTransformer(proxy_url=original.url)
 
     method = original.method
-    url = original.url.with_host(transformer.bob_host).with_port(None).with_scheme("https")
+    url = original.url.with_host(transformer.bob_host).with_port(None)
     headers = transformer.forward_client_headers(original.headers)
 
     interface = original.app.interface
@@ -149,7 +172,7 @@ async def proxy_handler(original: Request, /) -> Union[web.WebSocketResponse, we
     else:
         try:
             data = original.content.iter_chunked(4096) if original.method in data_sending_methods else None  # Use once, no retrying
-            async with interface.proxy_session.request(method, url, headers=headers, data=data, allow_redirects=False) as response:
+            async with interface.proxy_session.request(method, url, headers=headers, data=data, allow_redirects=True) as response:
                 headers = transformer.forward_server_headers(response.headers)
                 if response.content_type in ("text/html", "text/javascript", "text/css"):
                     data = await response.read()
@@ -174,8 +197,7 @@ async def proxy_handler(original: Request, /) -> Union[web.WebSocketResponse, we
 
 @web.middleware
 async def proxy(request: Request, handler: Handler) -> web.Response:
-    bob_host = HTTPContentTransformer.bob_host_finder_from_proxy_url.search(str(request.url))
-    if bob_host is not None:
+    if HTTPContentTransformer.get_proxy_host(request.url.authority) is not None:
         return await proxy_handler(request)
 
     return await handler(request)
