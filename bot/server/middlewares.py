@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import re
 from typing import Dict, Mapping, Optional, Union, TYPE_CHECKING
 
@@ -187,9 +188,10 @@ async def proxy_handler(original: Request, /) -> Union[web.WebSocketResponse, we
 
                 else:
                     r = web.StreamResponse(status=response.status, headers=headers)
-                    await r.prepare(original)
-                    async for data in response.content.iter_chunked(2048):
-                        await r.write(data)
+                    with contextlib.suppress(ConnectionResetError):
+                        await r.prepare(original)
+                        async for data in response.content.iter_chunked(2048):
+                            await r.write(data)
 
                     return r
 
