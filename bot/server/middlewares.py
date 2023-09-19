@@ -187,7 +187,7 @@ class ProxyRequestHandler:
 
                         return r
 
-            except aiohttp.ServerConnectionError:
+            except (aiohttp.ServerConnectionError, aiohttp.TooManyRedirects):
                 raise web.HTTPInternalServerError
 
     def __repr__(self) -> str:
