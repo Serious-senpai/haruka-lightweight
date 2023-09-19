@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import re
-from typing import Dict, Mapping, Optional, Union, TYPE_CHECKING
+from typing import ClassVar, Dict, Mapping, Optional, Set, Union, TYPE_CHECKING
 
 import aiohttp
 from aiohttp import hdrs, web
@@ -39,65 +39,74 @@ async def report(request: Request, handler: Handler) -> web.Response:
         raise web.HTTPInternalServerError
 
 
-data_sending_methods = {
-    hdrs.METH_PATCH,
-    hdrs.METH_POST,
-    hdrs.METH_PUT,
-}
+class NotProxyRequest(Exception):
+    pass
 
 
-localhost_port = 8888
-possible_proxies = (
-    "haruka39.me:80",
-    "haruka39.me:443",
-    "haruka39.azurewebsites.net:80",
-    "haruka39.azurewebsites.net:443",
-    f"localhost:{localhost_port}",
-)
-
-
-class HTTPContentTransformer:
+class ProxyRequestHandler:
 
     __slots__ = (
-        "_bob_host",
         "_proxy_host",
-        "_support_https",
+        "_request",
+        "_server_host",
     )
-    excluded_server_headers = set(s.casefold() for s in ["Content-Encoding", "Content-Length", "Date", "Server", "Transfer-Encoding"])
-
     if TYPE_CHECKING:
-        _bob_host: str
-        _proxy_host: str
-        _support_https: bool
+        proxy_host: str
+        request: Request
+        server_host: str
 
-    def __init__(self, *, proxy_url: URL) -> None:
-        authority = proxy_url.authority
+    excluded_server_headers: ClassVar[Set[str]] = set(s.casefold() for s in ["Content-Encoding", "Content-Length", "Date", "Server", "Transfer-Encoding"])
+    possible_proxies: ClassVar[Set[str]] = {
+        "haruka39.me",
+        "haruka39.azurewebsites.net",
+        "localhost",
+    }
+    data_sending_methods: ClassVar[Set[str]] = {
+        hdrs.METH_PATCH,
+        hdrs.METH_POST,
+        hdrs.METH_PUT,
+    }
+
+    def __init__(self, request: Request, /) -> None:
+        self._request = request
+
+        authority = self.omit_port(request.url.authority)
         self._proxy_host = self.get_proxy_host(authority)
-        assert self._proxy_host is not None
+        if self._proxy_host is None:
+            raise NotProxyRequest
 
-        self._bob_host = authority.removesuffix("." + self._proxy_host)
-        self._support_https = (self._proxy_host != f"localhost:{localhost_port}")
+        self._server_host = authority.removesuffix("." + self._proxy_host)
+
+    @property
+    def full_proxy_host(self) -> str:
+        return self._server_host + "." + self._proxy_host
+
+    @staticmethod
+    def omit_port(hostname: str) -> str:
+        return hostname.split(":")[0]
 
     @staticmethod
     def get_proxy_host(full_proxy_host: str) -> Optional[str]:
-        for proxy_host in possible_proxies:
+        for proxy_host in ProxyRequestHandler.possible_proxies:
             if full_proxy_host.endswith(proxy_host):
                 return proxy_host
 
         return None
 
-    @property
-    def _full_proxy_host(self) -> str:
-        return self._bob_host + "." + self._proxy_host
+    @staticmethod
+    async def forward_ws_message(sender: Union[web.WebSocketResponse, aiohttp.ClientWebSocketResponse], receiver: Union[web.WebSocketResponse, aiohttp.ClientWebSocketResponse], /) -> None:
+        async for message in sender:
+            if message.type == aiohttp.WSMsgType.TEXT:
+                await receiver.send_str(message.data)
+            elif message.type == aiohttp.WSMsgType.BINARY:
+                await receiver.send_bytes(message.data)
 
-    @property
-    def bob_host(self) -> str:
-        return self._bob_host
+        await receiver.close(code=aiohttp.WSCloseCode.OK if sender.close_code is None else sender.close_code)
 
-    def forward_client_headers(self, source: CIMultiDictProxy[str]) -> Dict[str, str]:
+    def forward_client_headers(self) -> Dict[str, str]:
         headers = {}
-        for key, value in source.items():
-            headers[key] = self.ensure_bob_url(value)
+        for key, value in self._request.headers.items():
+            headers[key] = self.remove_proxy_host(value)
 
         return headers
 
@@ -105,103 +114,87 @@ class HTTPContentTransformer:
         headers = {}
         for key, value in source.items():
             if key.casefold() not in self.excluded_server_headers:
-                headers[key] = self.ensure_proxy_url(value)
+                headers[key] = self.append_proxy_host(value)
 
         return headers
 
-    def _append_proxy_host(self, match: re.Match[str]) -> str:
-        return match.group(0) + "." + self._proxy_host
+    def remove_proxy_host(self, source: str) -> str:
+        # Remove hosts without ports
+        result = re.sub(re.escape("." + self._proxy_host), "", source, flags=re.IGNORECASE)
 
-    def _ensure_http(self, match: re.Match[str]) -> str:
-        return "http" + match.group(2)
-
-    def ensure_proxy_url(self, source: str) -> str:
-        # Lowercase all bob's hosts
-        result = re.sub(re.escape(self._bob_host), self._bob_host, source, flags=re.IGNORECASE)
-
-        # Replace with full proxy hosts
-        result = result.replace(self._bob_host, self._full_proxy_host)
-        if not self._support_https:
-            result = result.replace("https", "http")
+        # Remove hosts with ports
+        result = re.sub(re.escape("." + self._proxy_host + f":{self._request.url.port}"), "", source, flags=re.IGNORECASE)
 
         return result
 
-    def ensure_bob_url(self, source: str) -> str:
-        pattern = re.escape("." + self._proxy_host)
-        return re.sub(pattern, "", source, flags=re.IGNORECASE)
+    def append_proxy_host(self, source: str) -> str:
+        # Lowercase all server's hosts
+        result = re.sub(re.escape(self._server_host), self._server_host, source, flags=re.IGNORECASE)
+
+        # Replace with full proxy hosts
+        result = result.replace(self._server_host, self.full_proxy_host)
+        return result
+
+    def is_ws_request(self) -> bool:
+        headers = self._request.headers
+        upgrade = str(headers.get(hdrs.UPGRADE)).lower()
+        connection = str(headers.get(hdrs.CONNECTION)).lower()
+        return upgrade == "websocket" and connection == "upgrade"
+
+    async def handle(self) -> Union[web.WebSocketResponse, web.StreamResponse]:
+        method = self._request.method
+        url = URL.build(scheme="https", host=self._server_host, path=self._request.path, query_string=self._request.query_string)
+        headers = self.forward_client_headers()
+
+        interface = self._request.app.interface
+        interface.log(f"Proxy {method} {self._request.url} -> {url} with transformer {self}")
+
+        if self.is_ws_request():
+            client_ws = web.WebSocketResponse()
+            await client_ws.prepare(self._request)
+            try:
+                async with interface.proxy_session.ws_connect(url, method=method, headers=headers) as server_ws:
+                    await asyncio.gather(
+                        self.forward_ws_message(client_ws, server_ws),
+                        self.forward_ws_message(server_ws, client_ws),
+                    )
+
+            finally:
+                return client_ws
+
+        else:
+            try:
+                data = self._request.content.iter_chunked(4096) if method in self.data_sending_methods else None  # Use once, no retrying
+                async with interface.proxy_session.request(method, url, headers=headers, data=data, allow_redirects=True) as response:
+                    headers = self.forward_server_headers(response.headers)
+                    if response.content_type in ("text/html", "text/javascript", "text/css"):
+                        data = await response.read()
+                        try:
+                            body = self.append_proxy_host(data.decode("utf-8"))
+                        except UnicodeDecodeError:
+                            body = data
+
+                        return web.Response(body=body, status=response.status, headers=headers)
+
+                    else:
+                        r = web.StreamResponse(status=response.status, headers=headers)
+                        with contextlib.suppress(ConnectionResetError):
+                            await r.prepare(self._request)
+                            async for data in response.content.iter_chunked(2048):
+                                await r.write(data)
+
+                        return r
+
+            except aiohttp.ServerConnectionError:
+                raise web.HTTPInternalServerError
 
     def __repr__(self) -> str:
-        return f"<HTTPContentTransformer bob={self._bob_host!r} proxy={self._proxy_host!r} support_https={self._support_https!r}>"
-
-
-def is_ws_request(headers: Mapping[str, str], /) -> bool:
-    upgrade = str(headers.get(hdrs.UPGRADE)).lower()
-    connection = str(headers.get(hdrs.CONNECTION)).lower()
-    return upgrade == "websocket" and connection == "upgrade"
-
-
-async def forward_ws_message(sender: Union[web.WebSocketResponse, aiohttp.ClientWebSocketResponse], receiver: Union[web.WebSocketResponse, aiohttp.ClientWebSocketResponse], /) -> None:
-    async for message in sender:
-        if message.type == aiohttp.WSMsgType.TEXT:
-            await receiver.send_str(message.data)
-        elif message.type == aiohttp.WSMsgType.BINARY:
-            await receiver.send_bytes(message.data)
-
-    await receiver.close(code=aiohttp.WSCloseCode.OK if sender.close_code is None else sender.close_code)
-
-
-async def proxy_handler(original: Request, /) -> Union[web.WebSocketResponse, web.StreamResponse]:
-    transformer = HTTPContentTransformer(proxy_url=original.url)
-
-    method = original.method
-    url = original.url.with_host(transformer.bob_host).with_port(None)
-    headers = transformer.forward_client_headers(original.headers)
-
-    interface = original.app.interface
-    interface.log(f"Proxy {method} {original.url} -> {url} with transformer {transformer}")
-    if is_ws_request(headers):
-        alice_ws = web.WebSocketResponse()
-        await alice_ws.prepare(original)
-        try:
-            async with interface.proxy_session.ws_connect(url, method=method, headers=headers) as bob_ws:
-                await asyncio.gather(
-                    forward_ws_message(alice_ws, bob_ws),
-                    forward_ws_message(bob_ws, alice_ws),
-                )
-
-        finally:
-            return alice_ws
-
-    else:
-        try:
-            data = original.content.iter_chunked(4096) if original.method in data_sending_methods else None  # Use once, no retrying
-            async with interface.proxy_session.request(method, url, headers=headers, data=data, allow_redirects=True) as response:
-                headers = transformer.forward_server_headers(response.headers)
-                if response.content_type in ("text/html", "text/javascript", "text/css"):
-                    data = await response.read()
-                    try:
-                        body = transformer.ensure_proxy_url(data.decode("utf-8"))
-                    except UnicodeDecodeError:
-                        body = data
-
-                    return web.Response(body=body, status=response.status, headers=headers)
-
-                else:
-                    r = web.StreamResponse(status=response.status, headers=headers)
-                    with contextlib.suppress(ConnectionResetError):
-                        await r.prepare(original)
-                        async for data in response.content.iter_chunked(2048):
-                            await r.write(data)
-
-                    return r
-
-        except aiohttp.ServerConnectionError:
-            raise web.HTTPInternalServerError
+        return f"<ProxyRequestTransformer server={self._server_host!r} proxy={self._proxy_host!r}>"
 
 
 @web.middleware
 async def proxy(request: Request, handler: Handler) -> web.Response:
-    if HTTPContentTransformer.get_proxy_host(request.url.authority) is not None:
-        return await proxy_handler(request)
-
-    return await handler(request)
+    try:
+        return await ProxyRequestHandler(request).handle()
+    except NotProxyRequest:
+        return await handler(request)
