@@ -88,7 +88,7 @@ class ProxyRequestHandler:
     @staticmethod
     def get_proxy_host(full_proxy_host: str) -> Optional[str]:
         for proxy_host in ProxyRequestHandler.possible_proxies:
-            if full_proxy_host.endswith(proxy_host):
+            if full_proxy_host.endswith("." + proxy_host):
                 return proxy_host
 
         return None
