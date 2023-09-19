@@ -119,11 +119,13 @@ class ProxyRequestHandler:
         return headers
 
     def remove_proxy_host(self, source: str) -> str:
-        # Remove hosts without ports
-        result = re.sub(re.escape("." + self._proxy_host), "", source, flags=re.IGNORECASE)
+        result = source
 
         # Remove hosts with ports
-        result = re.sub(re.escape("." + self._proxy_host + f":{self._request.url.port}"), "", source, flags=re.IGNORECASE)
+        result = re.sub(re.escape("." + self._proxy_host + f":{self._request.url.port}"), "", result, flags=re.IGNORECASE)
+
+        # Remove hosts without ports
+        result = re.sub(re.escape("." + self._proxy_host), "", result, flags=re.IGNORECASE)
 
         return result
 
