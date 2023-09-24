@@ -188,7 +188,7 @@ class ProxyRequestHandler:
                         return r
 
             except aiohttp.ClientError as error:
-                interface.log(format_exception(error))
+                interface.log(f"Proxy error within server side:\nHeaders:{headers!r}\n{format_exception(error)}")
                 raise web.HTTPInternalServerError
 
     def __repr__(self) -> str:
