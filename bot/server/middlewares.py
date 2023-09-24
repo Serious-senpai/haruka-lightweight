@@ -55,7 +55,33 @@ class ProxyRequestHandler:
         request: Request
         server_host: str
 
-    excluded_server_headers: ClassVar[Set[str]] = set(s.casefold() for s in ["Content-Encoding", "Content-Length", "Date", "Server", "Transfer-Encoding"])
+    excluded_client_headers: ClassVar[Set[str]] = set(
+        s.casefold() for s in [
+            "X-ARR-LOG-ID",
+            "CLIENT-IP",
+            "X-Client-IP",
+            "DISGUISED-HOST",
+            "X-SITE-DEPLOYMENT-ID",
+            "WAS-DEFAULT-HOSTNAME",
+            "X-Forwarded-Proto",
+            "X-AppService-Proto",
+            "X-ARR-SSL",
+            "X-Forwarded-TlsVersion",
+            "X-Forwarded-For",
+            "X-Original-URL",
+            "X-WAWS-Unencoded-URL",
+            "X-Client-Port",
+        ]
+    )
+    excluded_server_headers: ClassVar[Set[str]] = set(
+        s.casefold() for s in [
+            "Content-Encoding",
+            "Content-Length",
+            "Date",
+            "Server",
+            "Transfer-Encoding",
+        ]
+    )
     possible_proxies: ClassVar[Set[str]] = {
         "haruka39.me",
         "haruka39.azurewebsites.net",
@@ -106,7 +132,8 @@ class ProxyRequestHandler:
     def forward_client_headers(self) -> Dict[str, str]:
         headers = {}
         for key, value in self._request.headers.items():
-            headers[key] = self.remove_proxy_host(value)
+            if key.casefold() not in self.excluded_client_headers:
+                headers[key] = self.remove_proxy_host(value)
 
         return headers
 
