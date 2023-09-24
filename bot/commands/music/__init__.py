@@ -6,3 +6,4 @@ from .resume import *
 from .shuffle import *
 from .skip import *
 from .stop import *
+from .vping import *
