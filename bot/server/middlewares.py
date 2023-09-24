@@ -145,7 +145,7 @@ class ProxyRequestHandler:
 
     async def handle(self) -> Union[web.WebSocketResponse, web.StreamResponse]:
         method = self._request.method
-        url = URL.build(scheme="https", host=self._server_host, path=self._request.path, query_string=self._request.query_string)
+        url = self._request.url.with_host(self._server_host)
         headers = self.forward_client_headers()
 
         interface = self._request.app.interface
@@ -187,11 +187,12 @@ class ProxyRequestHandler:
 
                         return r
 
-            except (aiohttp.ServerConnectionError, aiohttp.TooManyRedirects):
+            except aiohttp.ClientError as error:
+                interface.log(format_exception(error))
                 raise web.HTTPInternalServerError
 
     def __repr__(self) -> str:
-        return f"<ProxyRequestTransformer server={self._server_host!r} proxy={self._proxy_host!r}>"
+        return f"<ProxyRequestTransformer server={self._server_host!r} proxy={self._proxy_host!r} is_ws_request={self.is_ws_request()}>"
 
 
 @web.middleware
