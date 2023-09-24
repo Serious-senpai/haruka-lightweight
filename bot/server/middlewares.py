@@ -57,6 +57,7 @@ class ProxyRequestHandler:
 
     excluded_client_headers: ClassVar[Set[str]] = set(
         s.casefold() for s in [
+            "Host",
             "X-ARR-LOG-ID",
             "CLIENT-IP",
             "X-Client-IP",
