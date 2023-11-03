@@ -12,9 +12,9 @@ from bs4 import BeautifulSoup
 from discord.utils import escape_markdown
 from yarl import URL
 
-import global_utils
 from .tags import Tag
 from .users import User
+from global_utils import slice_string
 from shared import SharedInterface
 if TYPE_CHECKING:
     from haruka import Haruka
@@ -80,7 +80,7 @@ class Artwork:
     async def prepare_message(self, bot: Haruka) -> Tuple[discord.Embed, Optional[discord.File]]:
         embed = discord.Embed(
             title=escape_markdown(self.title),
-            description=global_utils.slice_string(escape_markdown(self.description), 1000),
+            description=slice_string(escape_markdown(self.description), 4000),
             url=self.url,
             timestamp=self.created_at,
         )
@@ -90,7 +90,7 @@ class Artwork:
         if self.tags:
             embed.add_field(
                 name="Tags",
-                value=", ".join(f"[{str(tag)}]({tag.url})" for tag in self.tags),
+                value=slice_string(", ".join(f"[{str(tag)}]({tag.url})" for tag in self.tags), 1000),
                 inline=False,
             )
 
