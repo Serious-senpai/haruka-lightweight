@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from discord.utils import escape_markdown
 from yarl import URL
 
+import global_utils
 from .tags import Tag
 from .users import User
 from shared import SharedInterface
@@ -79,7 +80,7 @@ class Artwork:
     async def prepare_message(self, bot: Haruka) -> Tuple[discord.Embed, Optional[discord.File]]:
         embed = discord.Embed(
             title=escape_markdown(self.title),
-            description=escape_markdown(self.description),
+            description=global_utils.slice_string(escape_markdown(self.description), 1000),
             url=self.url,
             timestamp=self.created_at,
         )
