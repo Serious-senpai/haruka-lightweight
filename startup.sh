@@ -6,6 +6,7 @@ pid=$!
 echo "Started dummy HTTP server with process $pid"
 
 pip install -r requirements.txt
+apt update
 apt install ffmpeg g++ -y
 g++ -std=c++2a -Wall bot/c++/fuzzy.cpp -o bot/c++/fuzzy.out
 g++ -std=c++2a -Wall bot/c++/concat.cpp -o bot/c++/concat.out
