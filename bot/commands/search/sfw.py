@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 from customs import Context
-from lib import images
+from core import images
 from shared import interface
 
 

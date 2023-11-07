@@ -5,7 +5,7 @@ import discord
 from discord import app_commands
 
 from customs import Interaction
-from lib import pixiv
+from core import pixiv
 from shared import interface
 
 

@@ -6,7 +6,7 @@ from discord.utils import escape_markdown
 
 import emoji_ui
 from customs import Context
-from lib import mal
+from core import mal
 from shared import interface
 
 

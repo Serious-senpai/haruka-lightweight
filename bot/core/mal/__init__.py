@@ -1,4 +1,4 @@
-#!/bot/lib/mal
+#!/bot/core/mal
 from .abc import *
 from .anime import *
 from .manga import *

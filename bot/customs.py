@@ -14,7 +14,7 @@ from pyodbc import Row
 
 if TYPE_CHECKING:
     from haruka import Haruka
-    from lib.youtube import AudioPlayer
+    from core.youtube import AudioPlayer
 
 
 if sys.platform == "win32":

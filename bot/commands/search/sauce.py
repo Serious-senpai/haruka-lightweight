@@ -7,7 +7,7 @@ from discord.ext import commands
 
 import emoji_ui
 from customs import Context
-from lib import saucenao
+from core import saucenao
 from shared import interface
 
 

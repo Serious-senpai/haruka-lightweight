@@ -102,4 +102,4 @@ class Track:
             return await cls.from_id(url.query["v"])
 
     def __repr__(self) -> str:
-        return f"<Track title={self.title} id={self.id} author={self.author}>"
+        return f"<Track title={self.title!r} id={self.id!r} author={self.author!r}>"

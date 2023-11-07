@@ -10,7 +10,7 @@ from discord.ext import commands
 
 from customs import Context, Interaction
 from shared import interface
-from lib.classifier import LearnerManager
+from core.classifier import LearnerManager
 
 
 async def process_url(url: str, /) -> Tuple[str, float, bytes]:

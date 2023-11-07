@@ -2,7 +2,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from customs import Context, Interaction
-from lib import urban
+from core import urban
 from shared import interface
 
 

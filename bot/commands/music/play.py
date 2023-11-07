@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 
 from customs import Context
-from lib import youtube
+from core import youtube
 from shared import interface
 
 

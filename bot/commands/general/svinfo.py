@@ -4,7 +4,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from customs import Context, Interaction
-from lib import info
+from core import info
 from shared import interface
 
 

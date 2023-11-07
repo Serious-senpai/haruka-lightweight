@@ -5,7 +5,7 @@ from discord.ext import commands
 
 import emoji_ui
 from customs import Context
-from lib import zerochan
+from core import zerochan
 from shared import interface
 
 

@@ -89,4 +89,4 @@ class Playlist:
             return await cls.from_id(url.query["list"])
 
     def __repr__(self) -> str:
-        return f"<Playlist title={self.title} id={self.id}> author={self.author}"
+        return f"<Playlist title={self.title!r} id={self.id!r} author={self.author!r}>"

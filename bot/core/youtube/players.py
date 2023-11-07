@@ -186,20 +186,19 @@ class AudioPlayer(discord.VoiceClient):
                 "-filter:a", "volume=0.2",
             )
 
-            with contextlib.suppress(discord.HTTPException):
-                if self.target is not None:
-                    await self.target.typing()
+            if self.target is not None:
+                await self.target.typing()
 
-                source = discord.FFmpegOpusAudio(
-                    audio_url,
-                    bitrate=self.bitrate,
-                    stderr=self.client.interface.logfile,
-                    before_options=shlex.join(before_options),
-                    options=shlex.join(options),
-                )
+            source = discord.FFmpegOpusAudio(
+                audio_url,
+                bitrate=self.bitrate,
+                stderr=self.client.interface.logfile,
+                before_options=shlex.join(before_options),
+                options=shlex.join(options),
+            )
 
-                embed.add_field(name="Playing in", value=self.channel.mention)
-                await self.notify(embed=embed)
+            embed.add_field(name="Playing in", value=self.channel.mention)
+            await self.notify(embed=embed)
 
             if self.__stop_request or not self.is_connected():
                 return
