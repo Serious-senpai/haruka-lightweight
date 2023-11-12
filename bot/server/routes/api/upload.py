@@ -61,7 +61,7 @@ async def handler(request: Request) -> web.Response:
                     "--directory", str(extract_dir),
                     stderr=asyncio.subprocess.PIPE,
                 )
-                await process.communicate()
+                asyncio.create_task(process.communicate())
 
             return web.Response(status=204)
 
