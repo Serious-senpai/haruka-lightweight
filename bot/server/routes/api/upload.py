@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import ntpath
 from pathlib import Path
-from typing import Set, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from aiohttp import web
 
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
 UPLOAD_DIR = Path("uploaded")
 UPLOAD_DIR.mkdir(exist_ok=True)
 router.static("/uploaded", UPLOAD_DIR, show_index=True)
-allowed_uploads: Set[int] = set([OWNER_ID])
+allowed_uploads = {OWNER_ID}
 
 
 @router.post("/upload")
@@ -25,7 +26,7 @@ async def handler(request: Request) -> web.Response:
     if user is not None and user.id in allowed_uploads:
         try:
             name = ntpath.basename(request.query["name"])
-            assert name
+            assert isinstance(name, str) and len(name) > 0
         except (AssertionError, KeyError):
             return web.Response(
                 text="Missing \"name\" query parameter",
@@ -40,14 +41,27 @@ async def handler(request: Request) -> web.Response:
                     content_type="text/plain",
                 )
 
-            path = UPLOAD_DIR / str(user.id)
-            path.mkdir(parents=True, exist_ok=True)
+            user_dir = UPLOAD_DIR / str(user.id)
+            user_dir.mkdir(parents=True, exist_ok=True)
 
-            path /= name
-            with path.open("wb") as file:
+            file_path = user_dir / name
+            with file_path.open("wb") as file:
                 reader = request.content
                 while data := await reader.read(1024):
                     file.write(data)
+
+            extract = bool(request.query.get("extract", False))
+            if extract:
+                extract_dir = user_dir / name.removesuffix(".tar")
+                extract_dir.mkdir(parents=True, exist_ok=True)
+
+                process = await asyncio.create_subprocess_exec(
+                    "tar",
+                    "-xf", str(file_path),
+                    "--directory", str(extract_dir),
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                await process.communicate()
 
             return web.Response(status=204)
 
