@@ -63,7 +63,14 @@ async def handler(ctx: Context, *, code: str) -> None:
                 finally:
                     setattr(ctx.bot, EVAL_TASK_ATTR, None)
 
-    await ctx.send(
-        f"Process completed after {global_utils.format(measure.result)}.",
-        file=discord.File(EVAL_PATH) if path.getsize(EVAL_PATH) > 0 else None,
-    )
+    header = f"Process completed after {global_utils.format(measure.result)}."
+    if path.getsize(EVAL_PATH) == 0:
+        await ctx.send(header)
+    else:
+        with open(EVAL_PATH, "r", encoding="utf-8") as file:
+            content = file.read()
+
+        if len(content) > 1800:
+            await ctx.send(header, file=discord.File(EVAL_PATH))
+        else:
+            await ctx.send(f"{header}\n```\n{content}\n```")
