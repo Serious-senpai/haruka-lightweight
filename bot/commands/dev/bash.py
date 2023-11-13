@@ -22,10 +22,11 @@ from shared import interface
 )
 @commands.is_owner()
 @commands.max_concurrency(1)
-async def handler(ctx: Context, *, cmd: str) -> None:
+async def handler(ctx: Context, *, command: str) -> None:
+    command = command.strip("`")
     with open(BASH_PATH, "w", encoding="utf-8") as writer:
         with global_utils.TimingContextManager() as measure:
-            process = await asyncio.create_subprocess_shell(cmd, stdout=writer, stderr=writer)
+            process = await asyncio.create_subprocess_shell(command, stdout=writer, stderr=writer)
             try:
                 await process.communicate()
             except asyncio.TimeoutError:
