@@ -6,6 +6,7 @@ Invite Haruka [here](https://discord.com/api/oauth2/authorize?client_id=84817817
 ### Within Discord (via text commands/slash commands)
 - Custom prefixes for different guilds (a.k.a. servers)
 - Anime girl image classification, currently supported:
+  - [Gawr Gura](https://virtualyoutuber.fandom.com/wiki/Gawr_Gura)
   - [Hatsune Miku](https://en.wikipedia.org/wiki/Hatsune_Miku)
   - [Nakiri Ayame](https://virtualyoutuber.fandom.com/wiki/Nakiri_Ayame)
   - [Shirakami Fubuki](https://virtualyoutuber.fandom.com/wiki/Shirakami_Fubuki)
