@@ -118,7 +118,11 @@ class PartialArtwork:
                     index += 1
                     if index >= len(artworks):
                         page += 1
-                        artworks.extend(await PartialArtwork.search(query, page=page))
+                        next_page = await PartialArtwork.search(query, page=page)
+                        artworks.extend(next_page)
+                        if len(next_page) == 0:
+                            index = 0
+
                 else:
                     raise ValueError(f"Unknown action = {action}")
 
