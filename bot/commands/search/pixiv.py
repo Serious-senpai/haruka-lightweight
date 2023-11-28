@@ -44,4 +44,5 @@ async def handler(interaction: Interaction, identifier: str, display_url: Option
             return
 
     # identifier is a searching query
+    await interaction.followup.send(f"Searching Pixiv for `{identifier}`")
     await pixiv.PartialArtwork.display_search(query=identifier, target=interaction.channel, bot=interaction.client)
