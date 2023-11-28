@@ -17,7 +17,7 @@ ID_PATTERN = re.compile(r"^(\d+)$")
     name="pixiv",
     description="Display a Pixiv artwork",
 )
-@app_commands.describe(identifier="The artwork URL or ID", display_url="The URL to the image to display if auto-fetching fails")
+@app_commands.describe(identifier="The artwork URL, ID or a searching query", display_url="The URL to the image to display if auto-fetching fails")
 async def handler(interaction: Interaction, identifier: str, display_url: Optional[str]) -> None:
     await interaction.response.defer()
     for pattern in (URL_PATTERN, ID_PATTERN):
@@ -43,4 +43,5 @@ async def handler(interaction: Interaction, identifier: str, display_url: Option
 
             return
 
-    await interaction.followup.send("Invalid artwork identifier")
+    # identifier is a searching query
+    await pixiv.PartialArtwork.display_search(query=identifier, target=interaction.channel, bot=interaction.client)

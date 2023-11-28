@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
 
 from yarl import URL
 
@@ -34,12 +34,24 @@ class Tag:
     def translate(self, language: str = "en") -> Optional[str]:
         return self._translations.get(language)
 
-    @property
-    def url(self) -> URL:
-        return URL.build(scheme="https", host="www.pixiv.net", path=f"/en/tags/{self.name}/artworks")
+    @staticmethod
+    def url(tag: Union[str, Tag]) -> URL:
+        name = tag.name if isinstance(tag, Tag) else tag
+        return URL.build(scheme="https", host="www.pixiv.net", path=f"/en/tags/{name}/artworks")
 
     def __str__(self) -> str:
         return self.translate() or self.name
 
     def __repr__(self) -> str:
         return f"<Tag name={self.name} translations={list(self._translations.keys())}>"
+
+    @classmethod
+    def guess(cls, payload: Dict[str, Any], /) -> List[Union[str, Tag]]:
+        data = payload["tags"]
+        if isinstance(data, dict):
+            return [Tag(d) for d in data["tags"]]
+
+        if isinstance(data, list):
+            return data
+
+        raise TypeError(f"Unrecognized data: {data!r}")

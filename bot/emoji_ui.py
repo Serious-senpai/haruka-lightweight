@@ -212,7 +212,7 @@ class NavigatorPagination(EmojiUI):
 
     def __init__(self, bot: Haruka, pages: List[discord.Embed]) -> None:
         self.pages = pages
-        super().__init__(bot, NAVIGATOR[:])
+        super().__init__(bot, NAVIGATOR)
 
     async def send(self, target: discord.abc.Messageable, *, user_id: Optional[int] = None) -> None:
         """This function is a coroutine
