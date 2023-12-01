@@ -77,6 +77,10 @@ class PartialArtwork:
         index = 0
         page = 1
         artworks = await PartialArtwork.search(query, page=page)
+        if len(artworks) == 0:
+            await target.send(f"No artwork found from query string `{query}`")
+            return
+
         artwork = artworks[0] = await artworks[0].fetch()
         embed, file = await artwork.prepare_message(bot)
         embed.set_footer(text=f"Result #{index + 1}")
