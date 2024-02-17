@@ -11,9 +11,6 @@ updates:
       interval: "daily"
     commit-message:
       prefix: "[pip] "
-    target-branch: "upgrade-packages"
-    reviewers:
-      - "Serious-senpai"
 
   - package-ecosystem: "npm"
     directory: "/bot/web"
@@ -21,9 +18,6 @@ updates:
       interval: "daily"
     commit-message:
       prefix: "[npm] "
-    target-branch: "upgrade-packages"
-    reviewers:
-      - "Serious-senpai"
 
   - package-ecosystem: "github-actions"
     # Workflow files stored in the
@@ -33,6 +27,3 @@ updates:
       interval: "daily"
     commit-message:
       prefix: "[Actions] "
-    target-branch: "upgrade-packages"
-    reviewers:
-      - "Serious-senpai"
