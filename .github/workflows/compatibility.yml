@@ -50,7 +50,7 @@ jobs:
       run: tsc
 
     - name: Upload compiled Javascript file
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: typescript-built
         path: bot/web/scripts/script.js
